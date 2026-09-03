@@ -32,7 +32,7 @@ function call(options, fallback) {
 export const enterRecord = data => call({ url: '/api/zycck/records/enter', method: 'POST', data }, '游戏入口校验失败，请重新扫码')
 export const getCatalog = params => call({ url: '/api/zycck/catalog', method: 'GET', params }, '职业内容加载失败，请稍后重试')
 export const startRecord = recordId => call({ url: `/api/zycck/records/${recordId}/start`, method: 'POST' }, '游戏启动失败，请稍后重试')
-export const getRecord = recordId => call({ url: `/api/zycck/records/${recordId}`, method: 'GET' }, '游戏进度加载失败，请重试')
+export const getRecord = (recordId, params) => call({ url: `/api/zycck/records/${recordId}`, method: 'GET', params }, '游戏进度加载失败，请重试')
 export const submitAnswer = (recordId, data) => call({ url: `/api/zycck/records/${recordId}/answers`, method: 'POST', data }, '答案提交失败，请重试')
 export const submitAwareness = (recordId, data) => call({ url: `/api/zycck/records/${recordId}/awareness`, method: 'POST', data }, '了解程度提交失败，请重试')
 export const browseCareer = (recordId, careerId) => call({ url: `/api/zycck/records/${recordId}/browse`, method: 'POST', data: { careerId } }, '职业浏览记录保存失败，请重试')
