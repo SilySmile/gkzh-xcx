@@ -1,0 +1,3 @@
+<template><view class="page"><text class="title">阶段性总结</text><text class="sub">你刚刚认识了 5 个职业，职业世界远不止这些。</text><button type="primary" @click="goExplore">继续探索职业世界</button></view></template>
+<script>export default{data:()=>({recordId:'',instanceId:'',gameId:''}),onLoad(o){Object.assign(this,{recordId:o.recordId||'',instanceId:o.instanceId||'',gameId:o.gameId||''})},methods:{goExplore(){uni.redirectTo({url:`/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}`})}}}</script>
+<style scoped>.page{padding:140rpx 48rpx;text-align:center}.title{display:block;font-size:48rpx;font-weight:700;color:#1a2c4a}.sub{display:block;margin:40rpx 0 100rpx;color:#667085;line-height:1.8}</style>
