@@ -50,18 +50,16 @@ export function downloadReportPdf(params = {}) {
     .join('&')
   const token = uni.getStorageSync('token')
   return new Promise((resolve, reject) => {
-    uni.request({
+    // downloadFile 将文件流落到临时文件，便于小程序 openDocument 预览。
+    uni.downloadFile({
       url: `${config.BASE_URL}/api/zycck/report/pdf${query ? '?' + query : ''}`,
-      method: 'GET',
-      responseType: 'arraybuffer',
       timeout: config.TIMEOUT,
       header: { 'X-Front-Token': token ? `Bearer ${token}` : '' },
       success: response => {
-        if (response.statusCode === 200 && response.data) return resolve(response)
+        if (response.statusCode === 200 && response.tempFilePath) return resolve(response)
         reject(new Error('PDF 下载失败，请稍后重试'))
       },
       fail: () => reject(new Error('PDF 下载失败，请检查网络后重试'))
     })
   }).catch(error => { throw new Error(userMessage(error, 'PDF 下载失败，请稍后重试')) })
 }
-
