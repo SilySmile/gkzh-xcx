@@ -1,0 +1,219 @@
+{
+    "pages": [
+      {
+        "path": "pages/mp/home/index",
+        "style": {
+          "navigationBarTitleText": "首页",
+          "navigationStyle": "custom"
+        }
+      },
+      {"path":"pages/staff/login","style":{"navigationBarTitleText":"工作人员登录"}},
+      {"path":"pages/staff/index","style":{"navigationBarTitleText":"工作人员中心"}},
+      {"path":"pages/staff/prizes","style":{"navigationBarTitleText":"奖品核销记录"}},
+      {"path":"pages/staff/redeem","style":{"navigationBarTitleText":"奖品核销"}},
+      {"path":"pages/staff/statistics","style":{"navigationBarTitleText":"代码统计"}},
+      {"path":"pages/staff/activity-statistics","style":{"navigationBarTitleText":"活动统计"}},
+      {"path":"pages/staff/game-statistics","style":{"navigationBarTitleText":"游戏人数统计"}},
+      {
+        "path": "pages/mp/login/index",
+        "style": {
+          "navigationBarTitleText": "登录",
+          "navigationStyle": "custom"
+        }
+      },
+        {
+            "path": "pages/index/index",
+            "style": {
+                "navigationBarTitleText": "首页",
+                "navigationStyle": "custom"
+            }
+        },
+      {
+        "path": "pages/mp/mine/index",
+        "style": {
+          "navigationBarTitleText": "个人中心",
+          "navigationStyle": "custom"
+        }
+      },
+        {
+            "path": "pages/checkin/index",
+            "style": {
+                "navigationBarTitleText": "活动签到",
+                "navigationStyle": "custom"
+            }
+        },
+          {
+              "path": "pages/xycc/start",
+              "style": {
+                  "navigationBarTitleText": "开始游戏",
+                  "navigationStyle": "custom"
+              }
+          },
+          {
+              "path": "pages/xycc/index",
+            "style": {
+                "navigationBarTitleText": "心愿橱窗",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/xycc/result",
+            "style": {
+                "navigationBarTitleText": "测评结果",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/xycc/codes",
+            "style": {
+                "navigationBarTitleText": "编码解释",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/lottery/index",
+            "style": {
+                "navigationBarTitleText": "转盘抽奖",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/wjyd/index",
+            "style": {
+                "navigationBarTitleText": "职场危机应对",
+                "navigationStyle": "custom"
+            }
+        },
+		{
+		    "path": "pages/cyzs/index",
+		    "style": {
+		        "navigationBarTitleText": "创业知识",
+		        "navigationStyle": "custom"
+		    }
+		},
+        {
+            "path": "pages/wjdc/index",
+            "style": {
+                "navigationBarTitleText": "问卷调查",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/wjdc/general",
+            "style": {
+                "navigationBarTitleText": "问卷调查",
+                "navigationStyle": "custom"
+            }
+        },
+		{
+					"path": "pages/zyxxz/channel",
+					"style": {
+						"navigationBarTitleText": "职业信息站",
+						"navigationStyle": "custom"
+					}
+		},
+		{
+					"path": "pages/zytj/index",
+				    "style": {
+				        "navigationBarTitleText": "职愿探究",
+				        "navigationStyle": "custom"
+				    }
+				},
+		{
+					"path": "pages/sszctop/index",
+					"style": {"navigationBarTitleText": "谁是职场TOP", "navigationStyle": "custom"}
+				},
+		{
+					"path": "pages/sszctop/report",
+					"style": {"navigationBarTitleText": "谁是职场TOP报告"}
+				},
+        {
+						    "path": "pages/zytj/result",
+						    "style": {
+						        "navigationBarTitleText": "性格类型",
+						        "navigationStyle": "custom"
+						    }
+						},
+		{
+								    "path": "pages/zytj/detail",
+								    "style": {
+								        "navigationBarTitleText": "性格详解",
+								        "navigationStyle": "custom"
+								    }
+								},
+        {
+										    "path": "pages/zytj/career",
+										    "style": {
+										        "navigationBarTitleText": "职业推荐",
+										        "navigationStyle": "custom"
+										    }
+										},
+        {
+            "path": "pages/activity/index",
+            "style": {
+                "navigationBarTitleText": "活动",
+                "navigationStyle": "custom",
+                "backgroundColor": "#ffffff",
+                
+                "backgroundTextStyle": "dark",
+                "disableScroll": true,
+                "app-plus": {
+                    "bounce": "vertical",
+                    
+                    "bounceBackground": "#ffffff"
+                    
+                }
+            }
+        },
+        {
+            "path": "pages/activity/week",
+            "style": {
+                "navigationBarTitleText": "活动周",
+                "navigationStyle": "custom"
+            }
+        },
+      {
+        "path": "pages/mp/register/index",
+        "style": {
+          "navigationBarTitleText": "注册",
+          "navigationStyle": "custom"
+        }
+      },
+      {
+        "path": "pages/mp/sub-pages/all-features/index",
+        "style": {
+          "navigationBarTitleText": "全部功能",
+          "navigationStyle": "custom"
+        }
+      },
+      {
+        "path": "pages/mp/sub-pages/career-week/index",
+        "style": {
+          "navigationBarTitleText": "生涯驿站 - 活动广场",
+          "navigationStyle": "custom"
+        }
+      },
+      {
+        "path": "pages/mp/sub-pages/personal-report/index",
+        "style": {
+          "navigationBarTitleText": "个人报告",
+          "navigationStyle": "custom"
+        }
+      },
+        {
+            "path": "pages/signout/index",
+            "style": {
+                "navigationBarTitleText": "签退",
+                "enablePullDownRefresh": false,
+                "disableScroll": true
+            }
+		}
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "uni-app",
+        "navigationBarBackgroundColor": "#1B76FE",
+        "backgroundColor": "#F8F8F8"
+    },
+    "uniIdRouter": {}
+}
