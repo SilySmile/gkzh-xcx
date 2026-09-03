@@ -91,6 +91,7 @@
 	import { getJsSdkConfig } from '@/api/index';
 	import { getProfile } from '@/api/checkin';
 	import { getWeekFlow, enterWeekGame } from '@/api/activity/week';
+	import { enterRecord, userMessage } from '@/api/zycck';
 
 	// 微信SDK导入 - 仅在H5环境下使用
 
@@ -429,11 +430,27 @@
 			handleScanResult(result) {
 				// 新活动二维码：直接按 URL 跳转
 				// 游戏二维码以 GKZH_MP: 小程序文本码保存，微信相机不会把它当成网页 URL 打开。
-				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1)) {
+				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1)) {
 					const query = this.parseScanQuery(result)
 					const params = Object.keys(query).map(k => k + '=' + encodeURIComponent(query[k])).join('&')
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
 					const isSszctop = result.indexOf('/pages/sszctop/index') > -1 || query.gameType === 'sszctop'
+					const isZycck = result.indexOf('/pages/zycck/start') > -1 || query.gameType === 'zycck'
+					if (isZycck) {
+						if (!query.instanceId || !query.gameId) {
+							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+							return
+						}
+						try {
+							const entered = await enterRecord({ instanceId: query.instanceId, gameId: query.gameId, gameType: 'zycck', schoolId: uni.getStorageSync('schoolId') })
+							const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+							if (!recordId) throw new Error('记录创建失败')
+							uni.navigateTo({ url: `/pages/zycck/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}` })
+						} catch (e) {
+							uni.showToast({ title: userMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+						}
+						return
+					}
 					if (isXyccStart) {
 						// 直达心愿橱窗开始页也要先核验活动和游戏，不能只信二维码中的 gameId。
 						if (!query.instanceId || !query.gameId) {

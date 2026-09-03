@@ -141,6 +141,10 @@ export default {
 							uni.navigateTo({ url: '/pages/xycc/start?activityId=' + this.instanceId + '&gameId=' + this.gameId })
 							return
 						}
+						if (game.gameType === 'zycck') {
+							this.playGame(game)
+							return
+						}
 						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(() => {
 							uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
@@ -163,6 +167,7 @@ export default {
 				case 'zytj': url = '/pages/zytj/index'; break
 				case 'sszctop': url = '/pages/sszctop/index'; break
 				case 'zyxxz': url = '/pages/zyxxz/channel'; break
+				case 'zycck': url = '/pages/zycck/start'; break
 				default: url = ''
 			}
 			if (!url) {

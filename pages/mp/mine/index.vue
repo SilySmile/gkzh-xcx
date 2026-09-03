@@ -97,6 +97,7 @@
 
 <script>
 import { getWeekFlow, enterWeekGame } from '@/api/activity/week'
+import { enterRecord, userMessage } from '@/api/zycck'
 
 export default {
 	data() {
@@ -168,7 +169,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -181,6 +182,7 @@ export default {
 				})
 				const isXyccStartCode = result.indexOf('/pages/xycc/start') > -1
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
+				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -195,6 +197,21 @@ export default {
 					'zyxxz': '/pages/zyxxz/channel'
 				}
 				const gameUrl = isXyccStartCode ? '/pages/xycc/index' : (isSszctopDirectCode ? '/pages/sszctop/index' : (map[params.gameType] || ''))
+				if (isZycck) {
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterRecord({ instanceId: params.instanceId, gameId: params.gameId, gameType: 'zycck', schoolId: uni.getStorageSync('schoolId') })
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({ url: `/pages/zycck/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}` })
+					} catch (e) {
+						uni.showToast({ title: userMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
 				if (!gameUrl) {
 					uni.showModal({ title: '提示', content: '二维码缺少游戏类型，请到Web后台重新生成游戏二维码', showCancel: false })
 					return

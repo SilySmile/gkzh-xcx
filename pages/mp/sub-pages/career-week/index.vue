@@ -261,7 +261,7 @@ export default {
         				})
         				return
         			}
-			if (task.id) {
+							if (task.id && task.type !== 'zycck') {
 						try {
 							// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 							await enterWeekGame(task.id, this.instanceId)
@@ -296,9 +296,13 @@ export default {
         				case 'zytj':
         					url = '/pages/zytj/index'
         					break
-        				case 'zyxxz':
+					case 'zyxxz':
         					url = '/pages/zyxxz/channel'
-        					break
+							break
+
+					case 'zycck':
+							url = '/pages/zycck/start'
+							break
         				default:
         					url = '/pages/activity/week'
         			}
