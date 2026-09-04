@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { submitAwareness, userMessage } from '@/api/zycck'
+import { getRecord, submitAwareness, userMessage } from '@/api/zycck'
 import config from '@/config/api.js'
 
 export default {
@@ -93,9 +93,19 @@ export default {
         ? JSON.parse(decodeURIComponent(o.payload))
         : (uni.getStorageSync(`zycck_feedback_${this.recordId}`) || {})
     } catch (e) { this.data = {} }
+    if (!this.data.feedback) this.loadFeedback()
   },
   methods: {
     imageUrl(v) { return v && (/^\/(profile|upload)\//.test(v) ? config.BASE_URL + v : v) },
+    async loadFeedback() {
+      try {
+        const r = await getRecord(this.recordId)
+        const d = r.data || {}
+        if (d.feedback) this.data = d
+      } catch (e) {
+        uni.showToast({ title: userMessage(e, '反馈内容加载失败，请重试'), icon: 'none' })
+      }
+    },
     async submit(level) {
       if (this.busy) return
       this.busy = true

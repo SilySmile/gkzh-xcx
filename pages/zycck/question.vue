@@ -120,7 +120,7 @@ export default {
         const d = r.data || {}
         const feedback = d.feedback || d
         if (d.feedback || d.correctCareer) {
-          this.selectedKey = key
+          this.selectedKey = feedback.selectedOptionKey || key
           this.correctKey = feedback.correctOptionKey || ''
           this.answerCorrect = feedback.correct === true || feedback.correct === 'true'
           this.showResult = true
