@@ -427,7 +427,7 @@
 
 			},
 
-			handleScanResult(result) {
+			async handleScanResult(result) {
 				// 新活动二维码：直接按 URL 跳转
 				// 游戏二维码以 GKZH_MP: 小程序文本码保存，微信相机不会把它当成网页 URL 打开。
 				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1)) {
