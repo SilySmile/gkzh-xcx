@@ -74,7 +74,13 @@ export default {
       if (!this.recordId) return
       try {
         const r = await getRecord(this.recordId)
+        if (r.code && r.code !== 200) throw new Error(r.msg || '游戏进度加载失败')
         const d = r.data || {}
+        if (d.stage === 'feedback') {
+          if (d.feedback) uni.setStorageSync(`zycck_feedback_${this.recordId}`, d)
+          return uni.redirectTo({ url: `/pages/zycck/feedback?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}` })
+        }
+        if (d.stage === 'summary') return uni.redirectTo({ url: `/pages/zycck/summary?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}` })
         this.question = d.question || d.currentQuestion || {}
         this.currentNo = d.currentQuestionNo || this.question.questionNo || 1
         this.remaining = Number(d.remainingSeconds == null ? 60 : d.remainingSeconds)
@@ -117,6 +123,7 @@ export default {
       this.stopTimer()
       try {
         const r = await submitAnswer(this.recordId, { questionId: this.question.questionId, questionNo: this.currentNo, optionKey: key, timeoutFlag: false })
+        if (r.code && r.code !== 200) throw new Error(r.msg || '答案提交失败')
         const d = r.data || {}
         const feedback = d.feedback || d
         if (d.feedback || d.correctCareer) {
@@ -134,8 +141,14 @@ export default {
         }
       } catch (e) {
         this.submitting = false
-        uni.showToast({ title: userMessage(e, '答案提交失败，请重试'), icon: 'none' })
-        this.startTimer()
+        const message = userMessage(e, '答案提交失败，请重试')
+        if (message === '这道题已经提交过了') {
+          uni.showLoading({ title: '正在恢复进度' })
+          try { await this.load() } finally { uni.hideLoading() }
+        } else {
+          uni.showToast({ title: message, icon: 'none' })
+          this.startTimer()
+        }
       }
     },
     advance(d) {
