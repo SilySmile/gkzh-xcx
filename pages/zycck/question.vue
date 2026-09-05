@@ -11,7 +11,7 @@
 
     <image v-if="question.questionImageUrl" class="picture" :src="imageUrl(question.questionImageUrl)" mode="aspectFill" />
     <text class="prompt">猜猜以上内容是下面哪个职业的工作场景？</text>
-    <view v-for="(label, key) in options" :key="key" class="option" hover-class="option-hover" :class="optionClass(key)" @click="answer(key)">
+    <view v-for="(label, key) in options" :key="key" class="option" :class="optionClass(key)" :style="optionStyle(key)" @click="answer(key)">
       <text>{{ key }}. {{ label }}</text>
       <text v-if="showResult && key === correctKey" class="result-mark">正确答案</text>
       <text v-else-if="showResult && key === selectedKey" class="result-mark">你的选择</text>
@@ -70,6 +70,12 @@ export default {
         correct: this.showResult && key === this.correctKey,
         wrong: this.showResult && key === this.selectedKey && key !== this.correctKey
       }
+    },
+    optionStyle(key) {
+      if (this.showResult && key === this.correctKey) return 'background-color:#bdecc9;border-color:#34a853;color:#146b32;'
+      if (this.showResult && key === this.selectedKey && key !== this.correctKey) return 'background-color:#ffd0d0;border-color:#e34d59;color:#a61d2a;'
+      if (!this.showResult && key === this.pressedKey) return 'background-color:#dceaff;border-color:#75aaf7;color:#174f98;'
+      return ''
     },
     async load() {
       if (!this.recordId) return
@@ -171,4 +177,5 @@ export default {
 
 <style scoped>
 .page{min-height:100vh;padding:48rpx 28rpx 34rpx;box-sizing:border-box;background:#f5f7fb;display:flex;flex-direction:column;justify-content:center;animation:pageIn .35s ease-out}.head{display:flex;justify-content:space-between;align-items:center;color:#334155;font-size:28rpx;margin-bottom:18rpx}.game-title{font-size:38rpx;font-weight:800;color:#1f2937}.timer{min-width:170rpx;padding:12rpx 22rpx;text-align:center;border-radius:18rpx;background:#e8f1ff;color:#1b76fe;box-shadow:0 6rpx 18rpx rgba(27,118,254,.12)}.timer-label{display:block;font-size:22rpx}.timer-value{display:block;font-size:44rpx;font-weight:700;line-height:1.1}.timer-unit{font-size:22rpx;font-weight:400;margin-left:4rpx}.timer.warning{background:#fff0f0;color:#e34d59}.rule{width:52rpx;height:52rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#1b76fe;color:#fff;font-weight:700}.picture{width:100%;height:380rpx;margin:26rpx 0;border-radius:18rpx}.prompt{display:block;font-size:32rpx;color:#1f2937;margin-bottom:20rpx}.option{padding:28rpx;margin:14rpx 0;background:#fff;border:3rpx solid transparent;border-radius:14rpx;color:#243b53;box-shadow:0 4rpx 14rpx rgba(31,41,55,.04);display:flex;justify-content:space-between;align-items:center;transition:background .18s,transform .18s,border-color .18s}.option-hover{background:#edf4ff;transform:scale(.985)}.option.pressed{background:#dceaff;border-color:#75aaf7;transform:scale(.985)}.option.correct{background:#bdecc9;border-color:#34a853;color:#146b32}.option.wrong{background:#ffd0d0;border-color:#e34d59;color:#a61d2a}.result-mark{font-size:24rpx;font-weight:600}.result-tip{text-align:center;margin-top:18rpx;font-size:28rpx;font-weight:600}.result-correct{color:#23954c}.result-wrong{color:#d14343}.progress{display:block;margin-top:28rpx;text-align:center;color:#8a8176;font-size:26rpx}.button-hover{opacity:.8;transform:scale(.98)}.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10}.modal{width:640rpx;padding:44rpx;background:#fff;border-radius:20rpx}.modal-title{display:block;font-size:38rpx;font-weight:700;text-align:center}.modal-body{display:block;margin:34rpx 0;line-height:1.8;color:#475569}@keyframes pageIn{from{opacity:0;transform:translateY(18rpx)}to{opacity:1;transform:translateY(0)}}
+.button-hover{opacity:.8!important;transform:none!important}.option-hover{transform:none!important}.option.pressed{transform:none!important}
 </style>
