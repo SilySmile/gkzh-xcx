@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="head">
-      <text>第 {{ question.questionNo || currentNo || 1 }} 题 / 5</text>
+      <text class="game-title">未来职业猜猜看</text>
       <view class="timer" :class="{ warning: remaining <= 10 }">
         <text class="timer-label">剩余时间</text>
         <text class="timer-value">{{ remaining }}<text class="timer-unit">秒</text></text>
@@ -11,7 +11,7 @@
 
     <image v-if="question.questionImageUrl" class="picture" :src="imageUrl(question.questionImageUrl)" mode="aspectFill" />
     <text class="prompt">猜猜以上内容是下面哪个职业的工作场景？</text>
-    <view v-for="(label, key) in options" :key="key" class="option" :class="optionClass(key)" @click="answer(key)">
+    <view v-for="(label, key) in options" :key="key" class="option" hover-class="option-hover" :class="optionClass(key)" @click="answer(key)">
       <text>{{ key }}. {{ label }}</text>
       <text v-if="showResult && key === correctKey" class="result-mark">正确答案</text>
       <text v-else-if="showResult && key === selectedKey" class="result-mark">你的选择</text>
@@ -19,12 +19,13 @@
     <view v-if="showResult" class="result-tip" :class="answerCorrect ? 'result-correct' : 'result-wrong'">
       {{ answerCorrect ? '回答正确' : '回答错误，正确答案已标出' }}
     </view>
+    <text class="progress">==第{{ question.questionNo || currentNo || 1 }}个职业/共5个职业==</text>
 
     <view v-if="rulesVisible" class="mask">
       <view class="modal">
         <text class="modal-title">游戏规则</text>
         <text class="modal-body">每题限时 60 秒，选择一个答案。完成五题后继续探索职业世界。</text>
-        <button type="primary" @click="closeRules">我知道了</button>
+        <button type="primary" hover-class="button-hover" @click="closeRules">我知道了</button>
       </view>
     </view>
   </view>
@@ -167,5 +168,5 @@ export default {
 </script>
 
 <style scoped>
-.page{min-height:100vh;padding:48rpx 28rpx;box-sizing:border-box;background:#f5f7fb;display:flex;flex-direction:column;justify-content:center}.head{display:flex;justify-content:space-between;align-items:center;color:#334155;font-size:28rpx;margin-bottom:18rpx}.timer{min-width:170rpx;padding:12rpx 22rpx;text-align:center;border-radius:18rpx;background:#e8f1ff;color:#1b76fe;box-shadow:0 6rpx 18rpx rgba(27,118,254,.12)}.timer-label{display:block;font-size:22rpx}.timer-value{display:block;font-size:44rpx;font-weight:700;line-height:1.1}.timer-unit{font-size:22rpx;font-weight:400;margin-left:4rpx}.timer.warning{background:#fff0f0;color:#e34d59}.rule{width:52rpx;height:52rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#1b76fe;color:#fff;font-weight:700}.picture{width:100%;height:380rpx;margin:26rpx 0;border-radius:18rpx}.prompt{display:block;font-size:32rpx;color:#1f2937;margin-bottom:20rpx}.option{padding:28rpx;margin:14rpx 0;background:#fff;border:3rpx solid transparent;border-radius:14rpx;color:#243b53;box-shadow:0 4rpx 14rpx rgba(31,41,55,.04);display:flex;justify-content:space-between;align-items:center;transition:all .18s}.option.correct{background:#e9f8ee;border-color:#42b96c;color:#19723a}.option.wrong{background:#fff0f0;border-color:#e45858;color:#b52d2d}.disabled{opacity:.6}.result-mark{font-size:24rpx;font-weight:600}.result-tip{text-align:center;margin-top:18rpx;font-size:28rpx;font-weight:600}.result-correct{color:#23954c}.result-wrong{color:#d14343}.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10}.modal{width:640rpx;padding:44rpx;background:#fff;border-radius:20rpx}.modal-title{display:block;font-size:38rpx;font-weight:700;text-align:center}.modal-body{display:block;margin:34rpx 0;line-height:1.8;color:#475569}
+.page{min-height:100vh;padding:48rpx 28rpx 34rpx;box-sizing:border-box;background:#f5f7fb;display:flex;flex-direction:column;justify-content:center}.head{display:flex;justify-content:space-between;align-items:center;color:#334155;font-size:28rpx;margin-bottom:18rpx}.game-title{font-weight:700;color:#1f2937}.timer{min-width:170rpx;padding:12rpx 22rpx;text-align:center;border-radius:18rpx;background:#e8f1ff;color:#1b76fe;box-shadow:0 6rpx 18rpx rgba(27,118,254,.12)}.timer-label{display:block;font-size:22rpx}.timer-value{display:block;font-size:44rpx;font-weight:700;line-height:1.1}.timer-unit{font-size:22rpx;font-weight:400;margin-left:4rpx}.timer.warning{background:#fff0f0;color:#e34d59}.rule{width:52rpx;height:52rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#1b76fe;color:#fff;font-weight:700}.picture{width:100%;height:380rpx;margin:26rpx 0;border-radius:18rpx}.prompt{display:block;font-size:32rpx;color:#1f2937;margin-bottom:20rpx}.option{padding:28rpx;margin:14rpx 0;background:#fff;border:3rpx solid transparent;border-radius:14rpx;color:#243b53;box-shadow:0 4rpx 14rpx rgba(31,41,55,.04);display:flex;justify-content:space-between;align-items:center;transition:all .18s}.option-hover{background:#edf4ff;transform:scale(.985)}.option.correct{background:#e9f8ee;border-color:#42b96c;color:#19723a}.option.wrong{background:#fff0f0;border-color:#e45858;color:#b52d2d}.disabled{opacity:.6}.result-mark{font-size:24rpx;font-weight:600}.result-tip{text-align:center;margin-top:18rpx;font-size:28rpx;font-weight:600}.result-correct{color:#23954c}.result-wrong{color:#d14343}.progress{display:block;margin-top:28rpx;text-align:center;color:#8a8176;font-size:26rpx}.button-hover{opacity:.8;transform:scale(.98)}.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10}.modal{width:640rpx;padding:44rpx;background:#fff;border-radius:20rpx}.modal-title{display:block;font-size:38rpx;font-weight:700;text-align:center}.modal-body{display:block;margin:34rpx 0;line-height:1.8;color:#475569}
 </style>
