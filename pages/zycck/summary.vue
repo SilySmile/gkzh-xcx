@@ -35,7 +35,7 @@ export default {
         while (this.careerNames.length < 5) this.careerNames.push('职业信息加载中')
       } catch (e) { uni.showToast({ title: userMessage(e, '总结内容加载失败，请重试'), icon: 'none' }) }
     },
-    goExplore() { uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}` }) }
+    goExplore() { uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}&readOnly=0` }) }
   }
 }
 </script>

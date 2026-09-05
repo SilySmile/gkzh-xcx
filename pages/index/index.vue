@@ -445,7 +445,7 @@
 							const entered = await enterRecord({ instanceId: query.instanceId, gameId: query.gameId, gameType: 'zycck', schoolId: uni.getStorageSync('schoolId') })
 							const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
 							if (!recordId) throw new Error('记录创建失败')
-							uni.navigateTo({ url: `/pages/zycck/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}` })
+							uni.redirectTo({ url: `/pages/zycck/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}` })
 						} catch (e) {
 							uni.showToast({ title: userMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 						}
