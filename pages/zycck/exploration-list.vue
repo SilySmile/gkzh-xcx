@@ -2,7 +2,7 @@
   <view class="page">
     <view class="header">
       <text class="title">我的未来职业探索清单</text>
-      <text class="limit">清单上限 6/6</text>
+      <text class="limit">清单上限 {{ items.length }}/6</text>
       <text class="hint">这些是你主动关注的职业</text>
     </view>
 
