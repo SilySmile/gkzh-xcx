@@ -46,7 +46,7 @@
 
       <view class="awareness-card">
         <text class="awareness-title">这类职业对你来说？</text>
-        <button v-for="choice in awarenessChoices" :key="choice.value" class="awareness-choice" :disabled="busy" @click="submit(choice.value)">
+        <button v-for="choice in awarenessChoices" :key="choice.value" class="awareness-choice" hover-class="awareness-hover" :disabled="busy" @click="submit(choice.value)">
           <text class="choice-key">{{ choice.value }}.</text>
           <text>{{ choice.label }}</text>
         </button>
@@ -128,4 +128,6 @@ export default {
 
 <style scoped>
 .page{height:100vh;background:#f7f5f1}.content{padding:34rpx 28rpx 52rpx;box-sizing:border-box}.answer-card,.career-header,.info-card,.awareness-card{background:#fff;border-radius:24rpx;box-shadow:0 8rpx 28rpx rgba(77,65,46,.06)}.answer-card{padding:30rpx;margin-bottom:24rpx}.feedback-title{display:block;font-size:34rpx;font-weight:700;color:#1f2937;margin-bottom:20rpx}.answer-line{display:flex;align-items:center;margin-top:12rpx;font-size:30rpx}.answer-label{color:#475569}.answer-correct{color:#2f9d57;font-weight:700}.answer-wrong{color:#d94b4b;font-weight:700}.career-header{display:flex;align-items:center;padding:28rpx;margin-bottom:22rpx;background:linear-gradient(135deg,#fffaf1,#fff)}.career-heading{flex:1;min-width:0}.career-name{display:block;font-size:42rpx;line-height:1.25;font-weight:800;color:#222}.career-intro{display:block;margin-top:14rpx;font-size:27rpx;line-height:1.6;color:#665f55}.career-image{width:176rpx;height:150rpx;border-radius:20rpx;margin-right:24rpx}.info-card{padding:28rpx;margin-bottom:20rpx}.info-title{display:block;font-size:32rpx;font-weight:700;color:#20252b;margin-bottom:18rpx}.info-body{display:block;font-size:27rpx;line-height:1.8;color:#4b5563}.day-grid{display:flex;margin:0 -8rpx}.day-item{width:25%;padding:0 8rpx;box-sizing:border-box;text-align:center}.day-icon{width:60rpx;height:60rpx;line-height:60rpx;margin:0 auto 12rpx;border-radius:16rpx;background:#fff4e8;color:#c56d1b;font-size:26rpx;font-weight:700}.day-title{display:block;color:#30343b;font-size:25rpx;font-weight:700;line-height:1.35}.day-description{display:block;margin-top:8rpx;color:#7a7f87;font-size:22rpx;line-height:1.4}.awareness-card{padding:30rpx;margin-top:26rpx}.awareness-title{display:block;font-size:34rpx;font-weight:700;color:#20252b;margin-bottom:22rpx}.awareness-choice{height:auto;min-height:88rpx;margin:16rpx 0;padding:22rpx 28rpx;border:2rpx solid #e6e9ee;border-radius:18rpx;background:#fff;color:#334155;font-size:28rpx;text-align:left;line-height:1.5}.awareness-choice::after{border:0}.choice-key{display:inline-block;width:50rpx;color:#c56d1b;font-weight:700}.progress{display:block;text-align:center;margin-top:34rpx;color:#8a8176;font-size:26rpx}
+.content{animation:pageIn .35s ease-out}.awareness-hover{background:#edf4ff!important;transform:scale(.985)}
+@keyframes pageIn{from{opacity:0;transform:translateY(18rpx)}to{opacity:1;transform:translateY(0)}}
 </style>

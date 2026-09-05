@@ -40,7 +40,7 @@ export default {
     instanceId: '', gameId: '', recordId: '', question: {}, currentNo: 1, remaining: 60,
     timer: null, redirectTimer: null, timerStarted: false, rulesVisible: false,
     rulesClosed: false, submitting: false, showResult: false, selectedKey: '',
-    correctKey: '', answerCorrect: false
+    correctKey: '', answerCorrect: false, pressedKey: ''
   }),
   onLoad(o) {
     Object.assign(this, { instanceId: o.instanceId || '', gameId: o.gameId || '', recordId: o.recordId || '' })
@@ -66,7 +66,7 @@ export default {
     imageUrl(v) { return v && (/^\/(profile|upload)\//.test(v) ? config.BASE_URL + v : v) },
     optionClass(key) {
       return {
-        disabled: this.submitting && !this.showResult,
+        pressed: !this.showResult && key === this.pressedKey,
         correct: this.showResult && key === this.correctKey,
         wrong: this.showResult && key === this.selectedKey && key !== this.correctKey
       }
@@ -120,6 +120,7 @@ export default {
     },
     async answer(key) {
       if (this.submitting || this.rulesVisible || this.showResult) return
+      this.pressedKey = key
       this.submitting = true
       this.stopTimer()
       try {
@@ -141,12 +142,13 @@ export default {
           this.submitting = false
         }
       } catch (e) {
-        this.submitting = false
+        this.submitting = false; this.pressedKey = ''
         const message = userMessage(e, '答案提交失败，请重试')
         if (message === '这道题已经提交过了') {
           uni.showLoading({ title: '正在恢复进度' })
           try { await this.load() } finally { uni.hideLoading() }
         } else {
+          this.pressedKey = ''
           uni.showToast({ title: message, icon: 'none' })
           this.startTimer()
         }
@@ -154,7 +156,7 @@ export default {
     },
     advance(d) {
       const next = d.nextQuestion && Object.keys(d.nextQuestion).length ? d.nextQuestion : (d.question && Object.keys(d.question).length ? d.question : null)
-      this.showResult = false; this.selectedKey = ''; this.correctKey = ''
+      this.showResult = false; this.selectedKey = ''; this.correctKey = ''; this.pressedKey = ''
       if (next) {
         this.question = next; this.currentNo = d.currentQuestionNo || this.currentNo + 1
         this.remaining = Number(d.remainingSeconds == null ? 60 : d.remainingSeconds); this.timerStarted = false
@@ -168,5 +170,5 @@ export default {
 </script>
 
 <style scoped>
-.page{min-height:100vh;padding:48rpx 28rpx 34rpx;box-sizing:border-box;background:#f5f7fb;display:flex;flex-direction:column;justify-content:center}.head{display:flex;justify-content:space-between;align-items:center;color:#334155;font-size:28rpx;margin-bottom:18rpx}.game-title{font-weight:700;color:#1f2937}.timer{min-width:170rpx;padding:12rpx 22rpx;text-align:center;border-radius:18rpx;background:#e8f1ff;color:#1b76fe;box-shadow:0 6rpx 18rpx rgba(27,118,254,.12)}.timer-label{display:block;font-size:22rpx}.timer-value{display:block;font-size:44rpx;font-weight:700;line-height:1.1}.timer-unit{font-size:22rpx;font-weight:400;margin-left:4rpx}.timer.warning{background:#fff0f0;color:#e34d59}.rule{width:52rpx;height:52rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#1b76fe;color:#fff;font-weight:700}.picture{width:100%;height:380rpx;margin:26rpx 0;border-radius:18rpx}.prompt{display:block;font-size:32rpx;color:#1f2937;margin-bottom:20rpx}.option{padding:28rpx;margin:14rpx 0;background:#fff;border:3rpx solid transparent;border-radius:14rpx;color:#243b53;box-shadow:0 4rpx 14rpx rgba(31,41,55,.04);display:flex;justify-content:space-between;align-items:center;transition:all .18s}.option-hover{background:#edf4ff;transform:scale(.985)}.option.correct{background:#e9f8ee;border-color:#42b96c;color:#19723a}.option.wrong{background:#fff0f0;border-color:#e45858;color:#b52d2d}.disabled{opacity:.6}.result-mark{font-size:24rpx;font-weight:600}.result-tip{text-align:center;margin-top:18rpx;font-size:28rpx;font-weight:600}.result-correct{color:#23954c}.result-wrong{color:#d14343}.progress{display:block;margin-top:28rpx;text-align:center;color:#8a8176;font-size:26rpx}.button-hover{opacity:.8;transform:scale(.98)}.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10}.modal{width:640rpx;padding:44rpx;background:#fff;border-radius:20rpx}.modal-title{display:block;font-size:38rpx;font-weight:700;text-align:center}.modal-body{display:block;margin:34rpx 0;line-height:1.8;color:#475569}
+.page{min-height:100vh;padding:48rpx 28rpx 34rpx;box-sizing:border-box;background:#f5f7fb;display:flex;flex-direction:column;justify-content:center;animation:pageIn .35s ease-out}.head{display:flex;justify-content:space-between;align-items:center;color:#334155;font-size:28rpx;margin-bottom:18rpx}.game-title{font-size:38rpx;font-weight:800;color:#1f2937}.timer{min-width:170rpx;padding:12rpx 22rpx;text-align:center;border-radius:18rpx;background:#e8f1ff;color:#1b76fe;box-shadow:0 6rpx 18rpx rgba(27,118,254,.12)}.timer-label{display:block;font-size:22rpx}.timer-value{display:block;font-size:44rpx;font-weight:700;line-height:1.1}.timer-unit{font-size:22rpx;font-weight:400;margin-left:4rpx}.timer.warning{background:#fff0f0;color:#e34d59}.rule{width:52rpx;height:52rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#1b76fe;color:#fff;font-weight:700}.picture{width:100%;height:380rpx;margin:26rpx 0;border-radius:18rpx}.prompt{display:block;font-size:32rpx;color:#1f2937;margin-bottom:20rpx}.option{padding:28rpx;margin:14rpx 0;background:#fff;border:3rpx solid transparent;border-radius:14rpx;color:#243b53;box-shadow:0 4rpx 14rpx rgba(31,41,55,.04);display:flex;justify-content:space-between;align-items:center;transition:background .18s,transform .18s,border-color .18s}.option-hover{background:#edf4ff;transform:scale(.985)}.option.pressed{background:#dceaff;border-color:#75aaf7;transform:scale(.985)}.option.correct{background:#bdecc9;border-color:#34a853;color:#146b32}.option.wrong{background:#ffd0d0;border-color:#e34d59;color:#a61d2a}.result-mark{font-size:24rpx;font-weight:600}.result-tip{text-align:center;margin-top:18rpx;font-size:28rpx;font-weight:600}.result-correct{color:#23954c}.result-wrong{color:#d14343}.progress{display:block;margin-top:28rpx;text-align:center;color:#8a8176;font-size:26rpx}.button-hover{opacity:.8;transform:scale(.98)}.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10}.modal{width:640rpx;padding:44rpx;background:#fff;border-radius:20rpx}.modal-title{display:block;font-size:38rpx;font-weight:700;text-align:center}.modal-body{display:block;margin:34rpx 0;line-height:1.8;color:#475569}@keyframes pageIn{from{opacity:0;transform:translateY(18rpx)}to{opacity:1;transform:translateY(0)}}
 </style>
