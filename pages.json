@@ -135,6 +135,7 @@
 		{"path":"pages/zycck/careers","style":{"navigationBarTitleText":"职业列表","navigationStyle":"custom"}},
 		{"path":"pages/zycck/career-detail","style":{"navigationBarTitleText":"职业详情","navigationStyle":"custom"}},
 		{"path":"pages/zycck/exploration-list","style":{"navigationBarTitleText":"探索清单","navigationStyle":"custom"}},
+		{"path":"pages/zycck/report","style":{"navigationBarTitleText":"探索报告","navigationStyle":"custom"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {

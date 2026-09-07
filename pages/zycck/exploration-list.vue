@@ -41,7 +41,7 @@
     <view class="footer-actions">
       <button v-if="!readOnly" type="primary" hover-class="button-hover" @click="finish">确认我的探索清单</button>
       <button v-else type="primary" hover-class="button-hover" @click="download">下载探索清单 PDF</button>
-      <button hover-class="button-hover" @click="continueExplore">继续探索更多职业</button>
+      <button v-if="!readOnly" hover-class="button-hover" @click="continueExplore">继续探索更多职业</button>
     </view>
   </view>
 </template>
@@ -58,14 +58,15 @@ export default {
   },
   onLoad(o) { Object.assign(this, { recordId: o.recordId || '', instanceId: o.instanceId || '', gameId: o.gameId || '', readOnly: o.readOnly === '1' }); this.load() },
   methods: {
-    async load() { try { const [r, c] = await Promise.all([getExploration(this.recordId), getCatalog({ instanceId: this.instanceId, gameId: this.gameId })]); const d = r.data || {}; this.items = d.items || d.explorationItems || []; this.readOnly = this.readOnly || d.readOnly === true; const raw = d.viewedCareerIds || []; this.viewedIds = Array.isArray(raw) ? raw : JSON.parse(raw || '[]'); const catalog = c.data || {}; this.categories = catalog.categories || []; const rows = catalog.careers || []; this.allCareers = rows.filter(x => String(x.hasQuestion) !== '1').map(x => ({ ...x, careerId: x.careerId || x.careerQuestionId, careerName: x.careerName || x.name || x.title })) } catch (e) { uni.showToast({ title: userMessage(e, '探索清单加载失败，请重试'), icon: 'none' }) } },
+    async load() { try { const [r, c] = await Promise.all([getExploration(this.recordId), getCatalog({ instanceId: this.instanceId, gameId: this.gameId })]); const d = r.data || {}; if (this.readOnly || d.readOnly === true) return this.goReport(); this.items = d.items || d.explorationItems || []; const raw = d.viewedCareerIds || []; this.viewedIds = Array.isArray(raw) ? raw : JSON.parse(raw || '[]'); const catalog = c.data || {}; this.categories = catalog.categories || []; const rows = catalog.careers || []; this.allCareers = rows.filter(x => String(x.hasQuestion) !== '1').map(x => ({ ...x, careerId: x.careerId || x.careerQuestionId, careerName: x.careerName || x.name || x.title })) } catch (e) { uni.showToast({ title: userMessage(e, '探索清单加载失败，请重试'), icon: 'none' }) } },
     categoryChanged(e) { const index = Number(e.detail && e.detail.value); const item = this.categories[index]; this.selectedCategoryId = item ? (item.categoryId || item.id) : ''; this.keyword = '' },
     isAdded(i) { return this.items.some(x => String(x.careerId) === String(i.careerId)) },
     async add(i) { if (this.isAdded(i)) return uni.showToast({ title: '该职业已在探索清单中', icon: 'none' }); if (this.items.length >= 6) return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }); if (this.addingCareerId) return; this.addingCareerId = i.careerId; try { const result = await addExplorationItem(this.recordId, i.careerId); if (result && result.code && Number(result.code) !== 200) throw new Error(result.msg || '探索清单最多添加6个职业'); await this.load() } catch (e) { uni.showToast({ title: userMessage(e, '加入清单失败，请重试'), icon: 'none' }) } finally { this.addingCareerId = '' } },
     async remove(i) { try { await removeExplorationItem(this.recordId, i.careerId); await this.load() } catch (e) { uni.showToast({ title: userMessage(e, '移除清单失败，请重试'), icon: 'none' }) } },
-    async finish() { try { await finishRecord(this.recordId); this.readOnly = true; this.showOther = false; uni.showToast({ title: '探索清单已确认', icon: 'success' }) } catch (e) { uni.showToast({ title: userMessage(e, '请先查看至少一个职业'), icon: 'none' }) } },
+    async finish() { try { const result = await finishRecord(this.recordId); if (result && result.code && Number(result.code) !== 200) throw new Error(result.msg || '确认探索清单失败'); this.goReport() } catch (e) { uni.showToast({ title: userMessage(e, '请先查看至少一个职业'), icon: 'none' }) } },
     async download() { try { uni.showLoading({ title: '生成 PDF' }); const r = await downloadReportPdf({ recordId: this.recordId }); const path = r.tempFilePath || r.filePath; if (path) uni.openDocument({ filePath: path, showMenu: true, fileType: 'pdf' }); else throw new Error('PDF 下载失败') } catch (e) { uni.showToast({ title: userMessage(e, 'PDF 下载失败，请稍后重试'), icon: 'none' }) } finally { uni.hideLoading() } },
-    continueExplore() { uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}&readOnly=${this.readOnly ? '1' : '0'}` }) }
+    continueExplore() { if (!this.readOnly) uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}&readOnly=0` }) },
+    goReport() { uni.redirectTo({ url: `/pages/zycck/report?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}` }) }
   }
 }
 </script>

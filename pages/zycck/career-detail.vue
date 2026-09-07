@@ -64,8 +64,8 @@ export default {
       try {
         const r = await getRecord(this.recordId, { careerId: this.careerId })
         const d = r.data || {}
+        if (this.readOnly || d.status === 'finished' || (d.record && d.record.status === 'finished')) return this.goReport()
         this.career = d.career || d.currentCareer || { careerId: this.careerId, careerName: '职业详情' }
-        this.readOnly = this.readOnly || d.status === 'finished' || (d.record && d.record.status === 'finished')
         let addedIds = d.explorationCareerIds || (d.record && d.record.explorationCareerIds) || []
         if (!Array.isArray(addedIds)) { try { addedIds = JSON.parse(addedIds || '[]') } catch (e) { addedIds = [] } }
         this.added = addedIds.some(id => String(id) === String(this.careerId))
@@ -93,6 +93,9 @@ export default {
     },
     moreCategories() {
       uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}&readOnly=${this.readOnly ? '1' : '0'}` })
+    },
+    goReport() {
+      uni.redirectTo({ url: `/pages/zycck/report?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}` })
     }
   }
 }
