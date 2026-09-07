@@ -47,6 +47,7 @@
 import { getWeekFlow } from '@/api/activity/week'
 import { getMyResult as getZytjResult } from '@/api/zytj.js'
 import { getReport as getSszctopReport } from '@/api/sszctop.js'
+import { enterRecord, userMessage } from '@/api/zycck.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
 
@@ -133,6 +134,24 @@ export default {
 					if (res.code === 200 && res.data) uni.navigateTo({ url: '/pages/sszctop/report?gameId=' + game.gameId })
 					else uni.showToast({ title: '报告加载失败', icon: 'none' })
 				} catch (e) { uni.showToast({ title: '报告加载失败', icon: 'none' }) }
+				return
+			}
+			if (game.gameType === 'zycck') {
+				try {
+					const entered = await enterRecord({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zycck',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zycck/report?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: userMessage(e, '职业猜猜看报告加载失败，请重试'), icon: 'none' })
+				}
 				return
 			}
 			uni.showToast({ title: '该游戏暂无独立报告页', icon: 'none' })
