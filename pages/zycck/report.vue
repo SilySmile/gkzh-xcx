@@ -54,14 +54,28 @@ import { getExploration, getCatalog, downloadReportPdf, userMessage } from '@/ap
 import config from '@/config/api.js'
 
 export default {
-  data: () => ({ recordId: '', instanceId: '', gameId: '', careers: [], loading: false, downloading: false }),
+  data: () => ({ recordId: '', instanceId: '', gameId: '', careers: [], loading: false, downloading: false, backing: false }),
   onLoad(o) {
     Object.assign(this, { recordId: o.recordId || '', instanceId: o.instanceId || '', gameId: o.gameId || '' })
     this.load()
   },
   methods: {
     imageUrl(v) { return v && (/^\/(profile|upload)\//.test(v) ? config.BASE_URL + v : v) },
-    back() { uni.navigateBack({ delta: 1 }) },
+    back() {
+      if (this.backing) return
+      this.backing = true
+      const pages = getCurrentPages()
+      const fallback = () => {
+        const activityId = encodeURIComponent(this.instanceId || uni.getStorageSync('activityId') || '')
+        uni.redirectTo({ url: `/pages/mp/sub-pages/personal-report/index?activityId=${activityId}` })
+      }
+      if (pages.length > 1) {
+        uni.navigateBack({ delta: 1, complete: () => { this.backing = false }, fail: () => { this.backing = false; fallback() } })
+      } else {
+        this.backing = false
+        fallback()
+      }
+    },
     dayItems(career) {
       return String((career && career.dayExample) || '').split(/\r?\n/).filter(Boolean).map(item => {
         const parts = item.split('｜')
