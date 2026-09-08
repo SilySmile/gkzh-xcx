@@ -134,9 +134,10 @@ export default {
 	data() {
 		return {
 			majorName: '',
-			bizType: 'career_week',
-			instanceId: null,
-			bannerUrl: '',
+			bizType: 'career_week',
+			instanceId: null,
+			bannerUrl: '',
+			backing: false,
 
 			// 快捷功能按钮
 			quickList: [
@@ -173,10 +174,26 @@ export default {
 			}
 			return url
 		},
-		// ── 返回 ──
-		onBack() {
-			uni.navigateBack()
-		},
+		// ── 返回 ──
+		onBack() {
+			if (this.backing) return
+			this.backing = true
+			const fallback = () => uni.reLaunch({
+				url: '/pages/mp/home/index',
+				complete: () => { this.backing = false }
+			})
+			const pages = getCurrentPages()
+			if (pages.length > 1) {
+				uni.navigateBack({
+					delta: 1,
+					complete: () => { this.backing = false },
+					fail: () => { this.backing = false; fallback() }
+				})
+			} else {
+				this.backing = false
+				fallback()
+			}
+		},
 
 		// ── 右上角更多 ──
 		onMore() {

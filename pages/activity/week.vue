@@ -48,7 +48,8 @@ export default {
 			gameId: null,
 			schoolId: null,
 			bizType: null,
-			currentTitle: ''
+			currentTitle: '',
+			backing: false
 		}
 	},
 	onLoad(options) {
@@ -73,7 +74,23 @@ export default {
 	},
 	methods: {
 		back() {
-			uni.navigateBack()
+			if (this.backing) return
+			this.backing = true
+			const fallback = () => uni.reLaunch({
+				url: '/pages/mp/home/index',
+				complete: () => { this.backing = false }
+			})
+			const pages = getCurrentPages()
+			if (pages.length > 1) {
+				uni.navigateBack({
+					delta: 1,
+					complete: () => { this.backing = false },
+					fail: () => { this.backing = false; fallback() }
+				})
+			} else {
+				this.backing = false
+				fallback()
+			}
 		},
 		loadActiveWeek() {
 			getActiveWeek(this.bizType).then(res => {
