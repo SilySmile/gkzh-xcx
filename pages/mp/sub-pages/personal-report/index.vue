@@ -57,7 +57,8 @@ export default {
 		return {
 			loading: true,
 			activityId: null,
-			sections: []
+			sections: [],
+			backing: false
 		}
 	},
 	onLoad(options) {
@@ -71,7 +72,26 @@ export default {
 	},
 	methods: {
 		back() {
-			uni.navigateBack()
+			if (this.backing) return
+			this.backing = true
+			const pages = getCurrentPages()
+			const fallback = () => {
+				const activityId = encodeURIComponent(this.activityId || uni.getStorageSync('activityId') || '')
+				uni.redirectTo({
+					url: `/pages/mp/sub-pages/career-week/index?activityId=${activityId}`,
+					complete: () => { this.backing = false }
+				})
+			}
+			if (pages.length > 1) {
+				uni.navigateBack({
+					delta: 1,
+					complete: () => { this.backing = false },
+					fail: () => { this.backing = false; fallback() }
+				})
+			} else {
+				this.backing = false
+				fallback()
+			}
 		},
 		typeName(type) {
 			const map = {
