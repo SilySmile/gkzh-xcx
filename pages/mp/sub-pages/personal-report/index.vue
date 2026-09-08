@@ -26,7 +26,7 @@
 					>
 						<view class="game-info">
 							<text class="game-title">{{ game.title }}</text>
-							<text class="game-type">{{ typeName(game.gameType) }}</text>
+							<!-- <text class="game-type">{{ typeName(game.gameType) }}</text> -->
 						</view>
 						<view class="game-status" :class="game.isFinish ? 'finish' : (game.isFail ? 'fail' : '')">
 							{{ game.isFinish ? '已完成' : (game.isFail ? '未通过' : '未完成') }}
@@ -50,6 +50,7 @@ import { getReport as getSszctopReport } from '@/api/sszctop.js'
 import { enterRecord, userMessage } from '@/api/zycck.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
+import { reportArchiveUrl } from '@/utils/report-download.js'
 
 export default {
 	data() {
@@ -160,16 +161,15 @@ export default {
 			if (!this.activityId) return uni.showToast({ title: '缺少活动信息，请返回重新进入', icon: 'none' })
 			uni.showLoading({ title: '生成全部游戏报告' })
 			createAllReportCache(this.activityId).then(res => {
-				const path = res.data
-				if (!path || path.indexOf('/profile/report-cache/') !== 0 || !path.endsWith('.zip')) {
+				if (!res || Number(res.code) !== 200) {
 					throw new Error('报告压缩包生成失败，请重试')
 				}
-				const reportUrl = config.BASE_URL + path
+				const reportUrl = reportArchiveUrl(config.BASE_URL, res.data)
 				uni.setClipboardData({
 					data: reportUrl,
 					success: () => uni.showModal({
 						title: '全部游戏报告已生成',
-						content: '压缩包已按区域和游戏分类，链接已复制，请粘贴到浏览器下载。',
+						content: '压缩包下载链接已复制，请粘贴到浏览器下载，有效期为24小时。',
 						showCancel: false,
 						confirmText: '知道了'
 					})
