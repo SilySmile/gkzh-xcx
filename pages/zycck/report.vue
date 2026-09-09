@@ -9,7 +9,7 @@
 				<text class="subtitle">今天了解的职业与大类分布</text>
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
-			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPie" class="pie" :width="320" :height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
+			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPieV2" class="pie" :width="320" :height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
@@ -147,7 +147,7 @@
 								'职业信息'
 						}
 					})
-					const counts = {}; this.careers.forEach(c => { const n = catNames[String(c.categoryId)] || '其他'; counts[n] = (counts[n] || 0) + 1 }); const colors = ['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total = this.careers.length || 1; this.categoryStats = Object.keys(counts).map((name,i) => ({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPie())
+					const counts = {}; this.careers.forEach(c => { const n = catNames[String(c.categoryId)] || '其他'; counts[n] = (counts[n] || 0) + 1 }); const colors = ['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total = this.careers.length || 1; this.categoryStats = Object.keys(counts).map((name,i) => ({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPieV2())
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -157,6 +157,7 @@
 					this.loading = false
 				}
 			},
+			drawPieV2() { const ctx=uni.createCanvasContext('reportPieV2',this),cx=160,cy=160,r=148; let s=-Math.PI/2; this.categoryStats.forEach(i=>{const e=s+Math.PI*2*i.count/(this.careers.length||1);ctx.beginPath();ctx.moveTo(cx,cy);const n=Math.ceil((e-s)*40);for(let k=0;k<=n;k++){const a=s+(e-s)*k/n;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}ctx.closePath();ctx.setFillStyle(i.color);ctx.fill();s=e});ctx.draw()},
 			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=148; let start=-Math.PI/2; this.categoryStats.forEach(item => { const end=start+Math.PI*2*item.count/(this.careers.length||1); ctx.beginPath(); ctx.moveTo(cx,cy); const steps=Math.max(8,Math.ceil((end-start)*40)); for(let n=0;n<=steps;n++){ const a=start+(end-start)*n/steps; ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r) } ctx.closePath(); ctx.setFillStyle(item.color); ctx.fill(); start=end }); ctx.draw() },
 			async download() {
 				if (this.downloading) return
