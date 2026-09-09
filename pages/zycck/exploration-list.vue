@@ -16,9 +16,9 @@
 			</view>
 			<text v-if="!items.length" class="empty-tip">没关系，今天不一定要找到“最想探索的职业”。\n你刚刚已经认识了一个职业，未来还可以继续探索更多可能。</text>
 
-			<button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="items.length >= 6"
-				@click="showOther = !showOther">{{ items.length >= 6 ? '清单已满，请先删除后再添加' : (showOther ? '收起其他职业' : '添加其他职业') }}</button>
-			<view v-if="showOther && !readOnly" class="other-panel">
+			<button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="listFull"
+				@click="toggleOther">{{ listFull ? '清单已满，请先删除后再添加' : (showOther ? '收起其他职业' : '添加其他职业') }}</button>
+			<view v-if="showOther && !readOnly && !listFull" class="other-panel">
 				<picker mode="selector" :range="categories" range-key="name" @change="categoryChanged">
 					<view class="category-picker">{{ selectedCategoryName || '请选择职业大类' }}<text
 							class="picker-arrow">⌄</text></view>
@@ -28,7 +28,7 @@
 				<view v-for="item in filteredCareers" :key="item.careerId" class="other-row">
 					<view class="item-content"><text class="item-name">{{ item.careerName }}</text><text
 							class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text></view>
-					<button v-if="!isAdded(item) && items.length < 6" class="plus-button" type="primary"
+					<button v-if="!isAdded(item) && !listFull" class="plus-button" type="primary"
 						hover-class="button-hover" size="mini" :disabled="addingCareerId === item.careerId"
 						@click="add(item)">＋</button>
 					<text v-else-if="isAdded(item)" class="added">已加入</text>
@@ -108,6 +108,7 @@
 			this.load()
 		},
 		methods: {
+			toggleOther() { if (this.listFull) { this.showOther = false; return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }) } this.showOther = !this.showOther },
 			async load() {
 				try {
 					const [r, c] = await Promise.all([getExploration(this.recordId), getCatalog({

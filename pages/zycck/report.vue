@@ -149,7 +149,7 @@
 								'职业信息'
 						}
 					})
-					const counts = {}; this.careers.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPie())
+					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPie())
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
