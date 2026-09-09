@@ -13,18 +13,16 @@
 
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
-					<image v-if="career.careerImageUrl" class="career-image" :src="imageUrl(career.careerImageUrl)"
-						mode="aspectFill" />
 					<view class="career-heading">
 						<text class="career-name">{{ career.careerName }}</text>
 						<text class="career-intro">{{ career.oneLineIntro || '暂无一句话介绍' }}</text>
 					</view>
 				</view>
-				<view class="info-block">
+				<view v-if="false" class="info-block">
 					<text class="info-title">这个职业主要做什么？</text>
 					<text class="info-body">{{ career.mainWork || '暂无介绍' }}</text>
 				</view>
-				<view class="info-block">
+				<view v-if="false" class="info-block">
 					<text class="info-title">一天可能做什么？</text>
 					<view v-if="dayItems(career).length" class="day-grid">
 						<view v-for="(item, index) in dayItems(career)" :key="index" class="day-item">
@@ -35,7 +33,7 @@
 					</view>
 					<text v-else class="info-body">暂无介绍</text>
 				</view>
-				<view class="info-block">
+				<view v-if="false" class="info-block">
 					<text class="info-title">为什么会有这样的职业？</text>
 					<text class="info-body">{{ career.whyExists || '暂无介绍' }}</text>
 				</view>
@@ -159,7 +157,7 @@
 					this.loading = false
 				}
 			},
-			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=125; let start=-Math.PI/2; this.categoryStats.forEach(item => { const end=start+Math.PI*2*item.count/(this.careers.length||1); ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();start=end });ctx.setFillStyle('#fff');ctx.beginPath();ctx.arc(cx,cy,58,0,Math.PI*2);ctx.fill();ctx.draw() },
+			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=145; let start=-Math.PI/2; this.categoryStats.forEach(item => { const end=start+Math.PI*2*item.count/(this.careers.length||1); ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();start=end });ctx.draw() },
 			async download() {
 				if (this.downloading) return
 				this.downloading = true

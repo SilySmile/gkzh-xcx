@@ -81,6 +81,7 @@
 			addingCareerId: ''
 		}),
 		computed: {
+			listFull() { return this.items.length >= 6 },
 			selectedCategoryName() {
 				const item = this.categories.find(x => String(x.categoryId || x.id) === String(this.selectedCategoryId));
 				return item ? (item.name || item.categoryName || '') : ''
@@ -143,6 +144,7 @@
 				return this.items.some(x => String(x.careerId) === String(i.careerId))
 			},
 			async add(i) {
+				if (this.listFull) { this.showOther = false; return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }) }
 				if (this.isAdded(i)) return uni.showToast({
 					title: '该职业已在探索清单中',
 					icon: 'none'

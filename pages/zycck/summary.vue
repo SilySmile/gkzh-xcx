@@ -6,7 +6,6 @@
         <text class="career-name">{{ career.name }}</text><text class="career-intro">{{ career.intro || '暂无介绍' }}</text>
       </view>
     </view>
-    <view class="chart-card"><text class="chart-title">不同职业大类的了解比例</text><canvas canvas-id="categoryPie" class="pie" :width="320" :height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{ background: item.color }"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
     <button type="primary" hover-class="button-hover" @click="goExplore">请继续探索职业世界</button>
   </view>
 </template>
@@ -15,7 +14,7 @@
 import { getRecord, getCatalog, userMessage } from '@/api/zycck'
 
 export default {
-  data: () => ({ recordId: '', instanceId: '', gameId: '', careers: [], categoryStats: [] }),
+  data: () => ({ recordId: '', instanceId: '', gameId: '', careers: [] }),
   onLoad(o) { Object.assign(this, { recordId: o.recordId || '', instanceId: o.instanceId || '', gameId: o.gameId || '' }); this.load() },
   methods: {
     async load() {
@@ -27,16 +26,10 @@ export default {
         if (!Array.isArray(ids)) { try { ids = JSON.parse(ids || '[]') } catch (e) { ids = [] } }
         const catalog = catalogRes.data || {}
         const careers = catalog.careers || catalog.items || catalog.questions || []
-        const cats = catalog.categories || []; const catNames = {}; cats.forEach(c => { catNames[String(c.categoryId)] = c.name })
         const byId = {}; careers.forEach(item => { byId[String(item.careerId || item.careerQuestionId)] = item })
         this.careers = ids.map(id => byId[String(id)]).filter(Boolean).slice(0, 5).map(item => ({ name: item.careerName || item.name, intro: item.oneLineIntro || item.intro, categoryId: item.categoryId }))
-        const counts = {}; this.careers.forEach(item => { const name = catNames[String(item.categoryId)] || '其他'; counts[name] = (counts[name] || 0) + 1 })
-        const colors = ['#4e8df7', '#52b788', '#f6ad55', '#e76f51', '#9b87f5']; const total = this.careers.length || 1
-        this.categoryStats = Object.keys(counts).map((name, i) => ({ name, count: counts[name], percent: Math.round(counts[name] * 100 / total), color: colors[i % colors.length] }))
-        this.$nextTick(() => this.drawPie())
       } catch (e) { uni.showToast({ title: userMessage(e, '总结内容加载失败，请重试'), icon: 'none' }) }
     },
-    drawPie() { const ctx = uni.createCanvasContext('categoryPie', this); const cx = 160, cy = 160, radius = 125; let start = -Math.PI / 2; this.categoryStats.forEach(item => { const end = start + Math.PI * 2 * item.count / (this.careers.length || 1); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, radius, start, end); ctx.closePath(); ctx.setFillStyle(item.color); ctx.fill(); start = end }); ctx.setFillStyle('#fff'); ctx.beginPath(); ctx.arc(cx, cy, 58, 0, Math.PI * 2); ctx.fill(); ctx.draw() },
     goExplore() { uni.redirectTo({ url: `/pages/zycck/categories?recordId=${this.recordId}&instanceId=${this.instanceId}&gameId=${this.gameId}&readOnly=0` }) }
   }
 }
