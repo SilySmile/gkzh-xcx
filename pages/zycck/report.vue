@@ -6,10 +6,11 @@
 			</view>
 			<view class="report-header">
 				<text class="title">我的未来职业探索报告</text>
-				<text class="subtitle">今天了解的职业</text>
+				<text class="subtitle">以下是你想进一步了解的职业</text>
+				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
-			<view class="chart-card"><text class="chart-title">进一步了解职业的大类比例</text><canvas id="reportPie" canvas-id="reportPie" class="pie" width="320" height="320"></canvas><view v-if="categoryStats.length" class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view><text v-else class="chart-empty">暂未加入进一步了解的职业</text></view>
+			<view class="chart-card"><text class="chart-title">进一步了解职业的大类比例</text><canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="320" height="320"></canvas><view v-if="categoryStats.length" class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view><text v-else class="chart-empty">暂未加入进一步了解的职业</text></view>
 			<text class="career-list-title">今天了解的职业</text>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
@@ -149,7 +150,7 @@
 								'职业信息'
 						}
 					})
-					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => setTimeout(() => this.drawPie(), 80))
+					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => setTimeout(() => this.drawPie(), 300))
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -159,7 +160,7 @@
 					this.loading = false
 				}
 			},
-			drawPie() { const ctx=uni.createCanvasContext('reportPie',this); const cx=160,cy=160,r=148; const total=this.categoryStats.reduce((sum,item)=>sum+item.count,0)||1; let start=-Math.PI/2; this.categoryStats.forEach(item=>{const end=start+Math.PI*2*item.count/total; let cursor=start; while(cursor<end-0.0001){const pieceEnd=Math.min(cursor+Math.PI/2-0.001,end);ctx.beginPath();ctx.moveTo(cx,cy);const steps=Math.max(8,Math.ceil((pieceEnd-cursor)*35));for(let n=0;n<=steps;n++){const a=cursor+(pieceEnd-cursor)*n/steps;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();cursor=pieceEnd} start=end});ctx.draw()},
+			drawPie() { const ctx=uni.createCanvasContext('reportPieFinal',this); const cx=160,cy=160,r=148; const total=this.categoryStats.reduce((sum,item)=>sum+item.count,0)||1; let start=-Math.PI/2; this.categoryStats.forEach(item=>{const end=start+Math.PI*2*item.count/total; let cursor=start; while(cursor<end-0.0001){const pieceEnd=Math.min(cursor+Math.PI/3,end);ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,cursor,pieceEnd,false);ctx.lineTo(cx,cy);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();cursor=pieceEnd} start=end});ctx.draw(false)},
 			async download() {
 				if (this.downloading) return
 				this.downloading = true
