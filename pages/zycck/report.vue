@@ -6,7 +6,7 @@
 			</view>
 			<view class="report-header">
 				<text class="title">我的未来职业探索报告</text>
-				<text class="subtitle">今天了解的职业与大类分布</text>
+				<text class="subtitle">今天了解的职业</text>
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
