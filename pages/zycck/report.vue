@@ -10,7 +10,17 @@
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
-			<view class="chart-card"><text class="chart-title">进一步了解职业的大类比例</text><canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="320" height="320"></canvas><view v-if="categoryStats.length" class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view><text v-else class="chart-empty">暂未加入进一步了解的职业</text></view>
+			<view class="chart-card">
+				<text class="chart-title">进一步了解职业的大类比例</text>
+				<canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="320" height="320" style="width:320px;height:320px;display:block;border:0;outline:0;"></canvas>
+				<view v-if="categoryStats.length" class="legend">
+					<view v-for="item in categoryStats" :key="item.name" class="legend-item">
+						<text class="dot" :style="{background:item.color}"></text>
+						<text>{{ item.name }} {{ item.percent }}%</text>
+					</view>
+				</view>
+				<text v-else class="chart-empty">暂未加入进一步了解的职业</text>
+			</view>
 			<text class="career-list-title">今天了解的职业</text>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
@@ -128,19 +138,21 @@
 							gameId: this.gameId
 						})
 					])
-					const exploration = explorationRes.data || {}; const record = exploration.record || {}
+					const exploration = explorationRes.data || {};
 					const selected = exploration.items || exploration.explorationItems || []
 					const catalog = (catalogRes.data || {}).careers || []
-					const cats = (catalogRes.data || {}).categories || []; const catNames = {}; cats.forEach(c => { catNames[String(c.categoryId)] = c.name })
+					const cats = (catalogRes.data || {}).categories || [];
+					const catNames = {};
+					cats.forEach(c => {
+						catNames[String(c.categoryId)] = c.name
+					})
 					const byId = {}
 					catalog.forEach(item => {
 						byId[String(item.careerId || item.careerQuestionId)] = item
 					})
-					let viewed = exploration.viewedCareerIds || []; if (!Array.isArray(viewed)) { try { viewed = JSON.parse(viewed || '[]') } catch (e) { viewed = [] } }
-					let questionIds = record.careerIds || []; if (!Array.isArray(questionIds)) { try { questionIds = JSON.parse(questionIds || '[]') } catch (e) { questionIds = [] } }
-					const allIds = questionIds.concat(viewed); const uniqueIds = allIds.filter((id,index) => allIds.findIndex(x => String(x) === String(id)) === index)
-					const source = uniqueIds.length ? uniqueIds.map(id => ({ careerId: id })) : selected
-					this.careers = source.map(item => {
+					// 报告只展示用户主动加入“进一步了解”的职业。
+					// 题目职业和浏览记录属于探索过程，不应混入报告数量或职业清单。
+					this.careers = selected.map(item => {
 						const id = item.careerId || item.careerQuestionId
 						return {
 							...item,
@@ -150,7 +162,20 @@
 								'职业信息'
 						}
 					})
-					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => setTimeout(() => this.drawPie(), 300))
+					const counts = {};
+					this.careers.forEach(c => {
+						const n = catNames[String(c.categoryId)];
+						if (n) counts[n] = (counts[n] || 0) + 1
+					});
+					const colors = ['#4e8df7', '#52b788', '#f6ad55', '#e76f51', '#9b87f5'];
+					const total = Object.keys(counts).reduce((sum, name) => sum + counts[name], 0) || 1;
+					this.categoryStats = Object.keys(counts).filter(name => counts[name] > 0).map((name, i) => ({
+						name,
+						count: counts[name],
+						percent: Math.round(counts[name] * 100 / total),
+						color: colors[i % colors.length]
+					}));
+					this.$nextTick(() => setTimeout(() => this.drawPie(), 300))
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -160,7 +185,30 @@
 					this.loading = false
 				}
 			},
-			drawPie() { const ctx=uni.createCanvasContext('reportPieFinal',this); const cx=160,cy=160,r=148; const total=this.categoryStats.reduce((sum,item)=>sum+item.count,0)||1; let start=-Math.PI/2; this.categoryStats.forEach(item=>{const end=start+Math.PI*2*item.count/total; let cursor=start; while(cursor<end-0.0001){const pieceEnd=Math.min(cursor+Math.PI/3,end);ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,cursor,pieceEnd,false);ctx.lineTo(cx,cy);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();cursor=pieceEnd} start=end});ctx.draw(false)},
+			drawPie() {
+				const ctx = uni.createCanvasContext('reportPieFinal', this);
+				const cx = 160,
+					cy = 160,
+					r = 148;
+				ctx.clearRect(0, 0, 320, 320);
+				const total = this.categoryStats.reduce((sum, item) => sum + item.count, 0) || 1;
+				let start = -Math.PI / 2;
+				this.categoryStats.forEach((item, index) => {
+					// 每个类别只绘制一个完整扇形，避免分段绘制产生的虚线/接缝。
+					const end = index === this.categoryStats.length - 1
+						? -Math.PI / 2 + Math.PI * 2
+						: start + Math.PI * 2 * item.count / total;
+					ctx.beginPath();
+					ctx.moveTo(cx, cy);
+					ctx.arc(cx, cy, r, start, end, false);
+					ctx.lineTo(cx, cy);
+					ctx.closePath();
+					ctx.setFillStyle(item.color);
+					ctx.fill();
+					start = end;
+				});
+				ctx.draw(false)
+			},
 			async download() {
 				if (this.downloading) return
 				this.downloading = true
@@ -246,14 +294,69 @@
 		text-align: center;
 		margin-bottom: 30rpx
 	}
-	.chart-card { width:100%; box-sizing:border-box; margin-bottom:24rpx; padding:26rpx; border-radius:24rpx; background:#fff; text-align:center; box-shadow:0 8rpx 28rpx rgba(77,65,46,.06) }
-	.chart-title { display:block; font-size:30rpx; font-weight:700; color:#263548 }
-	.pie { display:block; width:320rpx; height:320rpx; margin:18rpx auto; }
-	.career-list-title { display:block; width:100%; margin:0 0 14rpx; color:#263548; font-size:30rpx; font-weight:700; }
-	.chart-empty { display:block; padding:90rpx 0; color:#8a94a6; font-size:24rpx }
-	.legend { display:flex; flex-wrap:wrap; justify-content:center; gap:14rpx 22rpx }
-	.legend-item { display:flex; align-items:center; color:#64748b; font-size:23rpx }
-	.dot { width:18rpx; height:18rpx; border-radius:50%; margin-right:7rpx }
+
+	.chart-card {
+		width: 100%;
+		box-sizing: border-box;
+		margin-bottom: 24rpx;
+		padding: 26rpx;
+		border-radius: 24rpx;
+		background: #fff;
+		text-align: center;
+		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
+	}
+
+	.chart-title {
+		display: block;
+		font-size: 30rpx;
+		font-weight: 700;
+		color: #263548
+	}
+
+	.pie {
+		display: block;
+		width: 320rpx;
+		height: 320rpx;
+		margin: 18rpx auto;
+	}
+
+	.career-list-title {
+		display: block;
+		width: 100%;
+		margin: 0 0 14rpx;
+		color: #263548;
+		font-size: 30rpx;
+		font-weight: 700;
+	}
+
+	.chart-empty {
+		display: block;
+		padding: 90rpx 0;
+		color: #8a94a6;
+		font-size: 24rpx
+	}
+
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 14rpx 22rpx
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		color: #64748b;
+		font-size: 23rpx
+	}
+
+	.dot {
+		width: 18rpx;
+		height: 18rpx;
+		border-radius: 50%;
+		margin-right: 7rpx
+	}
+
 	.title {
 		display: block;
 		font-size: 48rpx;
@@ -411,7 +514,8 @@
 	}
 
 	.content {
-		animation: pageIn .35s ease-out
+		animation: pageIn .35s ease-out;
+		margin-top: 36rpx;
 	}
 
 	@keyframes pageIn {
