@@ -157,7 +157,7 @@
 					this.loading = false
 				}
 			},
-			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=148; let start=-Math.PI/2; this.categoryStats.forEach((item,index) => { const end = index === this.categoryStats.length - 1 ? -Math.PI/2 + Math.PI*2 : start + Math.PI*2*item.count/(this.careers.length||1); ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();start=end });ctx.draw() },
+			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=148; let start=-Math.PI/2; this.categoryStats.forEach(item => { let remain=Math.PI*2*item.count/(this.careers.length||1); while (remain > 0.0001) { const span=Math.min(remain, Math.PI-0.0001); const end=start+span; ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();start=end;remain-=span } });ctx.draw() },
 			async download() {
 				if (this.downloading) return
 				this.downloading = true
