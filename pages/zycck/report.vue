@@ -21,7 +21,7 @@
 				</view>
 				<text v-else class="chart-empty">暂未加入进一步了解的职业</text>
 			</view>
-			<text class="career-list-title">今天了解的职业</text>
+			<text class="career-list-title">进一步了解的职业</text>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
 					<view class="career-heading">
