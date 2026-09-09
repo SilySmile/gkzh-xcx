@@ -37,6 +37,7 @@
 					<text class="info-body">{{ career.whyExists || '暂无介绍' }}</text>
 				</view>
 			</view>
+			<view class="chart-card"><text class="chart-title">职业大类比例</text><view class="pie" :style="pieStyle"></view><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 
 			<view v-if="!loading && !careers.length" class="empty-card">
 				<text class="empty-title">本次没有加入进一步了解的职业</text>
@@ -64,10 +65,12 @@
 			instanceId: '',
 			gameId: '',
 			careers: [],
+			categoryStats: [],
 			loading: false,
 			downloading: false,
 			backing: false
 		}),
+		computed: { pieStyle() { let start=0; const parts=this.categoryStats.map(i=>{const end=start+i.percent; const p=`${i.color} ${start}% ${end}%`; start=end; return p}); if (parts.length && start<100) parts[parts.length-1]=parts[parts.length-1].replace(/\d+%$/, '100%'); return { background: `conic-gradient(${parts.join(',')})` } } },
 		onLoad(o) {
 			Object.assign(this, {
 				recordId: o.recordId || '',
@@ -128,6 +131,7 @@
 					const exploration = explorationRes.data || {}
 					const selected = exploration.items || exploration.explorationItems || []
 					const catalog = (catalogRes.data || {}).careers || []
+					const cats = (catalogRes.data || {}).categories || []; const catNames = {}; cats.forEach(c => { catNames[String(c.categoryId)] = c.name })
 					const byId = {}
 					catalog.forEach(item => {
 						byId[String(item.careerId || item.careerQuestionId)] = item
@@ -144,6 +148,7 @@
 								'职业信息'
 						}
 					})
+					const counts = {}; this.careers.forEach(c => { const n=catNames[String(c.categoryId)]||'其他'; counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=this.careers.length||1; this.categoryStats=Object.keys(counts).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]}))
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -203,6 +208,7 @@
 
 	.report-actions,
 	.report-header,
+	.chart-card,
 	.career-card,
 	.empty-card,
 	button {
@@ -237,6 +243,12 @@
 		text-align: center;
 		margin-bottom: 30rpx
 	}
+	.chart-card { width:100%; box-sizing:border-box; margin-bottom:24rpx; padding:26rpx; border-radius:24rpx; background:#fff; text-align:center; box-shadow:0 8rpx 28rpx rgba(77,65,46,.06) }
+	.chart-title { display:block; font-size:30rpx; font-weight:700; color:#263548 }
+	.pie { width:290rpx; height:290rpx; margin:18rpx auto; border-radius:50% }
+	.legend { display:flex; flex-wrap:wrap; justify-content:center; gap:14rpx 22rpx }
+	.legend-item { display:flex; align-items:center; color:#64748b; font-size:23rpx }
+	.dot { width:18rpx; height:18rpx; border-radius:50%; margin-right:7rpx }
 	.title {
 		display: block;
 		font-size: 48rpx;
