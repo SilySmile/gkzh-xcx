@@ -9,7 +9,6 @@
 				<text class="subtitle">今天了解的职业与大类分布</text>
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
-			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPieV2" class="pie" :width="320" :height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
@@ -65,7 +64,6 @@
 			instanceId: '',
 			gameId: '',
 			careers: [],
-			categoryStats: [],
 			loading: false,
 			downloading: false,
 			backing: false
@@ -130,7 +128,6 @@
 					const exploration = explorationRes.data || {}
 					const selected = exploration.items || exploration.explorationItems || []
 					const catalog = (catalogRes.data || {}).careers || []
-					const categories = (catalogRes.data || {}).categories || []; const catNames = {}; categories.forEach(c => { catNames[String(c.categoryId)] = c.name })
 					const byId = {}
 					catalog.forEach(item => {
 						byId[String(item.careerId || item.careerQuestionId)] = item
@@ -147,7 +144,6 @@
 								'职业信息'
 						}
 					})
-					const counts = {}; this.careers.forEach(c => { const n = catNames[String(c.categoryId)] || '其他'; counts[n] = (counts[n] || 0) + 1 }); const colors = ['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total = this.careers.length || 1; this.categoryStats = Object.keys(counts).map((name,i) => ({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPieV2())
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -157,8 +153,6 @@
 					this.loading = false
 				}
 			},
-			drawPieV2() { const ctx=uni.createCanvasContext('reportPieV2',this),cx=160,cy=160,r=148; let s=-Math.PI/2; this.categoryStats.forEach(i=>{const e=s+Math.PI*2*i.count/(this.careers.length||1);ctx.beginPath();ctx.moveTo(cx,cy);const n=Math.ceil((e-s)*40);for(let k=0;k<=n;k++){const a=s+(e-s)*k/n;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}ctx.closePath();ctx.setFillStyle(i.color);ctx.fill();s=e});ctx.draw()},
-			drawPie() { const ctx = uni.createCanvasContext('reportPie', this); const cx=160,cy=160,r=148; let start=-Math.PI/2; this.categoryStats.forEach(item => { const end=start+Math.PI*2*item.count/(this.careers.length||1); ctx.beginPath(); ctx.moveTo(cx,cy); const steps=Math.max(8,Math.ceil((end-start)*40)); for(let n=0;n<=steps;n++){ const a=start+(end-start)*n/steps; ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r) } ctx.closePath(); ctx.setFillStyle(item.color); ctx.fill(); start=end }); ctx.draw() },
 			async download() {
 				if (this.downloading) return
 				this.downloading = true
@@ -209,7 +203,6 @@
 
 	.report-actions,
 	.report-header,
-	.chart-card,
 	.career-card,
 	.empty-card,
 	button {
@@ -244,13 +237,6 @@
 		text-align: center;
 		margin-bottom: 30rpx
 	}
-	.chart-card { width:100%; box-sizing:border-box; margin-bottom:24rpx; padding:26rpx; border-radius:24rpx; background:#fff; text-align:center; box-shadow:0 8rpx 28rpx rgba(77,65,46,.06) }
-	.chart-title { display:block; font-size:30rpx; font-weight:700; color:#263548 }
-	.pie { display:block; width:320rpx; height:320rpx; margin:8rpx auto }
-	.legend { display:flex; flex-wrap:wrap; justify-content:center; gap:14rpx 22rpx }
-	.legend-item { display:flex; align-items:center; color:#64748b; font-size:23rpx }
-	.dot { width:18rpx; height:18rpx; border-radius:50%; margin-right:7rpx }
-
 	.title {
 		display: block;
 		font-size: 48rpx;
