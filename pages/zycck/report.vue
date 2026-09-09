@@ -9,7 +9,7 @@
 				<text class="subtitle">今天了解的职业与大类分布</text>
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
-			<view class="chart-card"><text class="chart-title">职业大类比例</text><view class="pie"><ec-canvas canvas-id="reportPieEcharts" :option="chartOption" :width="320" :height="320" /></view><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
+			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPieV2" class="pie" :width="320" :height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
@@ -58,11 +58,8 @@
 		userMessage
 	} from '@/api/zycck'
 	import config from '@/config/api.js'
-	import EcCanvas from '@/components/ec-canvas/ec-canvas.vue'
 
 	export default {
-		components: { EcCanvas },
-		computed: { chartOption() { return { series: [{ type: 'pie', radius: '78%', center: ['50%', '50%'], label: { show: false }, data: this.categoryStats.map(i => ({ value: i.count, name: i.name, itemStyle: { color: i.color } })) }] } } },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -150,7 +147,7 @@
 								'职业信息'
 						}
 					})
-					const counts = {}; this.careers.forEach(c => { const n = catNames[String(c.categoryId)] || '其他'; counts[n] = (counts[n] || 0) + 1 }); const colors = ['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total = this.careers.length || 1; this.categoryStats = Object.keys(counts).map((name,i) => ({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]}));
+					const counts = {}; this.careers.forEach(c => { const n = catNames[String(c.categoryId)] || '其他'; counts[n] = (counts[n] || 0) + 1 }); const colors = ['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total = this.careers.length || 1; this.categoryStats = Object.keys(counts).map((name,i) => ({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPieV2())
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
