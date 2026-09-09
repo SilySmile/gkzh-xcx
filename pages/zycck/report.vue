@@ -128,7 +128,7 @@
 							gameId: this.gameId
 						})
 					])
-					const exploration = explorationRes.data || {}
+					const exploration = explorationRes.data || {}; const record = exploration.record || {}
 					const selected = exploration.items || exploration.explorationItems || []
 					const catalog = (catalogRes.data || {}).careers || []
 					const cats = (catalogRes.data || {}).categories || []; const catNames = {}; cats.forEach(c => { catNames[String(c.categoryId)] = c.name })
@@ -137,7 +137,9 @@
 						byId[String(item.careerId || item.careerQuestionId)] = item
 					})
 					let viewed = exploration.viewedCareerIds || []; if (!Array.isArray(viewed)) { try { viewed = JSON.parse(viewed || '[]') } catch (e) { viewed = [] } }
-					const source = viewed.length ? viewed.map(id => ({ careerId: id })) : selected
+					let questionIds = record.careerIds || []; if (!Array.isArray(questionIds)) { try { questionIds = JSON.parse(questionIds || '[]') } catch (e) { questionIds = [] } }
+					const allIds = questionIds.concat(viewed); const uniqueIds = allIds.filter((id,index) => allIds.findIndex(x => String(x) === String(id)) === index)
+					const source = uniqueIds.length ? uniqueIds.map(id => ({ careerId: id })) : selected
 					this.careers = source.map(item => {
 						const id = item.careerId || item.careerQuestionId
 						return {
