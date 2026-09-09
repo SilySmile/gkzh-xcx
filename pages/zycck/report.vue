@@ -10,6 +10,7 @@
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
+			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPie" class="pie" width="320" height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
 					<view class="career-heading">
@@ -37,7 +38,6 @@
 					<text class="info-body">{{ career.whyExists || '暂无介绍' }}</text>
 				</view>
 			</view>
-			<view class="chart-card"><text class="chart-title">职业大类比例</text><view class="pie" :style="pieStyle"></view><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
 
 			<view v-if="!loading && !careers.length" class="empty-card">
 				<text class="empty-title">本次没有加入进一步了解的职业</text>
@@ -70,7 +70,6 @@
 			downloading: false,
 			backing: false
 		}),
-		computed: { pieStyle() { let start=0; const parts=this.categoryStats.map(i=>{const end=start+i.percent; const p=`${i.color} ${start}% ${end}%`; start=end; return p}); if (parts.length && start<100) parts[parts.length-1]=parts[parts.length-1].replace(/\d+%$/, '100%'); return { background: `conic-gradient(${parts.join(',')})` } } },
 		onLoad(o) {
 			Object.assign(this, {
 				recordId: o.recordId || '',
@@ -150,7 +149,7 @@
 								'职业信息'
 						}
 					})
-					const counts = {}; this.careers.forEach(c => { const n=catNames[String(c.categoryId)]||'其他'; counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=this.careers.length||1; this.categoryStats=Object.keys(counts).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]}))
+					const counts = {}; this.careers.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPie())
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -160,6 +159,7 @@
 					this.loading = false
 				}
 			},
+			drawPie() { const ctx=uni.createCanvasContext('reportPie',this); const cx=160,cy=160,r=148; const total=this.categoryStats.reduce((sum,item)=>sum+item.count,0)||1; let start=-Math.PI/2; this.categoryStats.forEach((item,index)=>{const end=index===this.categoryStats.length-1?-Math.PI/2+Math.PI*2:start+Math.PI*2*item.count/total;ctx.beginPath();ctx.moveTo(cx,cy);const steps=Math.max(12,Math.ceil((end-start)*50));for(let n=0;n<=steps;n++){const a=start+(end-start)*n/steps;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}ctx.closePath();ctx.setFillStyle(item.color);ctx.fill();start=end});ctx.draw()},
 			async download() {
 				if (this.downloading) return
 				this.downloading = true
