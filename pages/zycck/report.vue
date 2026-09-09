@@ -10,7 +10,8 @@
 				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
-			<view class="chart-card"><text class="chart-title">职业大类比例</text><canvas canvas-id="reportPie" class="pie" width="320" height="320"></canvas><view class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view></view>
+			<view class="chart-card"><text class="chart-title">进一步了解职业的大类比例</text><canvas id="reportPie" canvas-id="reportPie" class="pie" width="320" height="320"></canvas><view v-if="categoryStats.length" class="legend"><view v-for="item in categoryStats" :key="item.name" class="legend-item"><text class="dot" :style="{background:item.color}"></text><text>{{ item.name }} {{ item.percent }}%</text></view></view><text v-else class="chart-empty">暂未加入进一步了解的职业</text></view>
+			<text class="career-list-title">今天了解的职业</text>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
 					<view class="career-heading">
@@ -149,7 +150,7 @@
 								'职业信息'
 						}
 					})
-					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => this.drawPie())
+					const furtherIds = selected.map(item => item.careerId || item.careerQuestionId); const further = furtherIds.map(id => byId[String(id)]).filter(Boolean); const counts = {}; further.forEach(c => { const n=catNames[String(c.categoryId)]; if (n) counts[n]=(counts[n]||0)+1 }); const colors=['#4e8df7','#52b788','#f6ad55','#e76f51','#9b87f5']; const total=Object.keys(counts).reduce((sum,name)=>sum+counts[name],0)||1; this.categoryStats=Object.keys(counts).filter(name => counts[name] > 0).map((name,i)=>({name,count:counts[name],percent:Math.round(counts[name]*100/total),color:colors[i%colors.length]})); this.$nextTick(() => setTimeout(() => this.drawPie(), 80))
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '探索报告加载失败，请重试'),
@@ -247,7 +248,9 @@
 	}
 	.chart-card { width:100%; box-sizing:border-box; margin-bottom:24rpx; padding:26rpx; border-radius:24rpx; background:#fff; text-align:center; box-shadow:0 8rpx 28rpx rgba(77,65,46,.06) }
 	.chart-title { display:block; font-size:30rpx; font-weight:700; color:#263548 }
-	.pie { width:290rpx; height:290rpx; margin:18rpx auto; border-radius:50% }
+	.pie { display:block; width:320rpx; height:320rpx; margin:18rpx auto; }
+	.career-list-title { display:block; width:100%; margin:0 0 14rpx; color:#263548; font-size:30rpx; font-weight:700; }
+	.chart-empty { display:block; padding:90rpx 0; color:#8a94a6; font-size:24rpx }
 	.legend { display:flex; flex-wrap:wrap; justify-content:center; gap:14rpx 22rpx }
 	.legend-item { display:flex; align-items:center; color:#64748b; font-size:23rpx }
 	.dot { width:18rpx; height:18rpx; border-radius:50%; margin-right:7rpx }
