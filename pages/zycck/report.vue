@@ -1,9 +1,7 @@
 <template>
 	<scroll-view scroll-y class="page">
+		<zycck-header title="探职业" />
 		<view class="content">
-			<view class="report-actions">
-				<button class="back-button" hover-class="button-hover" @click="back">返回</button>
-			</view>
 			<view class="report-header">
 				<text class="title">我的未来职业探索报告</text>
 				<text class="subtitle">以下是你想进一步了解的职业</text>
@@ -12,7 +10,7 @@
 
 			<view class="chart-card">
 				<text class="chart-title">进一步了解职业的大类比例</text>
-				<canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="320" height="320" style="width:320px;height:320px;display:block;border:0;outline:0;"></canvas>
+				<canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="200" height="200" style="width:200px;height:200px;display:block;border:0;outline:0;"></canvas>
 				<view v-if="categoryStats.length" class="legend">
 					<view v-for="item in categoryStats" :key="item.name" class="legend-item">
 						<text class="dot" :style="{background:item.color}"></text>
@@ -20,10 +18,13 @@
 					</view>
 				</view>
 				<text v-else class="chart-empty">暂未加入进一步了解的职业</text>
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
 			</view>
 			<text class="career-list-title">进一步了解的职业</text>
 			<view v-for="career in careers" :key="career.careerId" class="career-card">
 				<view class="career-header">
+					<image v-if="career.careerImageUrl" class="career-image"
+						:src="imageUrl(career.careerImageUrl)" mode="aspectFill" />
 					<view class="career-heading">
 						<text class="career-name">{{ career.careerName }}</text>
 						<text class="career-intro">{{ career.oneLineIntro || '暂无一句话介绍' }}</text>
@@ -48,11 +49,13 @@
 					<text class="info-title">为什么会有这样的职业？</text>
 					<text class="info-body">{{ career.whyExists || '暂无介绍' }}</text>
 				</view>
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
 			</view>
 
 			<view v-if="!loading && !careers.length" class="empty-card">
 				<text class="empty-title">本次没有加入进一步了解的职业</text>
 				<text class="empty-text">你已经完成了未来职业探索，本次参与记录已保存。</text>
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
 			</view>
 
 			<button type="primary" :loading="downloading" hover-class="button-hover" @click="download">下载探索报告
@@ -68,9 +71,11 @@
 		downloadReportPdf,
 		userMessage
 	} from '@/api/zycck'
+	import ZycckHeader from '@/components/ZycckHeader.vue'
 	import config from '@/config/api.js'
 
 	export default {
+		components: { ZycckHeader },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -167,7 +172,7 @@
 						const n = catNames[String(c.categoryId)];
 						if (n) counts[n] = (counts[n] || 0) + 1
 					});
-					const colors = ['#4e8df7', '#52b788', '#f6ad55', '#e76f51', '#9b87f5'];
+					const colors = ['#ffadbb', '#fdc7cd', '#fed7da', '#c9d4f7', '#acbfeb'];
 					const total = Object.keys(counts).reduce((sum, name) => sum + counts[name], 0) || 1;
 					this.categoryStats = Object.keys(counts).filter(name => counts[name] > 0).map((name, i) => ({
 						name,
@@ -187,10 +192,10 @@
 			},
 			drawPie() {
 				const ctx = uni.createCanvasContext('reportPieFinal', this);
-				const cx = 160,
-					cy = 160,
-					r = 148;
-				ctx.clearRect(0, 0, 320, 320);
+				const cx = 100,
+					cy = 100,
+					r = 85;
+				ctx.clearRect(0, 0, 200, 200);
 				const total = this.categoryStats.reduce((sum, item) => sum + item.count, 0) || 1;
 				let start = -Math.PI / 2;
 				this.categoryStats.forEach((item, index) => {
@@ -243,7 +248,9 @@
 <style scoped>
 	.page {
 		height: 100vh;
-		background: #f7f5f1
+		background: #f7f5f1;
+		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
+		background-size: 120%;
 	}
 
 	.content {
@@ -296,12 +303,13 @@
 	}
 
 	.chart-card {
+		position: relative;
 		width: 100%;
 		box-sizing: border-box;
 		margin-bottom: 24rpx;
 		padding: 26rpx;
 		border-radius: 24rpx;
-		background: #fff;
+		background: rgba(255, 255, 255, 0.5);
 		text-align: center;
 		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
 	}
@@ -383,11 +391,20 @@
 
 	.career-card,
 	.empty-card {
-		background: #fff;
+		position: relative;
+		background: rgba(255, 255, 255, 0.5);
 		border-radius: 24rpx;
 		padding: 30rpx;
 		margin-bottom: 24rpx;
 		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
+	}
+
+	.corner-icon {
+		position: absolute;
+		right: 18rpx;
+		bottom: 14rpx;
+		width: 38rpx;
+		height: 38rpx
 	}
 
 	.career-header {
@@ -515,7 +532,7 @@
 
 	.content {
 		animation: pageIn .35s ease-out;
-		margin-top: 36rpx;
+		margin-top: 56rpx;
 	}
 
 	@keyframes pageIn {

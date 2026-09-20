@@ -20,7 +20,8 @@
 				</view>
 				<!-- 原二维码入口已停用，当前位置改为扫一扫 -->
 				<view class="profile-right" @click="goScan">
-					<text class="qrcode-icon">📷</text>
+					<!-- <text class="qrcode-icon"></text> -->
+					<image style="width: 50rpx; height: 50rpx;" src="/static/scan.png"></image>
 					<text class="qrcode-label">扫一扫</text>
 				</view>
 			</view>
@@ -448,9 +449,9 @@ export default {
 .profile-right:active {
 	background: #e8eff8;
 }
-.qrcode-icon {
+/* .qrcode-icon {
 	font-size: 44rpx;
-}
+} */
 .qrcode-label {
 	font-size: 20rpx;
 	color: #607d9b;

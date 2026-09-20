@@ -1,5 +1,6 @@
 <template>
 	<view class="page" :class="{ 'is-readonly': readOnly }">
+		<zycck-header title="探职业" />
 		<view class="header">
 			<text class="title">我的未来职业探索清单</text>
 			<text class="limit">清单上限 {{ items.length }}/6</text>
@@ -9,6 +10,8 @@
 		<view class="section">
 			<text class="section-title">我想进一步了解（{{ items.length }}/6）</text>
 			<view v-for="item in items" :key="item.careerId" class="item">
+				<image v-if="item.careerImageUrl" class="item-image" :src="imageUrl(item.careerImageUrl)"
+					mode="aspectFill" />
 				<view class="item-content"><text class="item-name">{{ item.careerName }}</text><text
 						class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text></view>
 				<button v-if="!readOnly" class="trash-button" hover-class="button-hover" size="mini"
@@ -26,6 +29,8 @@
 				<input v-model="keyword" class="search" placeholder="搜索职业名称" />
 				<text v-if="!selectedCategoryId" class="category-tip">请先选择职业大类，再选择要添加的职业</text>
 				<view v-for="item in filteredCareers" :key="item.careerId" class="other-row">
+					<image v-if="item.careerImageUrl" class="item-image" :src="imageUrl(item.careerImageUrl)"
+						mode="aspectFill" />
 					<view class="item-content"><text class="item-name">{{ item.careerName }}</text><text
 							class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text></view>
 					<button v-if="!isAdded(item) && !listFull" class="plus-button" type="primary"
@@ -36,6 +41,7 @@
 				</view>
 				<text class="limit-tip">最多可加入6个职业，达到上限后需删除再添加。</text>
 			</view>
+			<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 		</view>
 
 		<view class="section today">
@@ -44,6 +50,7 @@
 			<text class="today-sub">已查看但未加入的职业</text>
 			<text v-for="item in todayViewed" :key="item.careerId" class="today-item">{{ item.careerName }}</text>
 			<text v-if="!todayViewed.length" class="empty-line">暂无已查看但未加入的职业</text>
+			<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 		</view>
 
 		<view class="footer-actions">
@@ -64,8 +71,11 @@
 		downloadReportPdf,
 		userMessage
 	} from '@/api/zycck'
+	import ZycckHeader from '@/components/ZycckHeader.vue'
+	import config from '@/config/api.js'
 
 	export default {
+		components: { ZycckHeader },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -108,6 +118,9 @@
 			this.load()
 		},
 		methods: {
+			imageUrl(value) {
+				return value && (/^\/(profile|upload)\//.test(value) ? config.BASE_URL + value : value)
+			},
 			toggleOther() { if (this.listFull) { this.showOther = false; return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }) } this.showOther = !this.showOther },
 			async load() {
 				try {
@@ -244,11 +257,13 @@
 		flex-direction: column;
 		align-items: center;
 		animation: pageIn .35s ease-out;
-		justify-content: center
+		justify-content: center;
+/* 		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
+		background-size: 120%; */
 	}
 
 	.page.is-readonly {
-		justify-content: center
+		justify-content: center;
 	}
 
 	.header,
@@ -288,12 +303,21 @@
 	}
 
 	.section {
-		background: #fff;
+		position: relative;
+		background: rgba(255, 255, 255);
 		border-radius: 20rpx;
 		padding: 28rpx 24rpx;
 		margin-bottom: 24rpx;
 		box-shadow: 0 6rpx 20rpx rgba(31, 41, 55, .05);
 		box-sizing: border-box
+	}
+
+	.corner-icon {
+		position: absolute;
+		right: 16rpx;
+		bottom: 14rpx;
+		width: 38rpx;
+		height: 38rpx
 	}
 
 	.section-title {
@@ -315,6 +339,15 @@
 		flex: 1;
 		min-width: 0;
 		padding-right: 18rpx
+	}
+
+	.item-image {
+		width: 104rpx;
+		height: 88rpx;
+		flex: 0 0 104rpx;
+		margin-right: 18rpx;
+		border-radius: 14rpx;
+		background: #eef1f5
 	}
 
 	.item-name {

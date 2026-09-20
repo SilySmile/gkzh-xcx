@@ -94,10 +94,11 @@
 		<view v-else class="panel loading">正在生成个人报告…</view>
 
 		<view v-if="dimensionVisible" class="dimension-mask" @click="dimensionVisible = false">
-			<view class="dimension-dialog" @click.stop><text
-					class="dialog-title">{{ selectedDimension.name }}</text><text
-					class="dialog-description">{{ selectedDimension.description || '暂无说明' }}</text><button
-					class="primary" @click="dimensionVisible = false">知道了</button></view>
+			<view class="dimension-dialog" @click.stop>
+				<text class="dialog-title">{{ selectedDimension.name }}</text>
+				<text class="dialog-description">{{ selectedDimension.description || '暂无说明' }}</text>
+				<button class="primary" @click="dimensionVisible = false">知道了</button>
+			</view>
 		</view>
 	</view>
 </template>

@@ -403,6 +403,7 @@ export default {
 .scroll-body {
 	flex: 1;
 	background: #eef4fb;
+	min-height: 100vh;
 }
 
 /* ── 学校信息行 ── */
