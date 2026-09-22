@@ -1,26 +1,42 @@
 <template>
 	<view class="page">
 		<zycck-header title="探职业" />
-		<view class="head">
-			<text class="rule" @click="openRules">?</text>
-		</view>
-		<text class="title">未来职业探索墙</text><text class="subtitle">现在，自己去找找你感兴趣了解的职业。</text>
-		<view class="grid">
-			<view v-for="item in categories" :key="item.categoryId" class="card" hover-class="card-hover"
-				@click="open(item)"><text class="category-name">{{item.name}}</text><text
-					class="category-count">{{item.explorableCount}} 个职业</text><text v-if="item.viewed"
-					class="viewed">已查看</text><image class="corner-icon"
-					src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" /></view>
-		</view><text class="tip">点击职业大类进一步了解具体职业卡片信息</text><text v-if="readOnly"
-			class="readonly-tip">本次探索已完成，当前内容仅可查看</text>
-		<view v-if="rulesVisible" class="mask">
-			<view class="modal">
-				<image class="rule-image" src="https://zhiye.sxgkzh.cn/imgs/zycck/gz2.png" mode="widthFix" />
-				<view class="modal-close" @click="closeRules">×</view>
+
+		<view class="exploration-body">
+			<image class="page-background" src="https://zhiye.sxgkzh.cn/imgs/zycck/TSQbackground.png" mode="widthFix" />
+			<view class="background-wash" />
+
+			<view class="content">
+				<view class="hero-copy">
+					<text class="title">未来职业探索墙</text>
+					<view class="get-line">
+						<text class="now-text">现在，</text>
+						<image class="get-image" src="https://zhiye.sxgkzh.cn/imgs/zycck/get.png" mode="widthFix" />
+					</view>
+					<text class="subtitle">自己去找找你感兴趣了解的职业</text>
+				</view>
+
+				<view class="category-list">
+					<view v-for="item in categories" :key="item.categoryId" class="category-card"
+						:class="{ selected: selectedCategoryId === item.categoryId }" hover-class="card-hover"
+						@click="selectCategory(item)">
+						<view class="card-content">
+							<text class="category-name">{{ item.name }}</text>
+							<text class="category-count">{{ item.explorableCount }}个职业</text>
+						</view>
+						<view class="decoration-circle decoration-circle-light"></view>
+						<view class="decoration-circle decoration-circle-deep"></view>
+						<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
+					</view>
+				</view>
+
+				<text v-if="!categories.length" class="empty-tip">暂时没有可探索的职业分类</text>
+				<button class="confirm-button" hover-class="button-hover" @click="confirmSelection">我选好了</button>
 			</view>
 		</view>
 	</view>
 </template>
+
 <script>
 	import {
 		getCatalog,
@@ -28,15 +44,18 @@
 		userMessage
 	} from '@/api/zycck'
 	import ZycckHeader from '@/components/ZycckHeader.vue'
+
 	export default {
-		components: { ZycckHeader },
+		components: {
+			ZycckHeader
+		},
 		data: () => ({
 			recordId: '',
 			instanceId: '',
 			gameId: '',
 			categories: [],
-			readOnly: false,
-			rulesVisible: false
+			selectedCategoryId: '',
+			readOnly: false
 		}),
 		onLoad(o) {
 			Object.assign(this, {
@@ -44,53 +63,61 @@
 				instanceId: o.instanceId || '',
 				gameId: o.gameId || '',
 				readOnly: o.readOnly === '1'
-			});
-			this.rulesVisible = !this.readOnly
+			})
 			this.load()
 		},
 		methods: {
-			openRules() {
-				this.rulesVisible = true
-			},
-			closeRules() {
-				this.rulesVisible = false
-			},
 			async load() {
 				try {
-					if (this.readOnly) return this.goReport();
+					if (this.readOnly) return this.goReport()
 					const r = await getCatalog({
 						instanceId: this.instanceId,
 						gameId: this.gameId
-					});
-					const d = r.data || {};
-					const rows = d.careers || [];
-					let viewed = [];
+					})
+					const d = r.data || {}
+					const rows = d.careers || []
+					let viewed = []
 					if (this.recordId) {
 						try {
-							const rr = await getRecord(this.recordId);
-							const rd = rr.data || {};
-							if (rd.status === 'finished' || (rd.record && rd.record.status === 'finished')) return this
-								.goReport();
-							const raw = (rd.record && rd.record.viewedCareerIds) || rd.viewedCareerIds;
+							const rr = await getRecord(this.recordId)
+							const rd = rr.data || {}
+							if (rd.status === 'finished' || (rd.record && rd.record.status === 'finished')) return this.goReport()
+							const raw = (rd.record && rd.record.viewedCareerIds) || rd.viewedCareerIds
 							viewed = Array.isArray(raw) ? raw : JSON.parse(raw || '[]')
 						} catch (e) {}
 					}
 					this.categories = (d.categories || []).map(c => {
-						const inCategory = rows.filter(q => String(q.categoryId) === String(c.categoryId) &&
-							String(q.hasQuestion) !== '1');
+						const inCategory = rows.filter(q => String(q.categoryId) === String(c.categoryId) && String(q.hasQuestion) !== '1')
 						return {
 							...c,
 							explorableCount: inCategory.length,
-							viewed: inCategory.some(q => viewed.some(id => String(id) === String(q
-								.careerQuestionId || q.careerId)))
+							viewed: inCategory.some(q => viewed.some(id => String(id) === String(q.careerQuestionId || q.careerId)))
 						}
 					})
+					if (this.categories.length && this.selectedCategoryId === '') {
+						const firstAvailable = this.categories.find(item => item.explorableCount > 0) || this.categories[0]
+						this.selectedCategoryId = firstAvailable.categoryId
+					}
 				} catch (e) {
 					uni.showToast({
 						title: userMessage(e, '职业分类加载失败，请重试'),
 						icon: 'none'
 					})
 				}
+			},
+			selectCategory(item) {
+				this.selectedCategoryId = item.categoryId
+			},
+			confirmSelection() {
+				const selected = this.categories.find(item => item.categoryId === this.selectedCategoryId)
+				if (!selected) {
+					uni.showToast({
+						title: '请先选择一个职业分类',
+						icon: 'none'
+					})
+					return
+				}
+				this.open(selected)
 			},
 			open(item) {
 				uni.redirectTo({
@@ -105,187 +132,221 @@
 		}
 	}
 </script>
+
 <style scoped>
 	.page {
-		padding: 48rpx 28rpx;
-		background: #f5f7fb;
 		min-height: 100vh;
 		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
+		background: #fff;
 		animation: pageIn .35s ease-out;
-/* 		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
-		background-size: 120%; */
 	}
 
-	.head {
-		display: flex;
-		justify-content: flex-end;
-		align-items: center;
-		font-size: 28rpx;
-		margin-bottom: 18rpx
-	}
-
-	.rule {
-		width: 52rpx;
-		height: 52rpx;
-		line-height: 52rpx;
-		text-align: center;
-		border-radius: 50%;
-		background: #1b76fe;
-		color: #fff;
-		font-weight: 700
-	}
-
-	.mask {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, .5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 10
-	}
-
-	.modal {
+	.exploration-body {
 		position: relative;
-		width: 680rpx;
-		max-width: calc(100vw - 64rpx);
-		background: transparent;
-		border-radius: 20rpx
+		overflow: hidden;
+		min-height: calc(100vh - 88rpx - var(--status-bar-height, 20rpx));
+		background: #fff;
 	}
 
-	.rule-image {
+	.page-background {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 0;
 		display: block;
 		width: 100%;
-		border-radius: 20rpx
+		height: auto;
 	}
 
-	.modal-close {
+	.background-wash {
 		position: absolute;
-		top: 16rpx;
-		right: 16rpx;
-		width: 52rpx;
-		height: 52rpx;
-		line-height: 48rpx;
-		border-radius: 50%;
-		background: rgba(0, 0, 0, .45);
-		color: #fff;
-		font-size: 44rpx;
-		font-weight: 300;
-		text-align: center;
-		z-index: 1
+		top: 310rpx;
+		left: 0;
+		z-index: 0;
+		width: 100%;
+		height: 1320rpx;
+		background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .12) 18%, rgba(255, 255, 255, .72) 62%, #fff 100%);
+	}
+
+	.content {
+		position: relative;
+		z-index: 1;
+		box-sizing: border-box;
+		width: 100%;
+		padding: 58rpx 13rpx 76rpx;
+	}
+
+	.hero-copy {
+		box-sizing: border-box;
+		padding-left: 43rpx;
+	}
+
+	.title,
+	.now-text,
+	.subtitle {
+		display: block;
 	}
 
 	.title {
-		display: block;
-		font-size: 50rpx;
+		font-size: 42rpx;
 		font-weight: 800;
-		text-align: center;
-		color: #1a2c4a
+		line-height: 1.3;
+		color: #151319;
+	}
+
+	.get-line {
+		display: flex;
+		align-items: center;
+		height: 77rpx;
+		margin-top: 20rpx;
+	}
+
+	.now-text {
+		color: #68636c;
+		font-size: 31rpx;
+		line-height: 1;
+	}
+
+	.get-image {
+		width: 124rpx;
+		height: auto;
+		margin-left: 13rpx;
 	}
 
 	.subtitle {
-		display: block;
-		text-align: center;
-		color: #64748b;
-		margin: 16rpx 0 30rpx
+		margin-top: 5rpx;
+		font-size: 29rpx;
+		line-height: 1.45;
+		color: #68636c;
 	}
 
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 18rpx
+	.category-list {
+		margin-top: 85rpx;
 	}
 
-	.card {
+	.category-card {
 		position: relative;
-		min-height: 190rpx;
+		overflow: hidden;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		background: rgba(255, 255, 255);
-		padding: 22rpx 12rpx;
-		border-radius: 20rpx;
-		color: #243b53;
-		box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, .04);
-		text-align: center
+		box-sizing: border-box;
+		width: 100%;
+		min-height: 160rpx;
+		padding: 34rpx 44rpx;
+		margin-bottom: 62rpx;
+		border: 4rpx solid transparent;
+		border-radius: 32rpx;
+		background: #fff;
+		box-shadow: 0 4rpx 14rpx rgba(61, 49, 67, .11);
+	}
+
+	.category-card.selected {
+		border-color: #25b58e;
+		box-shadow: 0 6rpx 18rpx rgba(37, 181, 142, .12);
+	}
+
+	.card-content {
+		position: relative;
+		z-index: 2;
+		box-sizing: border-box;
+		width: calc(100% - 80rpx);
+	}
+
+	.category-name,
+	.category-count {
+		display: block;
+	}
+
+	.category-name {
+		font-size: 35rpx;
+		font-weight: 800;
+		line-height: 1.3;
+		color: #111215;
+	}
+
+	.category-count {
+		margin-top: 15rpx;
+		font-size: 27rpx;
+		line-height: 1.3;
+		color: #a2a2a6;
+	}
+
+	.decoration-circle {
+		position: absolute;
+		z-index: 0;
+		border-radius: 50%;
+	}
+
+	.decoration-circle-light {
+		right: 59rpx;
+		bottom: -75rpx;
+		width: 132rpx;
+		height: 132rpx;
+		background: #f5f1f7;
+	}
+
+	.decoration-circle-deep {
+		right: -58rpx;
+		bottom: -65rpx;
+		width: 144rpx;
+		height: 144rpx;
+		background: #f2e9f3;
 	}
 
 	.corner-icon {
 		position: absolute;
-		right: 14rpx;
-		bottom: 12rpx;
-		width: 38rpx;
-		height: 38rpx
+		right: 0;
+		bottom: -8rpx;
+		z-index: 2;
+		width: 112rpx;
+		height: 112rpx;
 	}
 
-	.card-hover {
-		background: #edf4ff;
-		transform: scale(.985)
-	}
-
-	.category-name,
-	.category-count,
-	.viewed {
-		display: block
-	}
-
-	.category-name {
-		font-size: 29rpx;
-		font-weight: 700;
-		line-height: 1.35
-	}
-
-	.category-count {
-		margin-top: 10rpx;
-		color: #8a94a6;
-		font-size: 23rpx
-	}
-
-	.viewed {
-		margin-top: 12rpx;
-		color: #42a868;
-		font-size: 22rpx
-	}
-
-	.tip,
-	.readonly-tip {
+	.empty-tip {
 		display: block;
+		margin: 90rpx auto;
 		text-align: center;
-		color: #8a94a6;
-		font-size: 24rpx;
-		margin-top: 26rpx
+		font-size: 27rpx;
+		color: #7f7983;
 	}
 
-	.readonly-tip {
-		color: #d97745;
-		margin-top: 12rpx
+	.confirm-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		width: 375rpx;
+		height: 82rpx;
+		padding: 0;
+		margin: 18rpx auto 0;
+		border: 0;
+		border-radius: 999rpx;
+		background: #25b58e;
+		box-shadow: 0 8rpx 18rpx rgba(37, 181, 142, .16);
+		color: #fff;
+		font-size: 38rpx;
+		font-weight: 400;
+		line-height: 82rpx;
+	}
+
+	.confirm-button::after {
+		border: 0;
+	}
+
+	.card-hover,
+	.button-hover {
+		opacity: .86;
 	}
 
 	@keyframes pageIn {
 		from {
 			opacity: 0;
-			transform: translateY(18rpx)
+			transform: translateY(18rpx);
 		}
 
 		to {
 			opacity: 1;
-			transform: translateY(0)
+			transform: translateY(0);
 		}
-	}
-
-	.button-hover {
-		transform: none !important
-	}
-
-	.card-hover {
-		transform: none !important
-	}
-
-	.awareness-hover {
-		transform: none !important
 	}
 </style>

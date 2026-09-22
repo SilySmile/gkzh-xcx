@@ -2,44 +2,67 @@
 	<scroll-view scroll-y class="page">
 		<zycck-header title="探职业" />
 		<view class="content">
-			<view class="career-header">
+			<view class="career-header decorated-card">
 				<image v-if="careerImageUrl" class="career-image" :src="imageUrl(careerImageUrl)" mode="aspectFill" />
 				<view class="career-heading">
 					<text class="title">{{ career.careerName || '职业详情' }}</text>
 					<text v-if="career.oneLineIntro" class="intro">{{ career.oneLineIntro }}</text>
 				</view>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
 				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 			</view>
-			<view class="info-card">
-				<text class="section-title">这个职业主要做什么？</text>
-				<text class="body">{{ career.mainWork || '暂无介绍' }}</text>
-				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
-			</view>
-			<view class="info-card">
-				<text class="section-title">一天可能做什么？</text>
-				<view v-if="dayItems.length" class="day-grid">
-					<view v-for="(item, index) in dayItems" :key="index" class="day-item">
-						<view class="day-icon">{{ index + 1 }}</view>
-						<text class="day-title">{{ item.title }}</text>
-						<text v-if="item.description" class="day-description">{{ item.description }}</text>
-					</view>
+
+			<view class="info-card main-work-card decorated-card">
+				<view class="card-copy">
+					<text class="section-title">这个职业主要做什么？</text>
+					<text class="body">{{ career.mainWork || '暂无介绍' }}</text>
 				</view>
-				<text v-else class="body">暂无介绍</text>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
 				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 			</view>
-			<view class="info-card">
-				<text class="section-title">为什么会有这样的职业？</text>
-				<text class="body">{{ career.whyExists || '暂无介绍' }}</text>
+
+			<view class="info-card day-card decorated-card">
+				<view class="card-copy">
+					<text class="section-title">一天可能做什么？</text>
+					<view v-if="dayItems.length" class="day-grid">
+						<view v-for="(item, index) in dayItems" :key="index" class="day-item">
+							<view class="day-icon">{{ index + 1 }}</view>
+							<view class="day-copy">
+								<text class="day-title">{{ item.title }}</text>
+								<text v-if="item.description" class="day-description">{{ item.description }}</text>
+							</view>
+						</view>
+					</view>
+					<text v-else class="body">暂无介绍</text>
+				</view>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
 				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 			</view>
+
+			<view class="info-card why-card decorated-card">
+				<view class="card-copy">
+					<text class="section-title">为什么会有这样的职业？</text>
+					<text class="body">{{ career.whyExists || '暂无介绍' }}</text>
+				</view>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
+			</view>
+
 			<view class="actions">
-				<button hover-class="button-hover" :disabled="readOnly || added"
-					@click="add">{{ added ? '已加入探索清单' : '加入探索清单' }}</button>
-				<button type="primary" hover-class="button-hover" :disabled="readOnly" @click="finish">完成探索</button>
+				<button class="primary-button" hover-class="button-hover" :disabled="readOnly || added" @click="add">
+					{{ added ? '已加入探索清单' : '加入探索清单' }}
+				</button>
+				<button class="secondary-button" hover-class="button-hover" :disabled="readOnly" @click="finish">完成探索</button>
 			</view>
+
 			<view class="nav-actions">
-				<button hover-class="button-hover" @click="moreInCategory">换一个职业继续了解</button>
-				<button hover-class="button-hover" @click="moreCategories">换一个职业大类继续了解</button>
+				<text hover-class="link-hover" @click="moreInCategory">换一个职业继续了解</text>
+				<view class="link-divider" />
+				<text hover-class="link-hover" @click="moreCategories">换一个职业大类继续了解</text>
 			</view>
 		</view>
 	</scroll-view>
@@ -102,8 +125,7 @@
 						careerId: this.careerId
 					})
 					const d = r.data || {}
-					if (this.readOnly || d.status === 'finished' || (d.record && d.record.status === 'finished'))
-						return this.goReport()
+					if (this.readOnly || d.status === 'finished' || (d.record && d.record.status === 'finished')) return this.goReport()
 					this.career = d.career || d.currentCareer || {
 						careerId: this.careerId,
 						careerName: '职业详情'
@@ -169,167 +191,261 @@
 <style scoped>
 	.page {
 		height: 100vh;
-		background: #f7f5f1;
-/* 		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
-		background-size: 120%; */
+		border-top: 4rpx solid #a66da4;
+		background: linear-gradient(180deg, #d0b6d2 0%, #d0b6d2 25%, #d7c4dc 47%, #e4ddea 72%, #ebebf4 86%, #ebebf4 100%);
 	}
 
 	.content {
-		min-height: 100vh;
-		padding: 34rpx 28rpx 52rpx;
 		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		justify-content: center
+		min-height: calc(100vh - 108rpx);
+		padding: 120rpx 26rpx 90rpx;
+		animation: pageIn .35s ease-out;
 	}
 
-	.career-header,
-	.info-card {
+	.decorated-card {
 		position: relative;
-		background: rgba(255, 255, 255);
+		overflow: hidden;
+		box-sizing: border-box;
+		width: 100%;
 		border-radius: 24rpx;
-		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
+		background: #fff;
 	}
 
 	.career-header {
 		display: flex;
 		align-items: center;
-		padding: 28rpx;
+		min-height: 178rpx;
+		padding: 28rpx 150rpx 28rpx 30rpx;
 		margin-bottom: 22rpx;
-		background: rgba(255, 255, 255)
+	}
+
+	.career-heading,
+	.card-copy {
+		position: relative;
+		z-index: 3;
+		min-width: 0;
 	}
 
 	.career-heading {
 		flex: 1;
-		min-width: 0
-	}
-
-	.title {
-		display: block;
-		font-size: 42rpx;
-		line-height: 1.25;
-		font-weight: 800;
-		color: #222
-	}
-
-	.intro {
-		display: block;
-		margin-top: 14rpx;
-		font-size: 27rpx;
-		line-height: 1.6;
-		color: #665f55
 	}
 
 	.career-image {
-		width: 176rpx;
-		height: 150rpx;
-		border-radius: 20rpx;
-		margin-right: 24rpx
+		position: relative;
+		z-index: 3;
+		flex: 0 0 auto;
+		width: 132rpx;
+		height: 112rpx;
+		margin-right: 24rpx;
+		border-radius: 18rpx;
+		background: #f3f1f5;
+	}
+
+	.title,
+	.intro,
+	.section-title,
+	.body,
+	.day-title,
+	.day-description {
+		display: block;
+	}
+
+	.title {
+		font-size: 39rpx;
+		font-weight: 800;
+		line-height: 1.3;
+		color: #111014;
+	}
+
+	.intro {
+		display: -webkit-box;
+		overflow: hidden;
+		margin-top: 12rpx;
+		font-size: 25rpx;
+		line-height: 1.55;
+		color: #6f6b73;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
 	}
 
 	.info-card {
-		padding: 28rpx;
-		margin-bottom: 20rpx
+		padding: 31rpx 150rpx 34rpx 31rpx;
+		margin-bottom: 22rpx;
+	}
+
+	.main-work-card,
+	.why-card {
+		min-height: 258rpx;
+	}
+
+	.day-card {
+		min-height: 300rpx;
+	}
+
+	.section-title {
+		margin-bottom: 19rpx;
+		font-size: 31rpx;
+		font-weight: 800;
+		line-height: 1.4;
+		color: #1b1920;
+	}
+
+	.body {
+		font-size: 25rpx;
+		line-height: 1.78;
+		color: #55515a;
+		white-space: pre-line;
+	}
+
+	.day-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 18rpx 24rpx;
+	}
+
+	.day-item {
+		display: flex;
+		align-items: flex-start;
+		min-width: 0;
+	}
+
+	.day-icon {
+		flex: 0 0 auto;
+		width: 44rpx;
+		height: 44rpx;
+		margin-right: 12rpx;
+		border-radius: 50%;
+		background: #eee5f0;
+		color: #986b98;
+		font-size: 22rpx;
+		font-weight: 700;
+		line-height: 44rpx;
+		text-align: center;
+	}
+
+	.day-copy {
+		min-width: 0;
+	}
+
+	.day-title {
+		font-size: 24rpx;
+		font-weight: 700;
+		line-height: 1.45;
+		color: #39353d;
+	}
+
+	.day-description {
+		margin-top: 5rpx;
+		font-size: 21rpx;
+		line-height: 1.5;
+		color: #7b7780;
+	}
+
+	.decoration-circle {
+		position: absolute;
+		z-index: 0;
+		border-radius: 50%;
+	}
+
+	.decoration-circle-light {
+		right: 59rpx;
+		bottom: -75rpx;
+		width: 132rpx;
+		height: 132rpx;
+		background: #f5f1f7;
+	}
+
+	.decoration-circle-deep {
+		right: -58rpx;
+		bottom: -65rpx;
+		width: 144rpx;
+		height: 144rpx;
+		background: #f2e9f3;
 	}
 
 	.corner-icon {
 		position: absolute;
-		right: 18rpx;
-		bottom: 14rpx;
-		width: 38rpx;
-		height: 38rpx
+		right: 0;
+		bottom: -8rpx;
+		z-index: 2;
+		width: 112rpx;
+		height: 112rpx;
 	}
 
-	.section-title {
-		display: block;
-		font-size: 32rpx;
-		font-weight: 700;
-		color: #20252b;
-		margin-bottom: 18rpx
+	.actions {
+		display: flex;
+		gap: 24rpx;
+		margin-top: 28rpx;
 	}
 
-	.body {
-		display: block;
+	.actions button {
+		flex: 1;
+		height: 80rpx;
+		padding: 0 12rpx;
+		margin: 0;
+		border: 0;
+		border-radius: 12rpx;
 		font-size: 27rpx;
-		line-height: 1.8;
-		color: #4b5563
+		font-weight: 500;
+		line-height: 80rpx;
 	}
 
-	.day-grid {
-		display: flex;
-		flex-wrap: wrap;
-		margin: 0 -8rpx
+	.actions button::after {
+		border: 0;
 	}
 
-	.day-item {
-		width: 25%;
-		padding: 0 8rpx 18rpx;
-		box-sizing: border-box;
-		text-align: center
+	.primary-button {
+		color: #fff;
+		background: #28b28b;
 	}
 
-	.day-icon {
-		width: 60rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		margin: 0 auto 12rpx;
-		border-radius: 16rpx;
-		background: #fff4e8;
-		color: #c56d1b;
-		font-size: 26rpx;
-		font-weight: 700
+	.secondary-button {
+		color: #58535d;
+		background: #fff;
 	}
 
-	.day-title {
-		display: block;
-		color: #30343b;
-		font-size: 25rpx;
-		font-weight: 700;
-		line-height: 1.35
+	.actions button[disabled] {
+		opacity: .72;
+		color: #fff;
+		background: #28b28b;
 	}
 
-	.day-description {
-		display: block;
-		margin-top: 8rpx;
-		color: #7a7f87;
-		font-size: 22rpx;
-		line-height: 1.4
-	}
-
-	.actions,
-	.nav-actions {
-		display: flex;
-		gap: 20rpx;
-		margin-top: 24rpx
-	}
-
-	.actions button,
-	.nav-actions button {
-		flex: 1
+	.actions .secondary-button[disabled] {
+		color: #8d8991;
+		background: #fff;
 	}
 
 	.nav-actions {
-		flex-direction: column
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 28rpx;
+		font-size: 23rpx;
+		line-height: 1.5;
+		color: #777681;
 	}
 
-	.button-hover {
-		opacity: .8;
-		transform: scale(.98)
+	.link-divider {
+		width: 1rpx;
+		height: 24rpx;
+		margin: 0 18rpx;
+		background: rgba(119, 118, 129, .45);
 	}
 
-	.content {
-		animation: pageIn .35s ease-out
+	.button-hover,
+	.link-hover {
+		opacity: .76;
 	}
 
 	@keyframes pageIn {
 		from {
 			opacity: 0;
-			transform: translateY(18rpx)
+			transform: translateY(18rpx);
 		}
 
 		to {
 			opacity: 1;
-			transform: translateY(0)
+			transform: translateY(0);
 		}
 	}
 </style>

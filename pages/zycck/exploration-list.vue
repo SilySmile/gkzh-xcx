@@ -1,62 +1,92 @@
 <template>
 	<view class="page" :class="{ 'is-readonly': readOnly }">
 		<zycck-header title="探职业" />
-		<view class="header">
-			<text class="title">我的未来职业探索清单</text>
-			<text class="limit">清单上限 {{ items.length }}/6</text>
-			<text class="hint">这些是你主动关注的职业</text>
-		</view>
 
-		<view class="section">
-			<text class="section-title">我想进一步了解（{{ items.length }}/6）</text>
-			<view v-for="item in items" :key="item.careerId" class="item">
-				<image v-if="item.careerImageUrl" class="item-image" :src="imageUrl(item.careerImageUrl)"
-					mode="aspectFill" />
-				<view class="item-content"><text class="item-name">{{ item.careerName }}</text><text
-						class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text></view>
-				<button v-if="!readOnly" class="trash-button" hover-class="button-hover" size="mini"
-					@click="remove(item)">🗑</button>
+		<view class="content">
+			<view class="hero">
+				<text class="page-title">我的未来职业探索清单</text>
+				<text class="limit">清单上限{{ items.length }}/6</text>
+				<text class="hint">这些都是你主动关注的职业</text>
 			</view>
-			<text v-if="!items.length" class="empty-tip">没关系，今天不一定要找到“最想探索的职业”。\n你刚刚已经认识了一个职业，未来还可以继续探索更多可能。</text>
 
-			<button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="listFull"
-				@click="toggleOther">{{ listFull ? '清单已满，请先删除后再添加' : (showOther ? '收起其他职业' : '添加其他职业') }}</button>
-			<view v-if="showOther && !readOnly && !listFull" class="other-panel">
-				<picker mode="selector" :range="categories" range-key="name" @change="categoryChanged">
-					<view class="category-picker">{{ selectedCategoryName || '请选择职业大类' }}<text
-							class="picker-arrow">⌄</text></view>
-				</picker>
-				<input v-model="keyword" class="search" placeholder="搜索职业名称" />
-				<text v-if="!selectedCategoryId" class="category-tip">请先选择职业大类，再选择要添加的职业</text>
-				<view v-for="item in filteredCareers" :key="item.careerId" class="other-row">
-					<image v-if="item.careerImageUrl" class="item-image" :src="imageUrl(item.careerImageUrl)"
-						mode="aspectFill" />
-					<view class="item-content"><text class="item-name">{{ item.careerName }}</text><text
-							class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text></view>
-					<button v-if="!isAdded(item) && !listFull" class="plus-button" type="primary"
-						hover-class="button-hover" size="mini" :disabled="addingCareerId === item.careerId"
-						@click="add(item)">＋</button>
-					<text v-else-if="isAdded(item)" class="added">已加入</text>
-					<text v-else class="added limit-reached">已达上限</text>
+			<view class="list-wrap">
+				<image class="baby-image" src="https://zhiye.sxgkzh.cn/imgs/zycck/sjbaby.png" mode="aspectFit" />
+				<view class="section list-section decorated-card">
+					<view class="section-content">
+						<text class="section-title">我想进一步了解（{{ items.length }}/6）</text>
+
+						<view class="selected-list">
+							<view v-for="item in items" :key="item.careerId" class="item">
+								<view class="item-content">
+									<text class="item-name">{{ item.careerName }}</text>
+									<text class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text>
+								</view>
+								<button v-if="!readOnly" class="trash-button" hover-class="button-hover"
+									@click="remove(item)">
+									<image src="/static/delete.png" mode="aspectFit" style="height: 32rpx;"></image>
+								</button>
+							</view>
+						</view>
+
+						<text v-if="!items.length"
+							class="empty-tip">没关系，今天不一定要找到“最想探索的职业”。\n你刚刚已经认识了一个职业，未来还可以继续探索更多可能。</text>
+
+						<button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="listFull"
+							@click="toggleOther">
+							<text>{{ listFull ? '清单已满，请先删除' : (showOther ? '收起其他职业' : '添加其他职业') }}</text>
+							<text v-if="!listFull" class="add-symbol">{{ showOther ? '−' : '＋' }}</text>
+						</button>
+
+						<view v-if="showOther && !readOnly && !listFull" class="other-panel">
+							<picker mode="selector" :range="categories" range-key="name" @change="categoryChanged">
+								<view class="category-picker">{{ selectedCategoryName || '请选择职业大类' }}<text
+										class="picker-arrow">⌄</text></view>
+							</picker>
+							<input v-model="keyword" class="search" placeholder="搜索职业名称" />
+							<text v-if="!selectedCategoryId" class="category-tip">请先选择职业大类，再选择要添加的职业</text>
+							<view v-for="item in filteredCareers" :key="item.careerId" class="other-row">
+								<view class="item-content">
+									<text class="item-name">{{ item.careerName }}</text>
+									<text class="item-intro">{{ item.oneLineIntro || '暂无一句话介绍' }}</text>
+								</view>
+								<button v-if="!isAdded(item) && !listFull" class="plus-button"
+									hover-class="button-hover" :disabled="addingCareerId === item.careerId"
+									@click="add(item)">＋</button>
+								<text v-else-if="isAdded(item)" class="added">已加入</text>
+								<text v-else class="added limit-reached">已达上限</text>
+							</view>
+							<text class="limit-tip">最多可加入6个职业，达到上限后需删除再添加。</text>
+						</view>
+					</view>
+					<view class="decoration-circle decoration-circle-light" />
+					<view class="decoration-circle decoration-circle-deep" />
+					<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 				</view>
-				<text class="limit-tip">最多可加入6个职业，达到上限后需删除再添加。</text>
 			</view>
-			<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
-		</view>
 
-		<view class="section today">
-			<view class="today-head"><text class="section-title">今日认识</text><text
-					class="today-count">{{ todayViewed.length }} 个</text></view>
-			<text class="today-sub">已查看但未加入的职业</text>
-			<text v-for="item in todayViewed" :key="item.careerId" class="today-item">{{ item.careerName }}</text>
-			<text v-if="!todayViewed.length" class="empty-line">暂无已查看但未加入的职业</text>
-			<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
-		</view>
+			<view class="section today decorated-card">
+				<view class="section-content today-content">
+					<view class="today-head">
+						<text class="section-title">今日认识</text>
+						<text class="today-count">{{ todayViewed.length }}个</text>
+					</view>
+					<text class="today-sub">已查看但未加入的职业</text>
+					<text v-for="item in todayViewed" :key="item.careerId"
+						class="today-item">{{ item.careerName }}</text>
+					<text v-if="!todayViewed.length" class="empty-line">暂无已查看但未加入的职业</text>
+				</view>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
+			</view>
 
-		<view class="footer-actions">
-			<button v-if="!readOnly" type="primary" hover-class="button-hover" @click="finish">确认我的探索清单</button>
-			<button v-else type="primary" hover-class="button-hover" @click="download">下载探索清单 PDF</button>
-			<button v-if="!readOnly" hover-class="button-hover" @click="continueExplore">继续探索更多职业</button>
+			<view class="footer-actions">
+				<button v-if="!readOnly" class="confirm-button" hover-class="button-hover"
+					@click="finish">确认我的探索清单</button>
+				<button v-else class="confirm-button" hover-class="button-hover" @click="download">下载探索清单 PDF</button>
+				<button v-if="!readOnly" class="continue-button" hover-class="button-hover"
+					@click="continueExplore">继续探索更多职业</button>
+			</view>
 		</view>
 	</view>
 </template>
@@ -75,7 +105,9 @@
 	import config from '@/config/api.js'
 
 	export default {
-		components: { ZycckHeader },
+		components: {
+			ZycckHeader
+		},
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -91,7 +123,9 @@
 			addingCareerId: ''
 		}),
 		computed: {
-			listFull() { return this.items.length >= 6 },
+			listFull() {
+				return this.items.length >= 6
+			},
 			selectedCategoryName() {
 				const item = this.categories.find(x => String(x.categoryId || x.id) === String(this.selectedCategoryId));
 				return item ? (item.name || item.categoryName || '') : ''
@@ -121,7 +155,16 @@
 			imageUrl(value) {
 				return value && (/^\/(profile|upload)\//.test(value) ? config.BASE_URL + value : value)
 			},
-			toggleOther() { if (this.listFull) { this.showOther = false; return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }) } this.showOther = !this.showOther },
+			toggleOther() {
+				if (this.listFull) {
+					this.showOther = false;
+					return uni.showToast({
+						title: '探索清单最多添加6个职业',
+						icon: 'none'
+					})
+				}
+				this.showOther = !this.showOther
+			},
 			async load() {
 				try {
 					const [r, c] = await Promise.all([getExploration(this.recordId), getCatalog({
@@ -158,7 +201,13 @@
 				return this.items.some(x => String(x.careerId) === String(i.careerId))
 			},
 			async add(i) {
-				if (this.listFull) { this.showOther = false; return uni.showToast({ title: '探索清单最多添加6个职业', icon: 'none' }) }
+				if (this.listFull) {
+					this.showOther = false;
+					return uni.showToast({
+						title: '探索清单最多添加6个职业',
+						icon: 'none'
+					})
+				}
 				if (this.isAdded(i)) return uni.showToast({
 					title: '该职业已在探索清单中',
 					icon: 'none'
@@ -200,7 +249,7 @@
 				try {
 					const result = await finishRecord(this.recordId);
 					if (result && result.code && Number(result.code) !== 200) throw new Error(result.msg ||
-					'确认探索清单失败');
+						'确认探索清单失败');
 					this.goReport()
 				} catch (e) {
 					uni.showToast({
@@ -249,256 +298,449 @@
 
 <style scoped>
 	.page {
-		padding: 48rpx 32rpx 60rpx;
-		background: #f5f7fb;
 		min-height: 100vh;
+		border-top: 4rpx solid #a66da4;
+		background: linear-gradient(180deg, #d0b1d5 0%, #d7bddb 25%, #e2d2e6 43%, #f5f0f7 67%, #ffffff 86%, #ffffff 100%);
+	}
+
+	.content {
 		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+		min-height: calc(100vh - 108rpx);
+		padding: 64rpx 24rpx 94rpx;
 		animation: pageIn .35s ease-out;
-		justify-content: center;
-/* 		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
-		background-size: 120%; */
 	}
 
-	.page.is-readonly {
-		justify-content: center;
-	}
-
-	.header,
-	.section,
-	.footer-actions {
-		width: 100%;
-		max-width: 680rpx
-	}
-
-	.header {
+	.hero {
+		position: relative;
+		z-index: 4;
 		text-align: center;
-		margin-bottom: 30rpx
 	}
 
-	.title {
+	.page-title,
+	.limit,
+	.hint,
+	.section-title,
+	.item-name,
+	.item-intro,
+	.today-sub,
+	.today-item,
+	.empty-line,
+	.empty-tip,
+	.limit-tip,
+	.category-tip {
 		display: block;
-		font-size: 50rpx;
+	}
+
+	.page-title {
+		font-size: 42rpx;
 		font-weight: 800;
-		color: #1a2c4a
+		line-height: 1.35;
+		color: #17151a;
 	}
 
 	.limit {
 		display: inline-block;
-		margin-top: 16rpx;
-		padding: 8rpx 18rpx;
-		border-radius: 20rpx;
-		background: #e8f1ff;
-		color: #1b76fe;
-		font-size: 24rpx
+		padding: 7rpx 24rpx;
+		margin: 12rpx auto 0;
+		border-radius: 34rpx;
+		background: #9ee5f6;
+		color: #ff6e78;
+		font-size: 27rpx;
+		font-weight: 500;
+		line-height: 42rpx;
 	}
 
 	.hint {
-		display: block;
-		color: #64748b;
-		font-size: 24rpx;
-		margin-top: 12rpx
+		margin-top: 20rpx;
+		font-size: 28rpx;
+		line-height: 1.5;
+		color: #676369;
 	}
 
-	.section {
+	.decorated-card {
 		position: relative;
-		background: rgba(255, 255, 255);
+		overflow: hidden;
+		box-sizing: border-box;
+		width: 100%;
+		border: 1rpx solid rgba(171, 160, 177, .48);
 		border-radius: 20rpx;
-		padding: 28rpx 24rpx;
-		margin-bottom: 24rpx;
-		box-shadow: 0 6rpx 20rpx rgba(31, 41, 55, .05);
-		box-sizing: border-box
+		background: #fff;
+		box-shadow: 0 3rpx 9rpx rgba(63, 43, 68, .05);
 	}
 
-	.corner-icon {
-		position: absolute;
-		right: 16rpx;
-		bottom: 14rpx;
-		width: 38rpx;
-		height: 38rpx
+	.list-wrap {
+		position: relative;
+		margin-top: 64rpx;
+	}
+
+	.list-section {
+		min-height: 438rpx;
+	}
+
+	.section-content {
+		position: relative;
+		z-index: 3;
+		padding: 34rpx 30rpx 38rpx;
+	}
+
+	.list-section .section-content {
+		padding-bottom: 39rpx;
 	}
 
 	.section-title {
-		font-size: 32rpx;
-		font-weight: 700;
-		color: #27364a
+		font-size: 34rpx;
+		font-weight: 800;
+		line-height: 1.4;
+		color: #111014;
+	}
+
+	.baby-image {
+		position: absolute;
+		top: -99rpx;
+		right: 24rpx;
+		z-index: 5;
+		width: 184rpx;
+		height: 184rpx;
+	}
+
+	.selected-list {
+		margin-top: 28rpx;
 	}
 
 	.item,
 	.other-row {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		padding: 24rpx 0;
-		border-bottom: 1rpx solid #edf0f4
+		box-sizing: border-box;
+		width: 100%;
+		min-height: 78rpx;
+		padding: 10rpx 13rpx 10rpx 38rpx;
+		margin-bottom: 20rpx;
+		border: 1rpx solid #eeeaf0;
+		border-radius: 38rpx;
+		background: #fff;
+		box-shadow: 0 3rpx 10rpx rgba(51, 43, 54, .055);
 	}
 
 	.item-content {
 		flex: 1;
 		min-width: 0;
-		padding-right: 18rpx
-	}
-
-	.item-image {
-		width: 104rpx;
-		height: 88rpx;
-		flex: 0 0 104rpx;
-		margin-right: 18rpx;
-		border-radius: 14rpx;
-		background: #eef1f5
+		padding-right: 16rpx;
 	}
 
 	.item-name {
-		display: block;
-		font-size: 30rpx;
-		color: #263548
+		overflow: hidden;
+		font-size: 29rpx;
+		line-height: 1.35;
+		color: #19171b;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.item-intro {
-		display: block;
-		color: #8a94a6;
-		font-size: 23rpx;
-		line-height: 1.5;
-		margin-top: 8rpx
-	}
-
-	.trash-button,
-	.plus-button {
-		width: 76rpx;
-		min-width: 76rpx;
-		margin: 0;
-		padding: 0
+		overflow: hidden;
+		margin-top: 1rpx;
+		font-size: 20rpx;
+		line-height: 1.4;
+		color: #858087;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.trash-button {
-		color: #e34d59;
-		background: #fff0f0
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 62rpx;
+		width: 62rpx;
+		height: 58rpx;
+		padding: 0;
+		margin: 0;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		line-height: 1;
+	}
+
+	.trash-button::after,
+	.add-other::after,
+	.plus-button::after,
+	.footer-actions button::after {
+		border: 0;
+	}
+
+	.trash-icon {
+		position: relative;
+		width: 28rpx;
+		height: 34rpx;
+	}
+
+	.trash-lid {
+		position: absolute;
+		top: 3rpx;
+		left: 1rpx;
+		box-sizing: border-box;
+		width: 27rpx;
+		height: 5rpx;
+		border-top: 4rpx solid #151318;
+	}
+
+	.trash-lid::before {
+		position: absolute;
+		top: -10rpx;
+		left: 8rpx;
+		box-sizing: border-box;
+		width: 12rpx;
+		height: 8rpx;
+		border: 3rpx solid #151318;
+		border-bottom: 0;
+		border-radius: 3rpx 3rpx 0 0;
+		content: '';
+	}
+
+	.trash-bin {
+		position: absolute;
+		top: 11rpx;
+		left: 4rpx;
+		display: flex;
+		justify-content: space-evenly;
+		box-sizing: border-box;
+		width: 21rpx;
+		height: 23rpx;
+		padding-top: 5rpx;
+		border: 3rpx solid #151318;
+		border-top-width: 2rpx;
+		border-radius: 0 0 4rpx 4rpx;
+	}
+
+	.trash-bin view {
+		width: 2rpx;
+		height: 12rpx;
+		background: #151318;
 	}
 
 	.add-other {
-		margin-top: 26rpx
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 354rpx;
+		height: 76rpx;
+		padding: 0 28rpx;
+		margin: 38rpx auto 0;
+		border: 0;
+		border-radius: 38rpx;
+		background: #dbc0e3;
+		color: #111014;
+		font-size: 29rpx;
+		font-weight: 500;
+		line-height: 76rpx;
+	}
+
+	.add-symbol {
+		margin-left: 18rpx;
+		font-size: 36rpx;
+		font-weight: 300;
+	}
+
+	.add-other[disabled] {
+		color: #777278;
+		background: #e8dce9;
 	}
 
 	.other-panel {
-		margin-top: 20rpx
+		position: relative;
+		z-index: 3;
+		padding-top: 24rpx;
 	}
 
+	.category-picker,
 	.search {
-		background: #f5f7fb;
-		border-radius: 12rpx;
-		padding: 20rpx 24rpx
-	}
-
-	.added {
-		color: #42a868;
-		font-size: 25rpx
-	}
-
-	.limit-tip,
-	.empty-tip {
-		display: block;
-		color: #8a94a6;
-		font-size: 24rpx;
-		line-height: 1.7;
-		margin: 22rpx 0;
-		text-align: center;
-		white-space: pre-line
-	}
-
-	.today-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between
-	}
-
-	.today-count {
-		color: #d97745;
-		font-weight: 700
-	}
-
-	.today-sub {
-		display: block;
-		color: #8a94a6;
-		font-size: 23rpx;
-		margin: 8rpx 0 14rpx
-	}
-
-	.today-item {
-		display: block;
-		color: #4b5563;
-		font-size: 27rpx;
-		padding: 10rpx 0
-	}
-
-	.empty-line {
-		display: block;
-		color: #a1a8b2;
-		font-size: 24rpx;
-		padding: 18rpx 0
-	}
-
-	.footer-actions button {
-		margin-top: 16rpx
-	}
-
-	.button-hover {
-		opacity: .78;
-		transform: scale(.98)
-	}
-
-	@keyframes pageIn {
-		from {
-			opacity: 0;
-			transform: translateY(18rpx)
-		}
-
-		to {
-			opacity: 1;
-			transform: translateY(0)
-		}
-	}
-
-	.button-hover {
-		transform: none !important
-	}
-
-	.card-hover {
-		transform: none !important
-	}
-
-	.awareness-hover {
-		transform: none !important
+		box-sizing: border-box;
+		width: 100%;
+		height: 72rpx;
+		border: 1rpx solid #e2d9e5;
+		border-radius: 16rpx;
+		background: #faf7fb;
+		color: #474148;
+		font-size: 25rpx;
 	}
 
 	.category-picker {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		background: #f5f7fb;
-		border: 1rpx solid #e5eaf1;
-		border-radius: 12rpx;
-		padding: 20rpx 24rpx;
-		color: #34445a;
-		font-size: 27rpx;
-		margin-bottom: 16rpx
+		padding: 0 24rpx;
+		margin-bottom: 16rpx;
+		line-height: 72rpx;
+	}
+
+	.search {
+		padding: 0 24rpx;
+		margin-bottom: 18rpx;
 	}
 
 	.picker-arrow {
-		color: #8a94a6;
-		font-size: 28rpx
+		color: #918795;
+		font-size: 30rpx;
 	}
 
-	.category-tip {
-		display: block;
-		padding: 28rpx 0;
-		color: #8a94a6;
-		font-size: 25rpx;
-		text-align: center
+	.other-row {
+		padding-left: 26rpx;
+		margin-bottom: 14rpx;
+	}
+
+	.plus-button {
+		flex: 0 0 54rpx;
+		width: 54rpx;
+		height: 54rpx;
+		padding: 0;
+		margin: 0;
+		border: 0;
+		border-radius: 50%;
+		background: #28b28b;
+		color: #fff;
+		font-size: 30rpx;
+		line-height: 54rpx;
+	}
+
+	.added {
+		flex: 0 0 auto;
+		color: #29ae89;
+		font-size: 22rpx;
 	}
 
 	.limit-reached {
-		color: #a1a8b2
+		color: #99939a;
+	}
+
+	.empty-tip,
+	.limit-tip,
+	.category-tip {
+		margin: 24rpx 0;
+		color: #8c858e;
+		font-size: 22rpx;
+		line-height: 1.7;
+		text-align: center;
+		white-space: pre-line;
+	}
+
+	.today {
+		min-height: 366rpx;
+		margin-top: 50rpx;
+	}
+
+	.today-content {
+		padding: 43rpx 32rpx 48rpx;
+	}
+
+	.today-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.today-count {
+		color: #ee9200;
+		font-size: 36rpx;
+		font-weight: 700;
+		line-height: 1.3;
+	}
+
+	.today-sub {
+		margin-top: 17rpx;
+		font-size: 27rpx;
+		line-height: 1.45;
+		color: #969096;
+	}
+
+	.today-item {
+		margin-top: 18rpx;
+		font-size: 27rpx;
+		line-height: 1.35;
+		color: #5f5a61;
+	}
+
+	.empty-line {
+		padding-top: 31rpx;
+		font-size: 24rpx;
+		color: #99939a;
+	}
+
+	.decoration-circle {
+		position: absolute;
+		z-index: 0;
+		border-radius: 50%;
+	}
+
+	.decoration-circle-light {
+		right: 59rpx;
+		bottom: -75rpx;
+		width: 132rpx;
+		height: 132rpx;
+		background: #f5f1f7;
+	}
+
+	.decoration-circle-deep {
+		right: -58rpx;
+		bottom: -65rpx;
+		width: 144rpx;
+		height: 144rpx;
+		background: #f2e9f3;
+	}
+
+	.corner-icon {
+		position: absolute;
+		right: 0;
+		bottom: -8rpx;
+		z-index: 2;
+		width: 112rpx;
+		height: 112rpx;
+	}
+
+	.footer-actions {
+		width: 390rpx;
+		margin: 63rpx auto 0;
+	}
+
+	.footer-actions button {
+		box-sizing: border-box;
+		width: 100%;
+		height: 76rpx;
+		padding: 0 18rpx;
+		margin: 0;
+		border-radius: 38rpx;
+		font-size: 29rpx;
+		font-weight: 400;
+		line-height: 76rpx;
+	}
+
+	.confirm-button {
+		border: 0;
+		background: #28b28b;
+		color: #fff;
+	}
+
+	.continue-button {
+		margin-top: 16rpx !important;
+		border: 1rpx solid #ddd9de;
+		background: #fff;
+		color: #18161a;
+		box-shadow: 0 3rpx 8rpx rgba(55, 47, 58, .08);
+	}
+
+	.button-hover {
+		opacity: .78;
+	}
+
+	@keyframes pageIn {
+		from {
+			opacity: 0;
+			transform: translateY(18rpx);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 </style>

@@ -1,65 +1,54 @@
 <template>
 	<scroll-view scroll-y class="page">
-		<zycck-header title="探职业" />
+		<zycck-header title="探职业" @back="back" />
 		<view class="content">
 			<view class="report-header">
 				<text class="title">我的未来职业探索报告</text>
 				<text class="subtitle">以下是你想进一步了解的职业</text>
-				<text class="count">共 {{ careers.length }} 个职业</text>
 			</view>
 
-			<view class="chart-card">
-				<text class="chart-title">进一步了解职业的大类比例</text>
-				<canvas id="reportPieFinal" canvas-id="reportPieFinal" class="pie" width="200" height="200" style="width:200px;height:200px;display:block;border:0;outline:0;"></canvas>
-				<view v-if="categoryStats.length" class="legend">
-					<view v-for="item in categoryStats" :key="item.name" class="legend-item">
-						<text class="dot" :style="{background:item.color}"></text>
-						<text>{{ item.name }} {{ item.percent }}%</text>
-					</view>
-				</view>
-				<text v-else class="chart-empty">暂未加入进一步了解的职业</text>
-				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
-			</view>
-			<text class="career-list-title">进一步了解的职业</text>
-			<view v-for="career in careers" :key="career.careerId" class="career-card">
-				<view class="career-header">
-					<image v-if="career.careerImageUrl" class="career-image"
-						:src="imageUrl(career.careerImageUrl)" mode="aspectFill" />
-					<view class="career-heading">
-						<text class="career-name">{{ career.careerName }}</text>
-						<text class="career-intro">{{ career.oneLineIntro || '暂无一句话介绍' }}</text>
-					</view>
-				</view>
-				<view v-if="false" class="info-block">
-					<text class="info-title">这个职业主要做什么？</text>
-					<text class="info-body">{{ career.mainWork || '暂无介绍' }}</text>
-				</view>
-				<view v-if="false" class="info-block">
-					<text class="info-title">一天可能做什么？</text>
-					<view v-if="dayItems(career).length" class="day-grid">
-						<view v-for="(item, index) in dayItems(career)" :key="index" class="day-item">
-							<view class="day-icon">{{ index + 1 }}</view>
-							<text class="day-title">{{ item.title }}</text>
-							<text v-if="item.description" class="day-description">{{ item.description }}</text>
+			<view class="chart-card decorated-card">
+				<view class="chart-content">
+					<text class="chart-title">进一步了解职业的大类比例</text>
+					<canvas v-if="categoryStats.length" id="reportPieFinal" canvas-id="reportPieFinal" class="pie" />
+					<view v-if="categoryStats.length" class="legend">
+						<view v-for="item in categoryStats" :key="item.name" class="legend-item">
+							<text class="dot" :style="{ background: item.color }" />
+							<text>{{ item.name }} {{ item.percent }}%</text>
 						</view>
 					</view>
-					<text v-else class="info-body">暂无介绍</text>
+					<text v-else class="chart-empty">暂未加入进一步了解的职业</text>
 				</view>
-				<view v-if="false" class="info-block">
-					<text class="info-title">为什么会有这样的职业？</text>
-					<text class="info-body">{{ career.whyExists || '暂无介绍' }}</text>
-				</view>
-				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 			</view>
 
-			<view v-if="!loading && !careers.length" class="empty-card">
-				<text class="empty-title">本次没有加入进一步了解的职业</text>
-				<text class="empty-text">你已经完成了未来职业探索，本次参与记录已保存。</text>
-				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/sj.png" mode="aspectFit" />
+			<view class="career-card decorated-card">
+				<view class="career-content">
+					<view class="career-card-heading">
+						<text class="career-list-title">进一步了解的职业</text>
+						<text class="count">共 {{ careers.length }} 个</text>
+					</view>
+					<view v-if="careers.length" class="career-list">
+						<view v-for="career in careers" :key="career.careerId" class="career-item">
+							<text class="career-name">{{ career.careerName }}</text>
+							<text class="career-intro">{{ career.oneLineIntro || '暂无一句话介绍' }}</text>
+						</view>
+					</view>
+					<view v-else-if="!loading" class="empty-copy">
+						<text class="empty-title">本次没有加入进一步了解的职业</text>
+						<text class="empty-text">本次参与记录已保存。</text>
+					</view>
+				</view>
+				<view class="decoration-circle decoration-circle-light" />
+				<view class="decoration-circle decoration-circle-deep" />
+				<image class="corner-icon" src="https://zhiye.sxgkzh.cn/imgs/zycck/xc.png" mode="aspectFit" />
 			</view>
 
-			<button type="primary" :loading="downloading" hover-class="button-hover" @click="download">下载探索报告
-				PDF</button>
+			<button class="download-button" :loading="downloading" hover-class="button-hover" @click="download">
+				下载探索报告PDF
+			</button>
 		</view>
 	</scroll-view>
 </template>
@@ -115,7 +104,7 @@
 							this.backing = false
 						},
 						fail: () => {
-							this.backing = false;
+							this.backing = false
 							fallback()
 						}
 					})
@@ -143,11 +132,11 @@
 							gameId: this.gameId
 						})
 					])
-					const exploration = explorationRes.data || {};
+					const exploration = explorationRes.data || {}
 					const selected = exploration.items || exploration.explorationItems || []
 					const catalog = (catalogRes.data || {}).careers || []
-					const cats = (catalogRes.data || {}).categories || [];
-					const catNames = {};
+					const cats = (catalogRes.data || {}).categories || []
+					const catNames = {}
 					cats.forEach(c => {
 						catNames[String(c.categoryId)] = c.name
 					})
@@ -163,23 +152,22 @@
 							...item,
 							...(byId[String(id)] || {}),
 							careerId: id,
-							careerName: item.careerName || (byId[String(id)] && byId[String(id)].careerName) ||
-								'职业信息'
+							careerName: item.careerName || (byId[String(id)] && byId[String(id)].careerName) || '职业信息'
 						}
 					})
-					const counts = {};
+					const counts = {}
 					this.careers.forEach(c => {
-						const n = catNames[String(c.categoryId)];
+						const n = catNames[String(c.categoryId)]
 						if (n) counts[n] = (counts[n] || 0) + 1
-					});
-					const colors = ['#ffadbb', '#fdc7cd', '#fed7da', '#c9d4f7', '#acbfeb'];
-					const total = Object.keys(counts).reduce((sum, name) => sum + counts[name], 0) || 1;
+					})
+					const colors = ['#ffadbb', '#fdc7cd', '#fed7da', '#c9d4f7', '#acbfeb']
+					const total = Object.keys(counts).reduce((sum, name) => sum + counts[name], 0) || 1
 					this.categoryStats = Object.keys(counts).filter(name => counts[name] > 0).map((name, i) => ({
 						name,
 						count: counts[name],
 						percent: Math.round(counts[name] * 100 / total),
 						color: colors[i % colors.length]
-					}));
+					}))
 					this.$nextTick(() => setTimeout(() => this.drawPie(), 300))
 				} catch (e) {
 					uni.showToast({
@@ -191,28 +179,35 @@
 				}
 			},
 			drawPie() {
-				const ctx = uni.createCanvasContext('reportPieFinal', this);
-				const cx = 100,
-					cy = 100,
-					r = 85;
-				ctx.clearRect(0, 0, 200, 200);
-				const total = this.categoryStats.reduce((sum, item) => sum + item.count, 0) || 1;
-				let start = -Math.PI / 2;
-				this.categoryStats.forEach((item, index) => {
-					// 每个类别只绘制一个完整扇形，避免分段绘制产生的虚线/接缝。
-					const end = index === this.categoryStats.length - 1
-						? -Math.PI / 2 + Math.PI * 2
-						: start + Math.PI * 2 * item.count / total;
-					ctx.beginPath();
-					ctx.moveTo(cx, cy);
-					ctx.arc(cx, cy, r, start, end, false);
-					ctx.lineTo(cx, cy);
-					ctx.closePath();
-					ctx.setFillStyle(item.color);
-					ctx.fill();
-					start = end;
-				});
-				ctx.draw(false)
+				// 按 canvas 在页面上的真实尺寸计算圆心和半径，避免 rpx 与固定 px 坐标不一致造成裁切。
+				uni.createSelectorQuery().in(this).select('#reportPieFinal').boundingClientRect(rect => {
+					if (!rect || !rect.width || !rect.height || !this.categoryStats.length) return
+					const width = Number(rect.width)
+					const height = Number(rect.height)
+					const size = Math.min(width, height)
+					const cx = width / 2
+					const cy = height / 2
+					const r = size * .425
+					const ctx = uni.createCanvasContext('reportPieFinal', this)
+					ctx.clearRect(0, 0, width, height)
+
+					const total = this.categoryStats.reduce((sum, item) => sum + item.count, 0) || 1
+					let start = -Math.PI / 2
+					this.categoryStats.forEach((item, index) => {
+						const end = index === this.categoryStats.length - 1
+							? -Math.PI / 2 + Math.PI * 2
+							: start + Math.PI * 2 * item.count / total
+						ctx.beginPath()
+						if (this.categoryStats.length > 1) ctx.moveTo(cx, cy)
+						ctx.arc(cx, cy, r, start, end, false)
+						if (this.categoryStats.length > 1) ctx.lineTo(cx, cy)
+						ctx.closePath()
+						ctx.setFillStyle(item.color)
+						ctx.fill()
+						start = end
+					})
+					ctx.draw(false)
+				}).exec()
 			},
 			async download() {
 				if (this.downloading) return
@@ -248,302 +243,251 @@
 <style scoped>
 	.page {
 		height: 100vh;
-		background: #f7f5f1;
-		background-image: url("https://zhiye.sxgkzh.cn/imgs/zycck/bg.png");
-		background-size: 120%;
+		border-top: 4rpx solid #a66da4;
+		background: linear-gradient(180deg, #d0b6d2 0%, #d0b6d2 25%, #d7c4dc 47%, #e4ddea 72%, #ebebf4 86%, #ebebf4 100%);
 	}
 
 	.content {
-		min-height: 100vh;
-		width: 100%;
-		padding: 34rpx 28rpx 64rpx;
 		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center
-	}
-
-	.report-actions,
-	.report-header,
-	.chart-card,
-	.career-card,
-	.empty-card,
-	button {
-		width: 100%;
-		box-sizing: border-box
-	}
-
-	.report-actions {
-		display: flex;
-		justify-content: flex-start;
-		margin-bottom: 12rpx
-	}
-
-	.back-button {
-		width: auto;
-		margin: 0;
-		padding: 0 28rpx;
-		height: 64rpx;
-		line-height: 64rpx;
-		background: #fff;
-		color: #526173;
-		border: 1rpx solid #dfe5ec;
-		border-radius: 32rpx;
-		font-size: 26rpx
-	}
-
-	.back-button::after {
-		border: 0
+		min-height: calc(100vh - 108rpx);
+		padding: 137rpx 30rpx 68rpx;
+		animation: pageIn .35s ease-out;
 	}
 
 	.report-header {
+		transform: translateY(-8rpx);
 		text-align: center;
-		margin-bottom: 30rpx
+		margin-bottom: 90rpx;
+	}
+
+	.title,
+	.subtitle,
+	.chart-title,
+	.chart-empty,
+	.career-list-title,
+	.count,
+	.career-name,
+	.career-intro,
+	.empty-title,
+	.empty-text {
+		display: block;
+	}
+
+	.title {
+		font-size: 48rpx;
+		font-weight: 800;
+		line-height: 1.3;
+		color: #07070a;
+	}
+
+	.subtitle {
+		margin-top: 43rpx;
+		font-size: 29rpx;
+		line-height: 1.45;
+		color: #77747c;
+	}
+
+	.decorated-card {
+		position: relative;
+		overflow: hidden;
+		box-sizing: border-box;
+		width: 100%;
+		border-radius: 24rpx;
+		background: #fff;
 	}
 
 	.chart-card {
-		position: relative;
-		width: 100%;
-		box-sizing: border-box;
-		margin-bottom: 24rpx;
-		padding: 26rpx;
-		border-radius: 24rpx;
-		background: rgba(255, 255, 255, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 668rpx;
+		padding: 42rpx 105rpx 98rpx;
+		margin-bottom: 82rpx;
 		text-align: center;
-		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
+	}
+
+	.chart-content,
+	.career-content {
+		position: relative;
+		z-index: 3;
+		width: 100%;
 	}
 
 	.chart-title {
-		display: block;
 		font-size: 30rpx;
-		font-weight: 700;
-		color: #263548
+		font-weight: 800;
+		line-height: 1.4;
+		color: #29252d;
 	}
 
 	.pie {
 		display: block;
-		width: 320rpx;
-		height: 320rpx;
-		margin: 18rpx auto;
-	}
-
-	.career-list-title {
-		display: block;
-		width: 100%;
-		margin: 0 0 14rpx;
-		color: #263548;
-		font-size: 30rpx;
-		font-weight: 700;
-	}
-
-	.chart-empty {
-		display: block;
-		padding: 90rpx 0;
-		color: #8a94a6;
-		font-size: 24rpx
+		width: 300rpx;
+		height: 300rpx;
+		margin: 24rpx auto 20rpx;
+		border: 0;
+		outline: 0;
 	}
 
 	.legend {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 14rpx 22rpx
+		gap: 14rpx 22rpx;
 	}
 
 	.legend-item {
 		display: flex;
 		align-items: center;
-		color: #64748b;
-		font-size: 23rpx
+		font-size: 23rpx;
+		line-height: 1.4;
+		color: #6f6a74;
 	}
 
 	.dot {
 		width: 18rpx;
 		height: 18rpx;
+		margin-right: 7rpx;
 		border-radius: 50%;
-		margin-right: 7rpx
 	}
 
-	.title {
-		display: block;
-		font-size: 48rpx;
+	.chart-empty {
+		padding: 150rpx 0;
+		font-size: 25rpx;
+		color: #8a8690;
+	}
+
+	.career-card {
+		min-height: 195rpx;
+		padding: 28rpx 150rpx 38rpx 31rpx;
+		margin-bottom: 30rpx;
+	}
+
+	.career-card-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 18rpx;
+	}
+
+	.career-list-title {
+		font-size: 29rpx;
 		font-weight: 800;
-		color: #1a2c4a
-	}
-
-	.subtitle {
-		display: block;
-		margin-top: 16rpx;
-		color: #64748b;
-		font-size: 27rpx
+		color: #252229;
 	}
 
 	.count {
-		display: inline-block;
-		margin-top: 16rpx;
-		padding: 8rpx 18rpx;
-		border-radius: 20rpx;
-		background: #e8f1ff;
-		color: #1b76fe;
-		font-size: 24rpx
+		font-size: 22rpx;
+		color: #8a8690;
 	}
 
-	.career-card,
-	.empty-card {
-		position: relative;
-		background: rgba(255, 255, 255, 0.5);
-		border-radius: 24rpx;
-		padding: 30rpx;
-		margin-bottom: 24rpx;
-		box-shadow: 0 8rpx 28rpx rgba(77, 65, 46, .06)
+	.career-list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 15rpx 24rpx;
+	}
+
+	.career-item {
+		min-width: 0;
+		padding-left: 16rpx;
+		border-left: 5rpx solid #d0b6d2;
+	}
+
+	.career-name {
+		overflow: hidden;
+		font-size: 24rpx;
+		font-weight: 700;
+		line-height: 1.4;
+		color: #3b3740;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.career-intro {
+		display: -webkit-box;
+		overflow: hidden;
+		margin-top: 5rpx;
+		font-size: 20rpx;
+		line-height: 1.4;
+		color: #89848e;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+	}
+
+	.empty-title {
+		font-size: 25rpx;
+		font-weight: 700;
+		color: #4c4751;
+	}
+
+	.empty-text {
+		margin-top: 8rpx;
+		font-size: 22rpx;
+		color: #8a8690;
+	}
+
+	.decoration-circle {
+		position: absolute;
+		z-index: 0;
+		border-radius: 50%;
+	}
+
+	.decoration-circle-light {
+		right: 59rpx;
+		bottom: -75rpx;
+		width: 132rpx;
+		height: 132rpx;
+		background: #f5f1f7;
+	}
+
+	.decoration-circle-deep {
+		right: -58rpx;
+		bottom: -65rpx;
+		width: 144rpx;
+		height: 144rpx;
+		background: #f2e9f3;
 	}
 
 	.corner-icon {
 		position: absolute;
-		right: 18rpx;
-		bottom: 14rpx;
-		width: 38rpx;
-		height: 38rpx
+		right: 0;
+		bottom: -8rpx;
+		z-index: 2;
+		width: 112rpx;
+		height: 112rpx;
 	}
 
-	.career-header {
-		display: flex;
-		align-items: center;
-		padding-bottom: 24rpx;
-		border-bottom: 1rpx solid #f0ede8
+	.download-button {
+		width: 100%;
+		height: 80rpx;
+		padding: 0;
+		margin: 0;
+		border: 0;
+		border-radius: 12rpx;
+		background: #28b28b;
+		color: #fff;
+		font-size: 33rpx;
+		font-weight: 400;
+		line-height: 80rpx;
 	}
 
-	.career-image {
-		width: 150rpx;
-		height: 130rpx;
-		border-radius: 18rpx;
-		margin-right: 22rpx
-	}
-
-	.career-heading {
-		flex: 1;
-		min-width: 0
-	}
-
-	.career-name {
-		display: block;
-		font-size: 38rpx;
-		font-weight: 800;
-		color: #222
-	}
-
-	.career-intro {
-		display: block;
-		margin-top: 12rpx;
-		font-size: 26rpx;
-		line-height: 1.6;
-		color: #665f55
-	}
-
-	.info-block {
-		padding-top: 24rpx
-	}
-
-	.info-title {
-		display: block;
-		font-size: 30rpx;
-		font-weight: 700;
-		color: #20252b;
-		margin-bottom: 12rpx
-	}
-
-	.info-body {
-		display: block;
-		font-size: 26rpx;
-		line-height: 1.75;
-		color: #4b5563;
-		white-space: pre-line
-	}
-
-	.day-grid {
-		display: flex;
-		flex-wrap: wrap;
-		margin: 0 -8rpx
-	}
-
-	.day-item {
-		width: 25%;
-		padding: 0 8rpx 18rpx;
-		box-sizing: border-box;
-		text-align: center
-	}
-
-	.day-icon {
-		width: 60rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		margin: 0 auto 12rpx;
-		border-radius: 16rpx;
-		background: #fff4e8;
-		color: #c56d1b;
-		font-size: 26rpx;
-		font-weight: 700
-	}
-
-	.day-title {
-		display: block;
-		color: #30343b;
-		font-size: 25rpx;
-		font-weight: 700;
-		line-height: 1.35
-	}
-
-	.day-description {
-		display: block;
-		margin-top: 8rpx;
-		color: #7a7f87;
-		font-size: 22rpx;
-		line-height: 1.4
-	}
-
-	.empty-card {
-		text-align: center;
-		padding: 54rpx 32rpx
-	}
-
-	.empty-title {
-		display: block;
-		font-size: 31rpx;
-		font-weight: 700;
-		color: #334155
-	}
-
-	.empty-text {
-		display: block;
-		margin-top: 18rpx;
-		font-size: 25rpx;
-		line-height: 1.7;
-		color: #8a94a6
-	}
-
-	button {
-		margin-top: 14rpx
+	.download-button::after {
+		border: 0;
 	}
 
 	.button-hover {
-		opacity: .82
-	}
-
-	.content {
-		animation: pageIn .35s ease-out;
-		margin-top: 56rpx;
+		opacity: .82;
 	}
 
 	@keyframes pageIn {
 		from {
 			opacity: 0;
-			transform: translateY(18rpx)
+			transform: translateY(18rpx);
 		}
 
 		to {
 			opacity: 1;
-			transform: translateY(0)
+			transform: translateY(0);
 		}
 	}
 </style>
