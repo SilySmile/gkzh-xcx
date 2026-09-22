@@ -49,6 +49,24 @@
 			<button class="download-button" :loading="downloading" hover-class="button-hover" @click="download">
 				下载探索报告PDF
 			</button>
+			<button class="print-button" :loading="printing" hover-class="button-hover" @click="openPrint">
+				打印探索报告
+			</button>
+			<view v-if="printPanelVisible" class="print-mask" @click="closePrint">
+				<view class="print-panel" @click.stop>
+					<view class="print-panel-title">选择打印机</view>
+					<view v-if="!printers.length && !printerLoading" class="print-empty">暂无可用打印机</view>
+					<view v-for="printer in printers" :key="printer.printerId" class="printer-option" :class="{ selected: selectedPrinterId === printer.printerId }" @click="selectedPrinterId = printer.printerId">
+						<view>
+							<text class="printer-name">{{ printer.printerName || printer.cloudName || printer.equipmentSn }}</text>
+							<text class="printer-meta">{{ printer.modelName || 'TSPL 标签打印机' }} · {{ printer.statusText || '在线' }}</text>
+						</view>
+						<text v-if="selectedPrinterId === printer.printerId" class="printer-check">✓</text>
+					</view>
+					<button class="print-confirm" :loading="printing" :disabled="!selectedPrinterId || printing" @click="submitPrint">开始打印</button>
+					<button class="print-cancel" :disabled="printing" @click="closePrint">取消</button>
+				</view>
+			</view>
 		</view>
 	</scroll-view>
 </template>
@@ -57,6 +75,9 @@
 	import {
 		getExploration,
 		getCatalog,
+		listPrinters,
+		printReport,
+		getPrintTask,
 		downloadReportPdf,
 		userMessage
 	} from '@/api/zycck'
@@ -73,7 +94,13 @@
 			categoryStats: [],
 			loading: false,
 			downloading: false,
-			backing: false
+			backing: false,
+			printers: [],
+			selectedPrinterId: null,
+			printPanelVisible: false,
+			printerLoading: false,
+			printing: false,
+			printPolling: false
 		}),
 		onLoad(o) {
 			Object.assign(this, {
@@ -208,6 +235,57 @@
 					})
 					ctx.draw(false)
 				}).exec()
+			},
+			async openPrint() {
+				if (this.printing || this.printerLoading) return
+				this.printPanelVisible = true
+				this.printerLoading = true
+				try {
+					const result = await listPrinters()
+					this.printers = (result.data || result || []).filter(item => item.canPrint !== false && Number(item.status) === 1 && String(item.enabled) === '0' && String(item.boundStatus) === '0')
+					if (this.printers.length) this.selectedPrinterId = this.printers[0].printerId
+				} catch (e) {
+					this.printPanelVisible = false
+					uni.showToast({ title: userMessage(e, '打印机列表加载失败，请稍后重试'), icon: 'none' })
+				} finally {
+					this.printerLoading = false
+				}
+			},
+			closePrint() {
+				if (!this.printing) this.printPanelVisible = false
+			},
+			async submitPrint() {
+				if (!this.selectedPrinterId || this.printing) return
+				this.printing = true
+				try {
+					const result = await printReport(this.recordId, this.selectedPrinterId)
+					const task = result.data || result || {}
+					await this.pollPrintTask(task.taskId)
+				} catch (e) {
+					uni.showToast({ title: userMessage(e, '打印任务提交失败，请稍后重试'), icon: 'none' })
+				} finally {
+					this.printing = false
+				}
+			},
+			async pollPrintTask(taskId) {
+				if (!taskId) throw new Error('打印任务提交失败')
+				this.printPolling = true
+				try {
+					for (let i = 0; i < 12; i++) {
+						const result = await getPrintTask(taskId)
+						const task = result.data || result || {}
+						if (task.status === 'success') {
+							this.printPanelVisible = false
+							uni.showToast({ title: '打印任务已完成', icon: 'success' })
+							return
+						}
+						if (task.status === 'failed') throw new Error(task.errorMessage || '打印失败，请检查打印机状态')
+						await new Promise(resolve => setTimeout(resolve, 1500))
+					}
+					uni.showToast({ title: '打印任务已提交，请稍后查看', icon: 'none' })
+				} finally {
+					this.printPolling = false
+				}
 			},
 			async download() {
 				if (this.downloading) return
@@ -475,7 +553,73 @@
 		border: 0;
 	}
 
-	.button-hover {
+		.print-button {
+		box-sizing: border-box;
+		width: 100%;
+		height: 76rpx;
+		padding: 0;
+		margin-top: 18rpx;
+		border: 1rpx solid #28b28b;
+		border-radius: 38rpx;
+		background: #fff;
+		color: #28a77f;
+		font-size: 29rpx;
+		line-height: 76rpx;
+	}
+
+	.print-mask {
+		position: fixed;
+		z-index: 20;
+		inset: 0;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		background: rgba(26, 20, 31, .38);
+	}
+
+	.print-panel {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 36rpx 30rpx calc(28rpx + env(safe-area-inset-bottom));
+		border-radius: 32rpx 32rpx 0 0;
+		background: #fff;
+	}
+
+	.print-panel-title {
+		margin-bottom: 24rpx;
+		color: #1c1920;
+		font-size: 34rpx;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.printer-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		box-sizing: border-box;
+		min-height: 86rpx;
+		padding: 16rpx 22rpx;
+		margin-bottom: 14rpx;
+		border: 1rpx solid #e8e1e9;
+		border-radius: 16rpx;
+		background: #fff;
+	}
+
+	.printer-option.selected { border-color: #28b28b; background: #effaf5; }
+	.printer-name, .printer-meta { display: block; }
+	.printer-name { color: #211c23; font-size: 28rpx; }
+	.printer-meta { margin-top: 6rpx; color: #8d858f; font-size: 22rpx; }
+	.printer-check { color: #28b28b; font-size: 34rpx; font-weight: 700; }
+	.print-empty { padding: 38rpx 0; color: #938b94; font-size: 25rpx; text-align: center; }
+
+	.print-confirm, .print-cancel {
+		width: 100%; height: 72rpx; padding: 0; margin: 16rpx 0 0;
+		border-radius: 36rpx; font-size: 28rpx; line-height: 72rpx;
+	}
+	.print-confirm { border: 0; background: #28b28b; color: #fff; }
+	.print-cancel { border: 1rpx solid #dfd9e0; background: #fff; color: #5d565f; }
+.button-hover {
 		opacity: .82;
 	}
 

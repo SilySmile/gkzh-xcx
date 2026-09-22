@@ -114,6 +114,20 @@ export const getReport = params => call({
 	params
 }, '结果加载失败，请稍后重试')
 
+// 汉印云打印：报告页选择可用打印机并提交当前报告。
+export const listPrinters = () => call({
+	url: '/api/zycck/printers',
+	method: 'GET'
+}, '打印机列表加载失败，请稍后重试')
+export const printReport = (recordId, printerId) => call({
+	url: `/api/zycck/records/${recordId}/print`,
+	method: 'POST',
+	data: { printerId }
+}, '打印任务提交失败，请稍后重试')
+export const getPrintTask = taskId => call({
+	url: `/api/zycck/print-tasks/${taskId}`,
+	method: 'GET'
+}, '打印状态查询失败，请稍后重试')
 // PDF 接口返回文件流，不能通过通用 JSON request 解析。
 export function downloadReportPdf(params = {}) {
 	const query = Object.keys(params)
