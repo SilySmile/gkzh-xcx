@@ -16,7 +16,7 @@
 				已抽 {{ drawCount }}/{{ maxDrawCount }}：{{ myRecord.prizeTitle || '已参与' }}
             </view>
 
-			<view v-if="recordVisible" class="record-mask" @click="recordVisible = false">
+			<view v-if="recordVisible" class="record-mask" @click="closeRecords">
 				<view class="record-dialog" @click.stop>
 					<view class="record-title">我的中奖记录</view>
 					<view v-for="(record, idx) in myRecords" :key="idx" class="record-line">
@@ -29,7 +29,7 @@
 						<view v-else-if="isRedeemed(record)" class="record-status redeemed">已核销</view>
 						<text v-else class="record-qr-tip" @tap.stop="showPrizeQr(record)">点击展示核销码</text>
 					</view>
-					<button class="record-close" @click="recordVisible = false">关闭</button>
+					<button class="record-close" @click="closeRecords">关闭</button>
 				</view>
 			</view>
 
@@ -54,10 +54,12 @@
                 <button class="retry-btn" @click="loadPrizes">重试</button>
             </view>
 
-            <!-- 抽奖转盘：中奖记录以遮罩弹层展示，用 v-show 隐藏而不销毁画布，关闭时无需重绘 -->
-            <view v-else v-show="!recordVisible">
-                <canvas canvas-id="lotteryWheel" class="lottery-canvas"
+            <!-- 中奖记录打开前把转盘截图作为背景，原生 canvas 同时隐藏，避免画布盖住弹层 -->
+            <view v-else>
+                <canvas v-show="!recordVisible" canvas-id="lotteryWheel" class="lottery-canvas"
                         width="300" height="300"></canvas>
+                <image v-if="recordVisible && wheelSnapshot" :src="wheelSnapshot" mode="aspectFit"
+                       class="lottery-canvas wheel-snapshot" />
                 <button class="lottery-btn" @click="startLottery"
                         :disabled="spinning || !lotteryEnabled">
                     {{ spinning ? '抽奖中...' : '开始抽奖' }}
@@ -92,6 +94,7 @@ export default {
             maxDrawCount: 1,
             drawCount: 0,
 			recordVisible: false,
+			wheelSnapshot: '',
 			prizeQrVisible: false,
 			prizeQrImage: '',
 			qrRecordId: '',
@@ -284,13 +287,33 @@ export default {
         },
 
 
-		showMyRecord() {
-			getMyLotteryList(this.lotteryId, this.activityId).then(res => {
-				if (res.code === 200) {
-					this.myRecords = res.data || []
-					this.recordVisible = true
+		async showMyRecord() {
+			const res = await getMyLotteryList(this.lotteryId, this.activityId)
+			if (!res || res.code !== 200) return
+			this.myRecords = res.data || []
+			// 先截取当前转盘作为背景，再打开弹层；旧版原生 canvas 不能压在弹层下面。
+			this.wheelSnapshot = await this.captureWheelSnapshot()
+			this.recordVisible = true
+		},
+
+		captureWheelSnapshot() {
+			return new Promise(resolve => {
+				if (typeof uni.canvasToTempFilePath !== 'function') {
+					resolve('')
+					return
 				}
+				uni.canvasToTempFilePath({
+					canvasId: 'lotteryWheel',
+					success: result => resolve(result.tempFilePath || ''),
+					fail: () => resolve('')
+				}, this)
 			})
+		},
+
+		closeRecords() {
+			this.recordVisible = false
+			// 关闭后恢复原 canvas；截图只用于弹层打开期间的背景展示。
+			this.$nextTick(() => { this.wheelSnapshot = '' })
 		},
 
         async startLottery() {
@@ -618,6 +641,11 @@ export default {
     border-radius: 50%;
     box-shadow: 0 4rpx 24rpx #eee;
     margin-bottom: 40rpx;
+}
+
+/* 中奖记录打开期间用截图替代原生 canvas 作为背景，尺寸与位置保持一致 */
+.wheel-snapshot {
+    display: block;
 }
 
 .lottery-btn {
