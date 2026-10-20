@@ -4,19 +4,31 @@
 		<view class="hero">
 			<text class="hero-badge">游客体验</text>
 			<text class="hero-title">校园职业发展平台</text>
-			<text class="hero-desc">无需登录，先了解平台功能，并体验一道职业探索示例题。</text>
+			<text class="hero-desc">职业与就业活动一站式参与：查看活动、扫码签到、完成职业探索、查看个人报告。</text>
 		</view>
 
 		<view class="notice">
 			<text class="notice-icon">i</text>
-			<text class="notice-text">当前为游客浏览模式，仅展示平台介绍和示例内容，不会收集姓名、学号等个人信息。</text>
+			<text class="notice-text">当前为游客浏览模式，仅展示平台介绍，不会收集姓名、学号、学校等个人信息。</text>
 		</view>
 
-		<!-- 平台功能 -->
+		<!-- 平台简介 -->
 		<view class="section">
 			<view class="section-head">
 				<text class="section-bar"></text>
-				<text class="section-title">平台能做什么</text>
+				<text class="section-title">平台简介</text>
+			</view>
+			<view class="intro-card">
+				<text class="intro-text">本小程序面向高校学生，为学校发布的职业活动和就业活动提供统一的参与入口。学生登录后可以查看活动、扫码签到、完成职业探索互动和活动问卷，并在活动结束后查看个人报告。</text>
+				<text class="intro-text">平台同时为活动工作人员提供活动统计、奖品核销等管理功能，帮助学生和学校更高效地组织职业发展活动。</text>
+			</view>
+		</view>
+
+		<!-- 主要功能 -->
+		<view class="section">
+			<view class="section-head">
+				<text class="section-bar"></text>
+				<text class="section-title">主要功能</text>
 			</view>
 			<view class="feature-grid">
 				<view v-for="item in features" :key="item.name" class="feature-card">
@@ -27,11 +39,37 @@
 			</view>
 		</view>
 
-		<!-- 活动流程 -->
+		<!-- 活动环节 -->
 		<view class="section">
 			<view class="section-head">
 				<text class="section-bar"></text>
-				<text class="section-title">活动参与流程</text>
+				<text class="section-title">活动环节</text>
+			</view>
+			<scroll-view scroll-x class="module-tabs" :show-scrollbar="false">
+				<view
+					v-for="(item, index) in modules"
+					:key="item.name"
+					class="module-tab"
+					:class="{ active: activeModule === index }"
+					@click="activeModule = index"
+				>{{ item.name }}</view>
+			</scroll-view>
+			<view class="module-detail">
+				<view class="module-head">
+					<text class="module-icon">{{ currentModule.icon }}</text>
+					<text class="module-name">{{ currentModule.name }}</text>
+				</view>
+				<text class="module-desc">{{ currentModule.desc }}</text>
+				<text class="module-tip">{{ currentModule.tip }}</text>
+			</view>
+			<text class="module-note">不同学校、不同活动会开放其中部分环节，以活动页面实际展示为准。</text>
+		</view>
+
+		<!-- 参与流程 -->
+		<view class="section">
+			<view class="section-head">
+				<text class="section-bar"></text>
+				<text class="section-title">参与流程</text>
 			</view>
 			<view class="flow-card">
 				<view v-for="(step, index) in flow" :key="step.title" class="flow-item">
@@ -44,85 +82,32 @@
 			</view>
 		</view>
 
-		<!-- 示例体验 -->
+		<!-- 个人报告 -->
 		<view class="section">
 			<view class="section-head">
 				<text class="section-bar"></text>
-				<text class="section-title">职业猜猜看 · 示例体验</text>
+				<text class="section-title">个人报告</text>
 			</view>
-			<view class="demo-card">
-				<text class="demo-tag">示例题</text>
-				<text class="demo-scene">每天的工作是：了解用户需求，规划产品功能，和研发、设计讨论方案，再分析产品使用情况，把想法逐步变成真正可用的产品。</text>
-				<text class="demo-question">猜猜以上内容最可能是下面哪个职业的工作场景？</text>
-				<view class="demo-options">
-					<view
-						v-for="option in demoOptions"
-						:key="option.key"
-						class="demo-option"
-						:class="optionClass(option.key)"
-						@click="chooseDemo(option.key)"
-					>
-						<text class="option-key">{{ option.key }}</text>
-						<text class="option-text">{{ option.label }}</text>
-						<text v-if="showMark(option.key)" class="option-mark">{{ markText(option.key) }}</text>
-					</view>
-				</view>
-
-				<view v-if="demoAnswered" class="demo-feedback">
-					<text class="feedback-title" :class="demoCorrect ? 'success' : 'warn'">
-						{{ demoCorrect ? '回答正确' : '这一次没有选对' }}
-					</text>
-					<text class="feedback-career">正确答案：B 产品经理</text>
-					<text class="feedback-intro">把用户想法变成真正好用的产品</text>
-					<text class="feedback-detail">产品经理需要了解用户需求，思考产品应该解决什么问题，并协调设计、技术等人员，把想法逐步变成真正可使用的产品。</text>
-					<text class="feedback-tip">登录后可参与完整 5 道题，并获得职业探索报告。</text>
-					<text class="feedback-reset" @click="resetDemo">再试一次</text>
+			<view class="report-card">
+				<text class="report-desc">活动结束后，学生可以在个人报告中查看本次活动的参与结果，回顾自己的职业探索过程。</text>
+				<view v-for="item in reportPoints" :key="item" class="report-item">
+					<text class="list-dot">·</text>
+					<text class="report-text">{{ item }}</text>
 				</view>
 			</view>
 		</view>
 
-		<!-- 职业卡片示例 -->
+		<!-- 游客说明 -->
 		<view class="section">
 			<view class="section-head">
 				<text class="section-bar"></text>
-				<text class="section-title">职业卡片示例</text>
-			</view>
-			<view class="career-list">
-				<view v-for="career in careers" :key="career.name" class="career-card">
-					<text class="career-icon">{{ career.icon }}</text>
-					<view class="career-body">
-						<text class="career-name">{{ career.name }}</text>
-						<text class="career-intro">{{ career.intro }}</text>
-					</view>
-				</view>
-			</view>
-			<text class="career-tip">登录后可在职业探索墙查看全部职业资料和详情。</text>
-		</view>
-
-		<!-- 登录后可用 -->
-		<view class="section">
-			<view class="section-head">
-				<text class="section-bar"></text>
-				<text class="section-title">登录后可以使用</text>
+				<text class="section-title">游客说明</text>
 			</view>
 			<view class="list-card">
-				<view v-for="item in benefits" :key="item" class="list-item">
+				<view v-for="item in guestNotes" :key="item" class="list-item">
 					<text class="list-dot">·</text>
 					<text class="list-text">{{ item }}</text>
 				</view>
-			</view>
-		</view>
-
-		<!-- 使用说明 -->
-		<view class="section">
-			<view class="section-head">
-				<text class="section-bar"></text>
-				<text class="section-title">使用说明</text>
-			</view>
-			<view class="list-card">
-				<text class="paragraph">平台面向合作院校在校学生开放。活动参与、答题记录、个人报告和报告打印需要登录后使用。</text>
-				<text class="paragraph">如果还没有账号，可以返回登录页点击“没有账号？去注册”，或联系学校就业指导中心、活动现场工作人员。</text>
-				<text class="paragraph">游客体验中的答题不会保存，也不会计入活动参与统计；正式参与活动请使用学校提供的账号登录。</text>
 			</view>
 		</view>
 
@@ -142,70 +127,50 @@
 	export default {
 		data() {
 			return {
-				demoChoice: '',
-				demoAnswered: false,
-				demoOptions: [
-					{ key: 'A', label: '用户研究员' },
-					{ key: 'B', label: '产品经理' },
-					{ key: 'C', label: '产品运营' },
-					{ key: 'D', label: '用户体验专员' }
-				],
+				activeModule: 0,
 				features: [
-					{ icon: '🏫', name: '活动参与', desc: '扫码进入学校发布的职业或就业活动周，完成签到和互动环节。' },
-					{ icon: '🧭', name: '职业探索', desc: '通过猜职业、心愿橱窗、职愿探究等互动，了解不同职业方向。' },
-					{ icon: '📄', name: '探索报告', desc: '汇总答题、浏览和探索清单记录，形成个人职业探索报告。' },
-					{ icon: '🖨', name: '现场打印', desc: '在活动打印点将探索报告打印留存，方便带走查看。' }
+					{ icon: '📅', name: '活动参与', desc: '查看学校发布的职业活动和就业活动，了解活动时间与环节。' },
+					{ icon: '📷', name: '扫码签到', desc: '扫描活动或游戏二维码，完成签到并进入对应活动环节。' },
+					{ icon: '🧭', name: '职业探索', desc: '通过多种互动环节了解职业方向，记录感兴趣的职业。' },
+					{ icon: '📝', name: '活动问卷', desc: '填写活动反馈问卷，帮助学校了解活动效果。' },
+					{ icon: '📄', name: '个人报告', desc: '汇总活动参与、答题和探索记录，形成个人成长报告。' },
+					{ icon: '🖨', name: '现场打印', desc: '在支持打印的活动现场，将探索报告打印留存。' }
 				],
-				careers: [
-					{ icon: '🎧', name: '用户体验专员', intro: '让产品用起来更简单、更舒服' },
-					{ icon: '🏷', name: '数据标注师', intro: '为 AI 学习准备高质量的数据素材' },
-					{ icon: '🤖', name: 'AI 训练师', intro: '教 AI 学会理解和处理各种信息' },
-					{ icon: '📈', name: '产品运营', intro: '让产品被更多用户发现和使用' }
+				modules: [
+					{ icon: '🪟', name: '心愿橱窗', desc: '通过选择感兴趣的职业场景和描述，了解自己的职业兴趣方向。', tip: '活动结束后可查看兴趣分析结果，作为职业探索的参考。' },
+					{ icon: '🎯', name: '未来职业猜猜看', desc: '根据工作场景图片选择对应职业，认识数字经济、人工智能等新场景下的职业。', tip: '完成五道职业竞猜后，可继续浏览职业墙并建立探索清单。' },
+					{ icon: '🏆', name: '谁是职场TOP', desc: '在职场情境中进行选择和协作，体验职场沟通、分工与决策。', tip: '活动结束后可查看本局结果和排名情况。' },
+					{ icon: '🧩', name: '职愿探究', desc: '回答职业兴趣相关问题，了解自己的职业倾向和适合的发展方向。', tip: '结果用于自我探索参考，不作为职业选择的唯一依据。' },
+					{ icon: '📚', name: '职业信息站', desc: '学习获取职业信息的常见渠道，练习筛选和判断职业信息。', tip: '帮助学生在求职前建立可靠的信息来源和判断方法。' },
+					{ icon: '💬', name: '活动问卷', desc: '完成活动反馈问卷，帮助学校了解活动效果并改进后续活动。', tip: '问卷内容根据活动设置，部分题目需要登录后填写。' }
 				],
 				flow: [
-					{ title: '扫码进入', desc: '使用小程序扫描活动二维码，进入当前活动。' },
-					{ title: '完成环节', desc: '按活动流程完成签到、答题或职业探索。' },
-					{ title: '查看报告', desc: '在个人报告中查看本次活动的参与结果。' },
-					{ title: '打印留存', desc: '需要纸质版时，可在现场打印点打印报告。' }
+					{ title: '登录账号', desc: '使用学校提供的学号和密码登录，完善个人身份信息。' },
+					{ title: '进入活动', desc: '从活动列表或扫描活动二维码进入当前活动。' },
+					{ title: '完成环节', desc: '按活动安排完成签到、职业互动和活动问卷。' },
+					{ title: '查看报告', desc: '活动结束后在个人报告中查看参与结果。' }
 				],
-				benefits: [
-					'参与学校发布的职业/就业活动周',
-					'保存答题记录和职业探索清单',
-					'查看并下载个人探索报告',
-					'使用活动现场的报告打印服务',
-					'提交活动反馈，帮助学校改进活动'
+				reportPoints: [
+					'参与的活动和环节完成情况',
+					'各活动环节的答题和选择记录',
+					'职业探索清单和浏览记录',
+					'可打印或留存的探索报告'
+				],
+				guestNotes: [
+					'游客可以浏览本介绍，了解平台功能和活动环节。',
+					'游客不能参与活动、保存答题记录或生成个人报告。',
+					'游客模式不会收集姓名、学号、学校等个人信息。',
+					'正式参与活动请使用学校提供的账号登录；没有账号可返回登录页注册。',
+					'活动工作人员可以通过登录页的“工作人员入口”登录管理端。'
 				]
 			}
 		},
 		computed: {
-			demoCorrect() {
-				return this.demoChoice === 'B'
+			currentModule() {
+				return this.modules[this.activeModule] || this.modules[0]
 			}
 		},
 		methods: {
-			chooseDemo(key) {
-				if (this.demoAnswered) return
-				this.demoChoice = key
-				this.demoAnswered = true
-			},
-			optionClass(key) {
-				if (!this.demoAnswered) return ''
-				if (key === 'B') return 'is-correct'
-				if (key === this.demoChoice) return 'is-wrong'
-				return 'is-muted'
-			},
-			showMark(key) {
-				if (!this.demoAnswered) return false
-				return key === 'B' || key === this.demoChoice
-			},
-			markText(key) {
-				if (key === 'B') return '正确答案'
-				return '你的选择'
-			},
-			resetDemo() {
-				this.demoAnswered = false
-				this.demoChoice = ''
-			},
 			backToLogin() {
 				const pages = getCurrentPages()
 				if (pages.length > 1) {
@@ -322,6 +287,25 @@
 		font-weight: 800;
 	}
 
+	/* 简介 */
+	.intro-card {
+		padding: 28rpx;
+		border-radius: 24rpx;
+		background: #ffffff;
+		box-shadow: 0 6rpx 22rpx rgba(26, 60, 110, 0.06);
+	}
+
+	.intro-text {
+		display: block;
+		color: #5c708a;
+		font-size: 25rpx;
+		line-height: 1.85;
+	}
+
+	.intro-text + .intro-text {
+		margin-top: 16rpx;
+	}
+
 	/* 功能卡片 */
 	.feature-grid {
 		display: flex;
@@ -357,6 +341,77 @@
 		margin-top: 8rpx;
 		color: #6b7f96;
 		font-size: 22rpx;
+		line-height: 1.6;
+	}
+
+	/* 活动环节切换 */
+	.module-tabs {
+		white-space: nowrap;
+	}
+
+	.module-tab {
+		display: inline-block;
+		margin-right: 14rpx;
+		padding: 14rpx 26rpx;
+		border-radius: 999rpx;
+		background: #ffffff;
+		border: 2rpx solid #e2ecf9;
+		color: #5c708a;
+		font-size: 24rpx;
+	}
+
+	.module-tab.active {
+		background: #eaf2fb;
+		border-color: #9cc4ee;
+		color: #3570c0;
+		font-weight: 700;
+	}
+
+	.module-detail {
+		margin-top: 20rpx;
+		padding: 28rpx;
+		border-radius: 24rpx;
+		background: #ffffff;
+		box-shadow: 0 6rpx 22rpx rgba(26, 60, 110, 0.06);
+	}
+
+	.module-head {
+		display: flex;
+		align-items: center;
+	}
+
+	.module-icon {
+		margin-right: 14rpx;
+		font-size: 34rpx;
+	}
+
+	.module-name {
+		color: #1a2c4a;
+		font-size: 30rpx;
+		font-weight: 800;
+	}
+
+	.module-desc {
+		display: block;
+		margin-top: 16rpx;
+		color: #40556f;
+		font-size: 25rpx;
+		line-height: 1.75;
+	}
+
+	.module-tip {
+		display: block;
+		margin-top: 12rpx;
+		color: #71839a;
+		font-size: 23rpx;
+		line-height: 1.65;
+	}
+
+	.module-note {
+		display: block;
+		margin-top: 14rpx;
+		color: #9aabbe;
+		font-size: 21rpx;
 		line-height: 1.6;
 	}
 
@@ -412,232 +467,33 @@
 		line-height: 1.6;
 	}
 
-	/* 示例题 */
-	.demo-card {
-		padding: 30rpx 28rpx 32rpx;
+	/* 个人报告 */
+	.report-card {
+		padding: 26rpx 28rpx;
 		border-radius: 24rpx;
 		background: #ffffff;
 		box-shadow: 0 6rpx 22rpx rgba(26, 60, 110, 0.06);
 	}
 
-	.demo-tag {
-		display: inline-block;
-		padding: 4rpx 16rpx;
-		border-radius: 8rpx;
-		background: #eef5ff;
-		color: #3f7fd4;
-		font-size: 22rpx;
-	}
-
-	.demo-scene {
+	.report-desc {
 		display: block;
-		margin-top: 18rpx;
-		padding: 22rpx 24rpx;
-		border-radius: 16rpx;
-		background: #f6f9fd;
+		margin-bottom: 8rpx;
 		color: #40556f;
 		font-size: 25rpx;
 		line-height: 1.75;
 	}
 
-	.demo-question {
-		display: block;
-		margin-top: 22rpx;
-		color: #1a2c4a;
-		font-size: 27rpx;
-		font-weight: 700;
-		line-height: 1.6;
-	}
-
-	.demo-options {
-		margin-top: 18rpx;
-	}
-
-	.demo-option {
+	.report-item {
 		display: flex;
-		align-items: center;
-		margin-bottom: 14rpx;
-		padding: 20rpx 22rpx;
-		border-radius: 16rpx;
-		border: 2rpx solid #e6edf6;
-		background: #ffffff;
+		align-items: flex-start;
+		padding: 8rpx 0;
 	}
 
-	.option-key {
-		flex: 0 0 40rpx;
-		width: 40rpx;
-		height: 40rpx;
-		margin-right: 16rpx;
-		border-radius: 50%;
-		background: #eef3f9;
-		color: #5a7089;
-		font-size: 22rpx;
-		font-weight: 700;
-		line-height: 40rpx;
-		text-align: center;
-	}
-
-	.option-text {
+	.report-text {
 		flex: 1;
-		color: #2b3f58;
-		font-size: 26rpx;
-	}
-
-	.option-mark {
-		margin-left: 12rpx;
-		font-size: 20rpx;
-		color: #6b7f96;
-	}
-
-	.demo-option.is-correct {
-		border-color: #4caf7d;
-		background: #f1fbf5;
-	}
-
-	.demo-option.is-correct .option-key {
-		background: #4caf7d;
-		color: #ffffff;
-	}
-
-	.demo-option.is-correct .option-mark {
-		color: #2f8a5c;
-	}
-
-	.demo-option.is-wrong {
-		border-color: #e08a8a;
-		background: #fff6f6;
-	}
-
-	.demo-option.is-wrong .option-key {
-		background: #d96b6b;
-		color: #ffffff;
-	}
-
-	.demo-option.is-wrong .option-mark {
-		color: #b24d4d;
-	}
-
-	.demo-option.is-muted {
-		opacity: 0.55;
-	}
-
-	.demo-feedback {
-		margin-top: 20rpx;
-		padding: 24rpx;
-		border-radius: 18rpx;
-		background: #f7faff;
-		border: 1rpx solid #e2ecf9;
-	}
-
-	.feedback-title {
-		display: block;
-		font-size: 28rpx;
-		font-weight: 800;
-	}
-
-	.feedback-title.success {
-		color: #2f8a5c;
-	}
-
-	.feedback-title.warn {
-		color: #b24d4d;
-	}
-
-	.feedback-career {
-		display: block;
-		margin-top: 12rpx;
-		color: #1a2c4a;
-		font-size: 27rpx;
-		font-weight: 700;
-	}
-
-	.feedback-intro {
-		display: block;
-		margin-top: 6rpx;
-		color: #3f7fd4;
-		font-size: 24rpx;
-	}
-
-	.feedback-detail {
-		display: block;
-		margin-top: 12rpx;
 		color: #5c708a;
 		font-size: 24rpx;
 		line-height: 1.7;
-	}
-
-	.feedback-tip {
-		display: block;
-		margin-top: 14rpx;
-		color: #8a9bb0;
-		font-size: 22rpx;
-	}
-
-	.feedback-reset {
-		display: inline-block;
-		margin-top: 18rpx;
-		padding: 10rpx 26rpx;
-		border-radius: 999rpx;
-		background: #e8f1fd;
-		color: #3f7fd4;
-		font-size: 23rpx;
-	}
-
-	/* 职业卡片示例 */
-	.career-list {
-		border-radius: 24rpx;
-		background: #ffffff;
-		box-shadow: 0 6rpx 22rpx rgba(26, 60, 110, 0.06);
-		overflow: hidden;
-	}
-
-	.career-card {
-		display: flex;
-		align-items: center;
-		padding: 24rpx 28rpx;
-		border-bottom: 1rpx solid #eef3f9;
-	}
-
-	.career-card:last-child {
-		border-bottom: none;
-	}
-
-	.career-icon {
-		flex: 0 0 64rpx;
-		width: 64rpx;
-		height: 64rpx;
-		margin-right: 20rpx;
-		border-radius: 18rpx;
-		background: #eef5ff;
-		font-size: 32rpx;
-		line-height: 64rpx;
-		text-align: center;
-	}
-
-	.career-body {
-		flex: 1;
-	}
-
-	.career-name {
-		display: block;
-		color: #23364f;
-		font-size: 27rpx;
-		font-weight: 700;
-	}
-
-	.career-intro {
-		display: block;
-		margin-top: 6rpx;
-		color: #71839a;
-		font-size: 23rpx;
-		line-height: 1.55;
-	}
-
-	.career-tip {
-		display: block;
-		margin-top: 14rpx;
-		color: #9aabbe;
-		font-size: 21rpx;
 	}
 
 	/* 列表 */
@@ -667,14 +523,6 @@
 		color: #40556f;
 		font-size: 25rpx;
 		line-height: 1.7;
-	}
-
-	.paragraph {
-		display: block;
-		padding: 10rpx 0;
-		color: #5c708a;
-		font-size: 24rpx;
-		line-height: 1.8;
 	}
 
 	/* 操作 */

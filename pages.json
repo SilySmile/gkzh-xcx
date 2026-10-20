@@ -24,7 +24,7 @@
       {
         "path": "pages/mp/guest/index",
         "style": {
-          "navigationBarTitleText": "游客体验",
+          "navigationBarTitleText": "平台介绍",
           "navigationBarBackgroundColor": "#eaf3fc",
           "navigationBarTextStyle": "black",
           "backgroundColor": "#eaf3fc"
