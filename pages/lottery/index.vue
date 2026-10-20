@@ -54,8 +54,8 @@
                 <button class="retry-btn" @click="loadPrizes">重试</button>
             </view>
 
-            <!-- 抽奖转盘 -->
-            <view v-else-if="!recordVisible">
+            <!-- 抽奖转盘：中奖记录以遮罩弹层展示，转盘保持挂载，关闭记录时不再重新绘制 -->
+            <view v-else>
                 <canvas canvas-id="lotteryWheel" class="lottery-canvas"
                         width="300" height="300"></canvas>
                 <button class="lottery-btn" @click="startLottery"
@@ -118,17 +118,6 @@ export default {
         // 页面准备就绪后，如果奖品已加载则开始预加载图片
         if (this.prizes.length > 0) {
             this.preloadImages();
-        }
-    },
-    watch: {
-        recordVisible(val) {
-            if (!val) {
-                this.$nextTick(() => {
-                    if (this.prizes.length > 0) {
-                        this.drawWheel(this.activeIndex)
-                    }
-                })
-            }
         }
     },
     methods: {
