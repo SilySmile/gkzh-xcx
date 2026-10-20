@@ -81,7 +81,7 @@
 						try {
 							const rr = await getRecord(this.recordId)
 							const rd = rr.data || {}
-							if (rd.status === 'finished' || (rd.record && rd.record.status === 'finished')) return this.goReport()
+							if (rd.status === 'finished' || (rd.record && (rd.record.status === 'finished' || rd.record.stage === 'activity_feedback'))) return this.goReport()
 							const raw = (rd.record && rd.record.viewedCareerIds) || rd.viewedCareerIds
 							viewed = Array.isArray(raw) ? raw : JSON.parse(raw || '[]')
 						} catch (e) {}

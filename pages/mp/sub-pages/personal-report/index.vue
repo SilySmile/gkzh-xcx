@@ -68,8 +68,9 @@ export default {
 			this.loading = false
 			return
 		}
-		this.loadGames()
 	},
+	// 从游戏或反馈页返回后刷新，未反馈的猜猜看不显示为已完成。
+	onShow() { if (this.activityId) this.loadGames() },
 	methods: {
 		back() {
 			if (this.backing) return

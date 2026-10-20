@@ -1,0 +1,10 @@
+# 依赖目录
+node_modules/
+
+# uni-app / HBuilderX 构建产物
+unpackage/
+
+# 日志与本地临时文件
+*.log
+.DS_Store
+Thumbs.db

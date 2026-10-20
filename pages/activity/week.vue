@@ -61,7 +61,6 @@ export default {
 
 		if (this.instanceId) {
 			uni.setStorageSync('activityId', this.instanceId)
-			this.loadFlow()
 		} else if (this.bizType) {
 			this.loadActiveWeek()
 		} else {
@@ -72,6 +71,8 @@ export default {
 			this.enterGame()
 		}
 	},
+	// 返回活动列表时读取服务端最新进度，反馈提交成功后才展示完成状态。
+	onShow() { if (this.instanceId) this.loadFlow() },
 	methods: {
 		back() {
 			if (this.backing) return

@@ -4,6 +4,19 @@ import request from '@/utils/request'
 import config from '@/config/api.js'
 
 const TEXT = [{
+		test: /只能成功打印一次|已成功打印/i,
+		text: '每位用户只能成功打印一次'
+	},
+	// 服务端校验失败时按原因提示，不能把“距离过远”等错误都说成蓝牙未开启。
+	{ test: /打印点蓝牙信标未配置/i, text: '打印点尚未配置信标，请联系管理员' },
+	{ test: /信标检测结果已过期/i, text: '信标检测结果已过期，请重新检测' },
+	{ test: /距离打印点较远|进入打印点蓝牙范围|未检测到指定打印点/i, text: '请靠近打印点后重试' },
+	{ test: /请开启蓝牙并靠近打印点/i, text: '请确认蓝牙和定位已开启，并靠近打印点' },
+	{
+		test: /取消原打印|原打印任务|暂不能重试/i,
+		text: '正在核对上次打印任务，请稍后重试'
+	},
+	{
 		test: /结束|只读|finished|read.?only/i,
 		text: '本次游戏已完成，结果仅可查看'
 	},
@@ -37,6 +50,10 @@ const TEXT = [{
 export function userMessage(error, fallback = '操作失败，请稍后重试') {
 	const raw = error && (error.message || error.msg || error.data && error.data.msg)
 	if (!raw) return fallback
+	// 页面自身构造的提示已经过人工检查；再次匹配通用规则会掩盖真实故障原因。
+	if (error.userFacing === true) return String(raw)
+	// 活动反馈的明确校验提示可直接展示，避免被“清单/活动”等通用规则覆盖。
+	if (/^(第[123]题|请填写第[123]题|请选择第2题|未加入过探索清单，无需填写第2题|请先确认探索清单，再填写反馈|探索清单已确认，请完成活动反馈|活动反馈已提交，不可再次修改)/.test(String(raw))) return String(raw)
 	const found = TEXT.find(item => item.test.test(String(raw)))
 	return found ? found.text : fallback
 }
@@ -44,6 +61,7 @@ export function userMessage(error, fallback = '操作失败，请稍后重试') 
 function call(options, fallback) {
 	return request(options).catch(error => {
 		const wrapped = new Error(userMessage(error, fallback))
+		wrapped.userFacing = true
 		wrapped.cause = error
 		throw wrapped
 	})
@@ -107,22 +125,47 @@ export const removeExplorationItem = (recordId, careerId) => call({
 export const finishRecord = recordId => call({
 	url: `/api/zycck/records/${recordId}/finish`,
 	method: 'POST'
-}, '完成探索失败，请重试')
+}, '确认探索清单失败，请重试')
 export const getReport = params => call({
 	url: '/api/zycck/report',
 	method: 'GET',
 	params
 }, '结果加载失败，请稍后重试')
 
+// 活动反馈始终携带本次活动、游戏上下文，不能跨活动读取或填写。
+// 通用 request 会 resolve code=500；本功能必须显式拒绝业务失败，防止显示“已保存”。
+function feedbackCall(options, fallback) {
+	return request(options).then(response => {
+		if (!response || Number(response.code) !== 200) throw new Error(response && response.msg || fallback)
+		return response
+	}).catch(error => {
+		const wrapped = new Error(userMessage(error, fallback))
+		wrapped.userFacing = true
+		throw wrapped
+	})
+}
+export const getActivityFeedback = (recordId, params) => feedbackCall({
+	url: `/api/zycck/records/${recordId}/activity-feedback`, method: 'GET', params
+}, '活动反馈加载失败，请稍后重试')
+export const saveActivityFeedback = (recordId, params, data) => feedbackCall({
+	url: `/api/zycck/records/${recordId}/activity-feedback`, method: 'POST', params, data
+}, '活动反馈保存失败，请稍后重试')
+
 // 汉印云打印：报告页选择可用打印机并提交当前报告。
 export const listPrinters = () => call({
 	url: '/api/zycck/printers',
 	method: 'GET'
 }, '打印机列表加载失败，请稍后重试')
-export const printReport = (recordId, printerId) => call({
+// 打开打印面板前查询“是否已打印”以及服务端下发的信标参数。
+export const getPrintEligibility = recordId => call({
+	url: `/api/zycck/records/${recordId}/print-eligibility`,
+	method: 'GET'
+}, '打印条件校验失败，请稍后重试')
+// beacon 是手机当前扫描结果；信标限制关闭时传 null。
+export const printReport = (recordId, printerId, beacon) => call({
 	url: `/api/zycck/records/${recordId}/print`,
 	method: 'POST',
-	data: { printerId }
+	data: { printerId, beacon }
 }, '打印任务提交失败，请稍后重试')
 export const getPrintTask = taskId => call({
 	url: `/api/zycck/print-tasks/${taskId}`,

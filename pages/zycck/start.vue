@@ -82,7 +82,7 @@
 					const current = await getRecord(this.recordId);
 					const currentData = current.data || {};
 					const currentRecord = currentData.record || currentData;
-					if (currentData.status === 'finished' || currentRecord.status === 'finished') return uni
+					if (currentData.status === 'finished' || currentRecord.status === 'finished' || currentRecord.stage === 'activity_feedback') return uni
 						.redirectTo({
 							url: `/pages/zycck/report?${base}`
 						});
@@ -93,6 +93,9 @@
 					});
 					else if (data.stage === 'summary') uni.redirectTo({
 						url: `/pages/zycck/summary?${base}`
+					});
+					else if (data.stage === 'activity_feedback') uni.redirectTo({
+						url: `/pages/zycck/report?${base}`
 					});
 					else if (data.stage === 'exploration') uni.redirectTo({
 						url: `/pages/zycck/exploration-list?${base}&readOnly=0`

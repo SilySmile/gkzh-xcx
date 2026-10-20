@@ -87,6 +87,7 @@
 				<button v-if="!readOnly" class="continue-button" hover-class="button-hover"
 					@click="continueExplore">继续探索更多职业</button>
 			</view>
+			<text class="exploration-tip">加入探索清单，可留存待探索职业；未添加则清单为空。</text>
 		</view>
 	</view>
 </template>
@@ -700,6 +701,15 @@
 	.footer-actions {
 		width: 390rpx;
 		margin: 63rpx auto 0;
+	}
+
+	.exploration-tip {
+		display: block;
+		margin-top: 28rpx;
+		color: #d93025;
+		font-size: 24rpx;
+		line-height: 1.7;
+		text-align: center;
 	}
 
 	.footer-actions button {
