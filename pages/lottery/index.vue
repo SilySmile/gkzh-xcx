@@ -54,8 +54,8 @@
                 <button class="retry-btn" @click="loadPrizes">重试</button>
             </view>
 
-            <!-- 抽奖转盘：中奖记录以遮罩弹层展示，转盘保持挂载，关闭记录时不再重新绘制 -->
-            <view v-else>
+            <!-- 抽奖转盘：中奖记录以遮罩弹层展示，用 v-show 隐藏而不销毁画布，关闭时无需重绘 -->
+            <view v-else v-show="!recordVisible">
                 <canvas canvas-id="lotteryWheel" class="lottery-canvas"
                         width="300" height="300"></canvas>
                 <button class="lottery-btn" @click="startLottery"
