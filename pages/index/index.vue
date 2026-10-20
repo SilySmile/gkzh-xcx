@@ -494,7 +494,7 @@
 							}
 							enterWeekGame(query.gameId, query.instanceId).then(() => {
 								uni.navigateTo({ url: '/pages/sszctop/index?' + params })
-							}).catch(() => uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' }))
+							}).catch(e => uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' }))
 						})
 						return
 					}

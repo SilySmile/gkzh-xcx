@@ -163,8 +163,8 @@ export default {
 							this.playGame(game)
 							return
 						}
-						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(() => {
-							uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(e => {
+							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
 					})
 				}

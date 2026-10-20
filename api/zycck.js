@@ -71,7 +71,16 @@ export const enterRecord = data => call({
 	url: '/api/zycck/records/enter',
 	method: 'POST',
 	data
-}, '游戏入口校验失败，请重新扫码')
+}, '游戏入口校验失败，请重新扫码').then(response => {
+	// 通用 request 会把业务码 500 也 resolve；入口校验必须按业务码拦截，
+	// 保证跨校扫码、活动失效等提示能直接展示，并且不会继续创建本地流程。
+	if (!response || Number(response.code) !== 200) {
+		const error = new Error((response && response.msg) || '游戏入口校验失败，请重新扫码')
+		error.userFacing = true
+		throw error
+	}
+	return response
+})
 export const getCatalog = params => call({
 	url: '/api/zycck/catalog',
 	method: 'GET',

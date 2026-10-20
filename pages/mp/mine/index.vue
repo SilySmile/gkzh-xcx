@@ -261,8 +261,8 @@ export default {
 							uni.navigateTo({ url: '/pages/sszctop/report?gameId=' + params.gameId })
 							return
 						}
-						enterWeekGame(params.gameId, params.instanceId).then(() => uni.navigateTo({ url: gameUrl + suffix })).catch(() => {
-							uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						enterWeekGame(params.gameId, params.instanceId).then(() => uni.navigateTo({ url: gameUrl + suffix })).catch(e => {
+							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
 					})
 					return
@@ -275,7 +275,7 @@ export default {
 					try {
 						await enterWeekGame(params.gameId, params.instanceId)
 					} catch (e) {
-						uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						return
 					}
 				}

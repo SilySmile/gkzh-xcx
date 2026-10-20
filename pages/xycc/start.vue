@@ -60,7 +60,7 @@
 					})
 				} catch (e) {
 					uni.showToast({
-						title: '游戏入口已失效，请重新扫码进入',
+						title: e.message || '游戏入口已失效，请重新扫码进入',
 						icon: 'none'
 					})
 					this.starting = false
