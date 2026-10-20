@@ -80,7 +80,7 @@
 		
 				<!-- 底部链接 -->
         		<view class="bottom-links" :class="{ 'fade-in': pageReady }">
-        			<text class="link" @click="onGuest">暂不登录，跳转游客模式</text>
+        			<text class="link guest-link" @click="onGuest">暂不登录，跳转游客模式</text>
         			<text class="link" @click="onForgot">忘记密码？</text>
         			<text class="link" @click="onStaff">工作人员入口</text>
         			<text class="link highlight" @click="onRegister">没有账号？去注册</text>
@@ -254,8 +254,9 @@ export default {
 				this.submitting = false
 			})
 		},
+		// 游客可先浏览平台介绍和示例内容，正式参与活动仍需登录。
 		onGuest() {
-			uni.showToast({ title: '游客模式开发中', icon: 'none' })
+			uni.navigateTo({ url: '/pages/mp/guest/index' })
 		},
 		onForgot() {
 			uni.showToast({ title: '请联系工作人员', icon: 'none' })
@@ -500,6 +501,18 @@ export default {
 .link.highlight {
 	color: #4a90e2;
 	font-weight: 600;
+}
+
+/* 游客体验入口做轻微强调，便于首次进入的用户和审核人员发现 */
+.guest-link {
+	padding: 12rpx 28rpx;
+	border-radius: 999rpx;
+	background: #eaf2fb;
+	color: #3570c0;
+	font-weight: 600;
+}
+.guest-link::after {
+	display: none;
 }
 
 /* ── 学校下拉遮罩 ── */

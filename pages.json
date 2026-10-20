@@ -21,6 +21,15 @@
           "navigationStyle": "custom"
         }
       },
+      {
+        "path": "pages/mp/guest/index",
+        "style": {
+          "navigationBarTitleText": "游客体验",
+          "navigationBarBackgroundColor": "#eaf3fc",
+          "navigationBarTextStyle": "black",
+          "backgroundColor": "#eaf3fc"
+        }
+      },
         {
             "path": "pages/index/index",
             "style": {
