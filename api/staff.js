@@ -28,7 +28,7 @@ function request(options) {
 
 export const staffLogin = data => request({ url: '/api/staff/login', method: 'POST', data })
 export const getStaffProfile = () => request({ url: '/api/staff/profile' })
-export const getPrizeRecords = () => request({ url: '/api/staff/prizes' })
+export const getPrizeRecords = (params = {}) => request({ url: '/api/staff/prizes', data: params })
 export const scanPrize = recordId => request({ url: '/api/staff/prize/scan', method: 'POST', data: { recordId } })
 export const resolvePrize = (recordId, redemptionCode) => request({ url: '/api/staff/prize/resolve', method: 'POST', data: { recordId, redemptionCode } })
 export const redeemPrize = (recordId, remark = '') => request({ url: '/api/staff/prize/redeem', method: 'POST', data: { recordId, remark } })

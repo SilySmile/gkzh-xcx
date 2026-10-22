@@ -13,33 +13,41 @@
         />
         <view class="lottery-container">
 			<view v-if="myRecord" class="my-lottery-info" @click="showMyRecord">
-				已抽 {{ drawCount }}/{{ maxDrawCount }}：{{ myRecord.prizeTitle || '已参与' }}
+				<text class="entry-gift">🎁</text>
+				<view class="entry-copy">
+					<text class="entry-title">中奖记录</text>
+					<text class="entry-sub">已抽 {{ drawCount }}/{{ maxDrawCount }}</text>
+				</view>
+				<text class="entry-arrow">›</text>
             </view>
 
 			<view v-if="recordVisible" class="record-mask" @click="closeRecords">
 				<view class="record-dialog" @click.stop>
-					<view class="record-title">我的中奖记录</view>
+					<view class="record-title">我的中奖记录（{{ myRecords.length }}）</view>
+					<view v-if="!myRecords.length" class="record-empty">暂无中奖记录</view>
 					<view v-for="(record, idx) in myRecords" :key="idx" class="record-line">
-						<view class="record-main" :class="{ 'record-disabled': isNoPrize(record) }" @tap="showPrizeQr(record)">
+						<view class="record-main" :class="{ 'record-disabled': isNoPrize(record) }" @tap="openRecordQr(record)">
 						<view class="record-count">第{{ idx + 1 }}次</view>
 						<view class="record-prize">{{ record.prizeTitle || '未记录' }}</view>
-						<view class="record-time">{{ record.drawTime || record.createTime }}</view>
+						<view class="record-time">{{ formatRecordTime(record.createTime || record.drawTime) }}</view>
 						</view>
 						<view v-if="isNoPrize(record)" class="record-status">谢谢参与</view>
+						<view v-else-if="!needsRedemption(record)" class="record-status">无需核销</view>
 						<view v-else-if="isRedeemed(record)" class="record-status redeemed">已核销</view>
-						<text v-else class="record-qr-tip" @tap.stop="showPrizeQr(record)">点击展示核销码</text>
+						<text v-else class="record-qr-tip" @tap.stop="openRecordQr(record)">点击展示核销码</text>
 					</view>
 					<button class="record-close" @click="closeRecords">关闭</button>
 				</view>
 			</view>
 
-			<view v-if="prizeQrVisible" class="record-mask" @click="prizeQrVisible = false">
+			<view v-if="prizeQrVisible" class="record-mask" @click="closePrizeQr">
 				<view class="qr-dialog" @click.stop>
 					<view class="record-title">奖品核销码</view>
+					<text v-if="qrPrizeTitle" class="qr-prize-title">{{ qrPrizeTitle }}</text>
 					<image v-if="prizeQrImage" :src="prizeQrImage" mode="widthFix" class="prize-qr" />
 					<text class="record-time">请将此二维码出示给工作人员</text>
 					<text class="redemption-code">文本核销码：{{ qrCode }}</text>
-					<button class="record-close" @click="prizeQrVisible = false">关闭</button>
+					<button class="record-close" @click="closePrizeQr">关闭</button>
 				</view>
 			</view>
 
@@ -99,6 +107,8 @@ export default {
 			prizeQrImage: '',
 			qrRecordId: '',
 			qrCode: '',
+			qrPrizeTitle: '',
+			resultRefreshPending: false,
 			winningPrize: null,
             lotteryEnabled: false,
             minFinishCount: 0,
@@ -421,34 +431,95 @@ export default {
         },
 
 		showLotteryResult() {
-            if (this.winningPrize && this.winningPrize.title != '谢谢参与') {
-                const message = `恭喜你获得：${this.winningPrize.title}`;
-                uni.showModal({
-                    title: '抽奖结果',
-                    content: message,
-                    showCancel: false,
-                    confirmText: '确定',
-                    success: () => {
-                        this.refreshAfterDraw()
-                    }
-                });
-            } else {
-                uni.showModal({
-                    title: '抽奖结果',
-                    content: '很遗憾，没有中奖',
-                    showCancel: false,
-                    confirmText: '确定',
-                    success: () => {
-                        this.refreshAfterDraw()
-                    }
-                });
-            }
+			const prize = this.winningPrize || {}
+			// 谢谢参与只提示结果，不进入核销流程。
+			if (this.isNoPrize({ prizeTitle: prize.title, prizeType: prize.prizeType })) {
+				uni.showModal({
+					title: '抽奖结果',
+					content: '很遗憾，没有中奖',
+					showCancel: false,
+					confirmText: '确定',
+					success: () => this.refreshAfterDraw()
+				})
+				return
+			}
+			// 无需核销的奖品只弹出名称。
+			if (String(prize.needRedemption) === '0') {
+				uni.showModal({
+					title: '抽奖结果',
+					content: `恭喜你获得：${prize.title}`,
+					showCancel: false,
+					confirmText: '知道了',
+					success: () => this.refreshAfterDraw()
+				})
+				return
+			}
+			// 需核销的奖品直接打开核销码弹层；关闭后再刷新抽奖次数和记录。
+			if (prize.recordId) {
+				this.resultRefreshPending = true
+				this.showPrizeQr({
+					recordId: prize.recordId,
+					redemptionCode: prize.redemptionCode,
+					prizeTitle: prize.title,
+					prizeType: prize.prizeType,
+					needRedemption: prize.needRedemption
+				})
+				return
+			}
+			// 兼容没有返回记录编号的旧服务端。
+			uni.showModal({
+				title: '抽奖结果',
+				content: `恭喜你获得：${prize.title}`,
+				showCancel: false,
+				confirmText: '确定',
+				success: () => this.refreshAfterDraw()
+			})
+		},
+		formatRecordTime(value) {
+			if (!value) return ''
+			const date = new Date(String(value).replace(/-/g, '/'))
+			if (isNaN(date.getTime())) return String(value)
+			const p = n => String(n).padStart(2, '0')
+			return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}`
+		},
+		needsRedemption(record) {
+			if (!record || this.isNoPrize(record)) return false
+			const value = record.needRedemption === undefined || record.needRedemption === null
+				? '1'
+				: String(record.needRedemption)
+			return value !== '0'
+		},
+		openRecordQr(record) {
+			if (!record || this.isNoPrize(record)) return
+			if (this.isRedeemed(record)) {
+				uni.showToast({ title: '该奖品已核销', icon: 'none' })
+				return
+			}
+			if (!this.needsRedemption(record)) {
+				uni.showModal({
+					title: '奖品信息',
+					content: `${record.prizeTitle || '奖品'}（无需核销）`,
+					showCancel: false,
+					confirmText: '知道了'
+				})
+				return
+			}
+			this.showPrizeQr(record)
 		},
 		showPrizeQr(record) {
 			record = record || {}
 			if (this.isNoPrize(record)) return
 			if (this.isRedeemed(record)) {
 				uni.showToast({ title: '该奖品已核销', icon: 'none' })
+				return
+			}
+			if (!this.needsRedemption(record)) {
+				uni.showModal({
+					title: '奖品信息',
+					content: `${record.prizeTitle || '奖品'}（无需核销）`,
+					showCancel: false,
+					confirmText: '知道了'
+				})
 				return
 			}
 			const token = uni.getStorageSync('token')
@@ -459,7 +530,16 @@ export default {
 			this.prizeQrImage = this.getPrizeQrPublicUrl(recordId)
 			this.qrRecordId = recordId
 			this.qrCode = record.redemptionCode || ('GKZH-' + recordId)
+			this.qrPrizeTitle = record.prizeTitle || record.title || ''
 			this.prizeQrVisible = true
+		},
+		closePrizeQr() {
+			this.prizeQrVisible = false
+			// 抽奖后打开的核销码，关闭时再刷新，避免弹层打开期间转盘/次数提前变化。
+			if (this.resultRefreshPending) {
+				this.resultRefreshPending = false
+				this.refreshAfterDraw()
+			}
 		},
 		getPrizeQrPublicUrl(recordId) {
 			// 线上 Nginx 将该路径代理到服务端动态二维码接口，避免被静态图片规则拦截。
@@ -526,12 +606,37 @@ export default {
     position: absolute;
     top: 12rpx;
     right: 20rpx;
+    display: flex;
+    align-items: center;
+    padding: 12rpx 20rpx 12rpx 16rpx;
     background: rgba(0, 0, 0, 0.55);
-    color: #ffffff;
-    padding: 10rpx 18rpx;
-    border-radius: 30rpx;
-    font-size: 24rpx;
+    border-radius: 999rpx;
     z-index: 5;
+}
+.entry-gift {
+    font-size: 28rpx;
+    margin-right: 10rpx;
+}
+.entry-copy {
+    display: flex;
+    flex-direction: column;
+}
+.entry-title {
+    color: #ffffff;
+    font-size: 24rpx;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.entry-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 19rpx;
+    line-height: 1.3;
+    margin-top: 2rpx;
+}
+.entry-arrow {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 30rpx;
+    margin-left: 10rpx;
 }
 .record-mask {
     position: fixed;
@@ -546,10 +651,13 @@ export default {
     justify-content: center;
 }
 .record-dialog {
-    width: 600rpx;
+    width: 640rpx;
+    max-height: 72vh;
     background: #ffffff;
     border-radius: 24rpx;
     padding: 36rpx;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 .record-title {
     font-size: 34rpx;
@@ -575,7 +683,9 @@ export default {
 .record-qr-tip { color: #2f80ed; font-size: 20rpx; white-space: nowrap; margin-left: 12rpx; }
 .record-status { color: #909399; font-size: 22rpx; white-space: nowrap; margin-left: 12rpx; }
 .record-status.redeemed { color: #19be6b; font-weight: 600; }
+.record-empty { text-align: center; color: #9cadc0; font-size: 24rpx; padding: 30rpx 0; }
 .qr-dialog { width: 620rpx; background: #fff; border-radius: 24rpx; padding: 36rpx; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 18rpx; }
+.qr-prize-title { font-size: 30rpx; font-weight: 700; color: #1a2c4a; text-align: center; }
 .prize-qr { width: 460rpx; height: 460rpx; }
 .redemption-code { font-size: 30rpx; color: #1a2c4a; font-weight: 700; letter-spacing: 2rpx; }
 .record-count {

@@ -1,15 +1,29 @@
 <template>
 	<view class="page">
 		<view class="title">用户奖品核销记录</view>
-		<view v-for="item in prizes" :key="item.lotteryRecordId" class="item" @click="logs(item)">
-			<view><text class="prize">{{ item.prizeTitle }}</text><text
-					class="user">{{ item.studentName || item.userId }} {{ item.studentNo || '' }}</text><text
-					class="code">{{ item.redemptionCode || ('GKZH-' + item.lotteryRecordId) }}</text></view>
-			<view class="right"><text
-					:class="item.status==='1'?'done':'wait'">{{ item.status==='1'?'已核销':'待核销' }}</text><text
-					class="time">{{ formatDate(item.redeemTime || item.drawTime) }}</text></view>
+		<view class="search-bar">
+			<input
+				v-model="studentNo"
+				class="search-input"
+				placeholder="输入学号筛选"
+				confirm-type="search"
+				@confirm="load"
+			/>
+			<button class="search-btn" size="mini" @click="load">筛选</button>
+			<button v-if="studentNo" class="reset-btn" size="mini" @click="reset">重置</button>
 		</view>
-		<view v-if="!prizes.length" class="empty">暂无中奖记录</view>
+		<view v-if="loading" class="empty">加载中...</view>
+		<view v-else-if="!prizes.length" class="empty">暂无核销记录</view>
+		<view v-for="item in prizes" :key="item.lotteryRecordId" class="item" @click="logs(item)">
+			<view class="record-main">
+				<text class="prize">{{ item.prizeTitle }}</text>
+				<text class="user">{{ item.studentName || item.userId }} {{ item.studentNo || '' }}</text>
+			</view>
+			<view class="right">
+				<text :class="item.status==='1'?'done':'wait'">{{ item.status==='1'?'已核销':'待核销' }}</text>
+				<text class="time">{{ formatDate(item.redeemTime || item.drawTime) }}</text>
+			</view>
+		</view>
 	</view>
 </template>
 <script>
@@ -19,18 +33,33 @@
 	} from '@/api/staff.js';
 	export default {
 		data: () => ({
-			prizes: []
+			prizes: [],
+			studentNo: '',
+			loading: false
 		}),
 		onShow() {
-			getPrizeRecords().then(r => this.prizes = r.data || []).catch(e => uni.showToast({
-				title: e.message,
-				icon: 'none'
-			}))
+			this.load()
 		},
 		methods: {
+			load() {
+				if (this.loading) return
+				this.loading = true
+				getPrizeRecords({ studentNo: this.studentNo.trim() }).then(r => {
+					this.prizes = r.data || []
+				}).catch(e => uni.showToast({
+					title: e.message,
+					icon: 'none'
+				})).finally(() => {
+					this.loading = false
+				})
+			},
+			reset() {
+				this.studentNo = ''
+				this.load()
+			},
 			formatDate(v) {
 				if (!v) return '';
-				const d = new Date(v);
+				const d = new Date(String(v).replace(/-/g, '/'));
 				if (isNaN(d.getTime())) return String(v);
 				const p = n => String(n).padStart(2, '0');
 				return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
@@ -66,6 +95,42 @@
 		margin: 10rpx 0 24rpx
 	}
 
+	.search-bar {
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+		margin-bottom: 22rpx;
+	}
+
+	.search-input {
+		flex: 1;
+		height: 76rpx;
+		padding: 0 24rpx;
+		background: #fff;
+		border-radius: 16rpx;
+		font-size: 26rpx;
+		color: #1a2c4a;
+	}
+
+	.search-btn,
+	.reset-btn {
+		margin: 0;
+		height: 76rpx;
+		line-height: 76rpx;
+		border-radius: 16rpx;
+		font-size: 26rpx;
+	}
+
+	.search-btn {
+		background: #2f80ed;
+		color: #fff;
+	}
+
+	.reset-btn {
+		background: #fff;
+		color: #52657c;
+	}
+
 	.item {
 		background: #fff;
 		border-radius: 18rpx;
@@ -73,6 +138,11 @@
 		padding: 26rpx;
 		display: flex;
 		justify-content: space-between
+	}
+
+	.record-main {
+		flex: 1;
+		min-width: 0;
 	}
 
 	.prize {
