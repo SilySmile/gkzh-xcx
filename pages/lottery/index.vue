@@ -94,6 +94,8 @@ export default {
             activeIndex: 0,
             timer: null,
             loadedPrizeImages: [], // 预加载后的本地图片路径
+            preloadingImages: false,
+            loadedImagesKey: '',
             activityId: null, // 活动ID,
             gameId: null,
             lotteryId: null,
@@ -127,12 +129,6 @@ export default {
 			this.checkLotteryAccess()
 		},
 
-    onReady() {
-        // 页面准备就绪后，如果奖品已加载则开始预加载图片
-        if (this.prizes.length > 0) {
-            this.preloadImages();
-        }
-    },
     methods: {
 		async checkLotteryAccess() {
 			try {
@@ -177,13 +173,14 @@ export default {
                 console.log('奖品列表:', response);
                 if (response.code === 200) {
                     this.prizes = response.data || [];
+                    this.loadedPrizeImages = [];
+                    this.loadedImagesKey = '';
                     if (this.prizes.length === 0) {
                         this.error = '暂无奖品数据';
                     } else {
-                        // 奖品加载成功后预加载图片
-                        this.preloadImages();
-                        // 打印奖品信息用于调试
-                        console.log('奖品列表:', this.prizes);
+                        // 先把转盘画出来，图片在后台异步补画，避免首屏一直空白等待。
+                        this.loading = false;
+                        this.$nextTick(() => this.preloadImages());
                     }
                 } else {
                     this.error = '获取奖品失败';
@@ -196,10 +193,23 @@ export default {
         },
 
         preloadImages() {
-            if (this.prizes.length === 0) return;
+            if (this.prizes.length === 0 || this.preloadingImages) return;
+            const key = this.prizes.map(prize => prize.imageUrl || '').join('|');
+            // 先用文字和扇形立即绘制，图片下载完成后再补画一次，首屏不再等全部图片。
+            this.drawWheel(this.activeIndex);
+            if (key && key === this.loadedImagesKey) return;
+            if (!this.prizes.some(prize => prize.imageUrl)) {
+                this.loadedImagesKey = key;
+                return;
+            }
 
+            this.preloadingImages = true;
             const promises = this.prizes.map(prize => {
                 return new Promise(resolve => {
+                    if (!prize.imageUrl) {
+                        resolve('');
+                        return;
+                    }
                     uni.getImageInfo({
                         src: prize.imageUrl,
                         success: res => resolve(res.path),
@@ -210,7 +220,10 @@ export default {
 
             Promise.all(promises).then(paths => {
                 this.loadedPrizeImages = paths;
-                this.drawWheel();
+                this.loadedImagesKey = key;
+                this.drawWheel(this.activeIndex);
+            }).finally(() => {
+                this.preloadingImages = false;
             });
         },
 
@@ -245,7 +258,7 @@ export default {
             // 奖品图片和文字
             for (let i = 0; i < prizeCount; i++) {
                 // 先绘制图片（如果有有效路径）
-                const imgPath = this.loadedPrizeImages[i] || this.prizes[i].imageUrl;
+                const imgPath = this.loadedPrizeImages[i];
                 if (imgPath && typeof imgPath === 'string' && imgPath.trim() !== '') {
                     ctx.save();
                     ctx.translate(center, center);
@@ -336,7 +349,8 @@ export default {
                 // 调用后端抽奖接口
                 const response = await drawPrizeByLotteryId(this.lotteryId, this.activityId);
                 if (response.code === 200) {
-                    await completeActivityWeekGame(this.gameId, { result: response.data }).catch(() => {})
+                    // 活动进度同步不阻塞转盘动画，避免接口慢时点了抽奖迟迟不转。
+                    completeActivityWeekGame(this.gameId, { result: response.data }).catch(() => {})
                     this.winningPrize = response.data;
                     // 找到中奖奖品在列表中的索引
                     const winIndex = this.prizes.findIndex(prize => prize.prizeId === this.winningPrize.prizeId);
@@ -580,7 +594,7 @@ export default {
                     this.myRecord = res.data
                 }
             })
-            this.loadPrizes()
+            // 抽奖只更新次数和中奖记录，不再重新拉取奖品/图片，避免转盘闪一下重建。
         },
         back() {
             redirectToActivityWeek()
