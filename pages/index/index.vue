@@ -437,7 +437,7 @@
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
 					const isSszctop = result.indexOf('/pages/sszctop/index') > -1 || query.gameType === 'sszctop'
 					const isZycck = result.indexOf('/pages/zycck/start') > -1 || query.gameType === 'zycck'
-					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1
+					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || query.gameType === 'zcyltzj'
 					if (isZcyltzj) {
 						// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
 						if (!query.instanceId || !query.gameId) {

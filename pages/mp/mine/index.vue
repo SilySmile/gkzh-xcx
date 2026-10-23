@@ -185,7 +185,7 @@ export default {
 				const isXyccStartCode = result.indexOf('/pages/xycc/start') > -1
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
 				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
-				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1
+				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || params.gameType === 'zcyltzj'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -221,11 +221,6 @@ export default {
 					} catch (e) {
 						uni.showToast({ title: zcyltzjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 					}
-					return
-				}
-				if (params.gameType === 'zcyltzj') {
-					// 标准活动周二维码：交给活动页做学校、活动和游戏归属校验，不直接进入游戏。
-					uni.navigateTo({ url: '/pages/activity/week' + (query ? '?' + query : '') })
 					return
 				}
 				if (isZycck) {
