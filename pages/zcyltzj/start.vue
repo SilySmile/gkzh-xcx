@@ -17,9 +17,11 @@
 						<view
 							v-for="n in 9"
 							:key="n"
-							class="pip"
-							:class="{ on: pipOn(n) }"
-						></view>
+							class="pip-slot"
+							:class="'slot-' + n"
+						>
+							<view v-if="pipOn(n)" class="pip"></view>
+						</view>
 					</view>
 					<view class="dice-shadow"></view>
 				</view>
@@ -227,30 +229,38 @@
 		width: 220rpx;
 		height: 220rpx;
 		margin: 0 auto;
-		padding: 22rpx;
 		box-sizing: border-box;
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		grid-template-rows: repeat(3, 1fr);
 		border-radius: 44rpx;
 		background: linear-gradient(155deg, #ffffff 0%, #e9e4f7 100%);
 		box-shadow: 0 22rpx 48rpx rgba(0, 0, 0, 0.38), inset 0 -8rpx 18rpx rgba(90, 70, 160, 0.16);
 		transform: rotate(-8deg);
 	}
 
-	.pip {
-		width: 30rpx;
-		height: 30rpx;
-		align-self: center;
-		justify-self: center;
-		border-radius: 50%;
-		background: transparent;
+	/* 绝对定位九个点位，避免部分微信版本不支持 CSS Grid 导致点位错位。 */
+	.pip-slot {
+		position: absolute;
+		width: 32rpx;
+		height: 32rpx;
+		transform: translate(-50%, -50%);
 	}
 
-	.pip.on {
-		background: #2b2150;
-		box-shadow: inset 0 4rpx 6rpx rgba(0, 0, 0, 0.35);
+	.pip {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		background: radial-gradient(circle at 35% 30%, #4b4077 0%, #241d3f 65%, #151025 100%);
+		box-shadow: inset 0 3rpx 5rpx rgba(0, 0, 0, 0.55), 0 1rpx 1rpx rgba(255, 255, 255, 0.7);
 	}
+
+	.slot-1 { left: 22%; top: 22%; }
+	.slot-2 { left: 50%; top: 22%; }
+	.slot-3 { left: 78%; top: 22%; }
+	.slot-4 { left: 22%; top: 50%; }
+	.slot-5 { left: 50%; top: 50%; }
+	.slot-6 { left: 78%; top: 50%; }
+	.slot-7 { left: 22%; top: 78%; }
+	.slot-8 { left: 50%; top: 78%; }
+	.slot-9 { left: 78%; top: 78%; }
 
 	.dice-shadow {
 		position: absolute;

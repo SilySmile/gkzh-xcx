@@ -39,7 +39,12 @@
 					:class="{ rolling: rolling, settled: rolled }"
 					@click="roll"
 				>
-					<view v-for="n in 9" :key="n" class="pip-cell">
+					<view
+						v-for="n in 9"
+						:key="n"
+						class="pip-slot"
+						:class="'slot-' + n"
+					>
 						<view v-if="pipOn(n)" class="pip"></view>
 					</view>
 				</view>
@@ -318,10 +323,9 @@
 	}
 
 	.grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		grid-template-rows: repeat(3, 186rpx);
-		gap: 16rpx;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
 	}
 
 	.cell {
@@ -329,6 +333,10 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+		width: 31.5%;
+		height: 186rpx;
+		margin-bottom: 16rpx;
+		box-sizing: border-box;
 		border-radius: 24rpx;
 		background: rgba(255, 255, 255, 0.07);
 		border: 2rpx solid rgba(255, 255, 255, 0.1);
@@ -456,11 +464,7 @@
 		z-index: 2;
 		width: 192rpx;
 		height: 192rpx;
-		padding: 18rpx;
 		box-sizing: border-box;
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		grid-template-rows: repeat(3, 1fr);
 		border-radius: 38rpx;
 		background: radial-gradient(circle at 32% 24%, #ffffff 0%, #f5f2fb 55%, #ddd7ec 100%);
 		box-shadow: 0 20rpx 44rpx rgba(0, 0, 0, 0.42), inset 0 -10rpx 18rpx rgba(90, 70, 160, 0.18),
@@ -489,19 +493,31 @@
 		100% { transform: scale(1) rotate(0deg); }
 	}
 
-	.pip-cell {
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	/* 用绝对定位固定九个点位，避免部分微信版本不支持 CSS Grid 导致点位错位。 */
+	.pip-slot {
+		position: absolute;
+		width: 30rpx;
+		height: 30rpx;
+		transform: translate(-50%, -50%);
 	}
 
 	.pip {
-		width: 30rpx;
-		height: 30rpx;
+		width: 100%;
+		height: 100%;
 		border-radius: 50%;
 		background: radial-gradient(circle at 35% 30%, #4b4077 0%, #241d3f 65%, #151025 100%);
 		box-shadow: inset 0 3rpx 5rpx rgba(0, 0, 0, 0.55), 0 1rpx 1rpx rgba(255, 255, 255, 0.7);
 	}
+
+	.slot-1 { left: 22%; top: 22%; }
+	.slot-2 { left: 50%; top: 22%; }
+	.slot-3 { left: 78%; top: 22%; }
+	.slot-4 { left: 22%; top: 50%; }
+	.slot-5 { left: 50%; top: 50%; }
+	.slot-6 { left: 78%; top: 50%; }
+	.slot-7 { left: 22%; top: 78%; }
+	.slot-8 { left: 50%; top: 78%; }
+	.slot-9 { left: 78%; top: 78%; }
 
 	.dice-shadow {
 		margin-top: -8rpx;
