@@ -15,7 +15,7 @@
 				<view class="dice-hero">
 					<view class="dice-face">
 						<view
-							v-for="n in 9"
+							v-for="n in pipSlots"
 							:key="n"
 							class="pip-slot"
 							:class="'slot-' + n"
@@ -70,7 +70,9 @@
 			loading: false,
 			buttonPressed: false,
 			// 开始页展示骰子 5 点，仅作装饰。
-			heroValue: 5
+			heroValue: 5,
+			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
+			pipSlots: [1, 2, 3, 4, 5, 6, 7, 8, 9]
 		}),
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''

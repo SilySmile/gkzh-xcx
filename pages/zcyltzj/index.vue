@@ -40,7 +40,7 @@
 					@click="roll"
 				>
 					<view
-						v-for="n in 9"
+						v-for="n in pipSlots"
 						:key="n"
 						class="pip-slot"
 						:class="'slot-' + n"
@@ -94,7 +94,9 @@
 			diceValue: 1,
 			highlightIndex: -1,
 			ruleVisible: false,
-			activeRule: {}
+			activeRule: {},
+			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
+			pipSlots: [1, 2, 3, 4, 5, 6, 7, 8, 9]
 		}),
 		computed: {
 			cells() {
