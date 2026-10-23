@@ -92,6 +92,7 @@
 	import { getProfile } from '@/api/checkin';
 	import { getWeekFlow, enterWeekGame } from '@/api/activity/week';
 	import { enterRecord, userMessage } from '@/api/zycck';
+	import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj'
 
 	// 微信SDK导入 - 仅在H5环境下使用
 
@@ -436,16 +437,28 @@
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
 					const isSszctop = result.indexOf('/pages/sszctop/index') > -1 || query.gameType === 'sszctop'
 					const isZycck = result.indexOf('/pages/zycck/start') > -1 || query.gameType === 'zycck'
-					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || query.gameType === 'zcyltzj'
+					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1
 					if (isZcyltzj) {
-						// 骰子局开始页会用 /api/zcyltzj/records/enter 完成学校与活动校验并创建记录。
+						// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
 						if (!query.instanceId || !query.gameId) {
 							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
 							return
 						}
-						uni.navigateTo({
-							url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}`
-						})
+						try {
+							const entered = await enterZcyltzj({
+								instanceId: query.instanceId,
+								gameId: query.gameId,
+								gameType: 'zcyltzj',
+								schoolId: uni.getStorageSync('schoolId')
+							})
+							const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+							if (!recordId) throw new Error('记录创建失败')
+							uni.navigateTo({
+								url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}`
+							})
+						} catch (e) {
+							uni.showToast({ title: zcyltzjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+						}
 						return
 					}
 					if (isZycck) {

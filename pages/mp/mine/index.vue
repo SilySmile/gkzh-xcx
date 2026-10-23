@@ -99,6 +99,7 @@
 <script>
 import { getWeekFlow, enterWeekGame } from '@/api/activity/week'
 import { enterRecord, userMessage } from '@/api/zycck'
+	import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj'
 
 export default {
 	data() {
@@ -184,7 +185,7 @@ export default {
 				const isXyccStartCode = result.indexOf('/pages/xycc/start') > -1
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
 				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
-				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || params.gameType === 'zcyltzj'
+				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -200,14 +201,31 @@ export default {
 				}
 				const gameUrl = isXyccStartCode ? '/pages/xycc/index' : (isSszctopDirectCode ? '/pages/sszctop/index' : (map[params.gameType] || ''))
 				if (isZcyltzj) {
-					// 骰子局开始页会用 /api/zcyltzj/records/enter 完成学校与活动校验并创建记录。
+					// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
 					if (!params.instanceId || !params.gameId) {
 						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
 						return
 					}
-					uni.navigateTo({
-						url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}`
-					})
+					try {
+						const entered = await enterZcyltzj({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zcyltzj',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zcyltzjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (params.gameType === 'zcyltzj') {
+					// 标准活动周二维码：交给活动页做学校、活动和游戏归属校验，不直接进入游戏。
+					uni.navigateTo({ url: '/pages/activity/week' + (query ? '?' + query : '') })
 					return
 				}
 				if (isZycck) {
