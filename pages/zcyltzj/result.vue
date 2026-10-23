@@ -84,7 +84,8 @@
 			gameId: '',
 			record: {},
 			result: {},
-			loading: true
+			loading: true,
+			backing: false
 		}),
 		computed: {
 			pressureValue() {
@@ -137,6 +138,8 @@
 			},
 			/** 返回到当前活动所属的“生涯活动”或“就业活动”页面。 */
 			async backToActivity() {
+				if (this.backing) return
+				this.backing = true
 				let bizType = this.record && this.record.bizType ? this.record.bizType : ''
 				if (!bizType && this.instanceId) {
 					try {
