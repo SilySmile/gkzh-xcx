@@ -1,6 +1,6 @@
 <template>
 	<view class="page">
-		<zcyltzj-header title="压力结果" @back="back" />
+		<zcyltzj-header title="压力结果" @back="backToActivity" />
 
 		<scroll-view scroll-y class="scroll">
 			<view class="hero">
@@ -66,7 +66,7 @@
 		</scroll-view>
 
 		<view class="footer">
-			<view class="back-button" @click="back">返回活动</view>
+			<view class="back-button" @click="backToActivity">返回活动</view>
 		</view>
 	</view>
 </template>
@@ -134,8 +134,22 @@
 			query() {
 				return `recordId=${encodeURIComponent(this.recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(this.gameId)}`
 			},
-			back() {
+			/** 返回活动页：跳过掷骰子、答题页，不回到游戏流程中间。 */
+			backToActivity() {
 				const pages = getCurrentPages()
+				// 扫码进入时活动页仍在返回栈中，直接退回到该页。
+				for (let i = pages.length - 2; i >= 0; i--) {
+					const route = pages[i].route || ''
+					if (route.indexOf('pages/activity/week') > -1) {
+						uni.navigateBack({ delta: pages.length - 1 - i })
+						return
+					}
+				}
+				// 从“我的”、个人报告等入口进入时栈里没有活动页，直接打开当前活动。
+				if (this.instanceId) {
+					uni.reLaunch({ url: `/pages/activity/week?instanceId=${encodeURIComponent(this.instanceId)}` })
+					return
+				}
 				if (pages.length > 1) {
 					uni.navigateBack({ delta: 1 })
 					return
