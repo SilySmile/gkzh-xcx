@@ -1,10 +1,6 @@
 <template>
 	<view class="page">
-		<view class="top-bar" :style="{ paddingTop: 'var(--status-bar-height)' }">
-			<view class="back" @click="back">‹</view>
-			<text class="top-title">职场压力·骰子局</text>
-			<view class="back-placeholder"></view>
-		</view>
+		<zcyltzj-header title="职场压力·骰子局" @back="back" />
 
 		<view class="content">
 			<view class="headline">
@@ -73,6 +69,7 @@
 
 <script>
 	import { getPoints, getRuleCells, getRecord, rollDice, userMessage } from '@/api/zcyltzj'
+	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
 	// 九宫格按“从左到右、从上到下”的顺序放置六个点数：上排 1-3、中排左 4 和右 5、下排左 6；
 	// 中间为空，剩余的下中（第 8 格）、下右（第 9 格）用于展示后台配置的规则。
@@ -81,6 +78,7 @@
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 
 	export default {
+		components: { ZcyltzjHeader },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -346,6 +344,9 @@
 
 	.content {
 		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
 		padding: 16rpx 40rpx 60rpx;
 		box-sizing: border-box;
 	}

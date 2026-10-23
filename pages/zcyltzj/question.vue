@@ -1,10 +1,6 @@
 <template>
 	<view class="page">
-		<view class="top-bar" :style="{ paddingTop: 'var(--status-bar-height)' }">
-			<view class="back" @click="back">‹</view>
-			<text class="top-title">{{ record.pointName || '场景答题' }}</text>
-			<view class="back-placeholder"></view>
-		</view>
+		<zcyltzj-header :title="record.pointName || '场景答题'" @back="back" />
 
 		<view class="progress-wrap">
 			<view class="progress-head">
@@ -62,8 +58,10 @@
 
 <script>
 	import { getRecord, submitAnswers, userMessage } from '@/api/zcyltzj'
+	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
 	export default {
+		components: { ZcyltzjHeader },
 		data: () => ({
 			recordId: '',
 			instanceId: '',

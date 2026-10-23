@@ -1,10 +1,6 @@
 <template>
 	<view class="page">
-		<view class="top-bar" :style="{ paddingTop: 'var(--status-bar-height)' }">
-			<view class="back" @click="back">‹</view>
-			<text class="top-title">职场压力·骰子局</text>
-			<view class="back-placeholder"></view>
-		</view>
+		<zcyltzj-header title="职场压力·骰子局" @back="back" />
 
 		<scroll-view scroll-y class="content">
 			<view class="hero">
@@ -61,8 +57,10 @@
 
 <script>
 	import { enterRecord, getRecord, userMessage } from '@/api/zcyltzj'
+	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
 	export default {
+		components: { ZcyltzjHeader },
 		data: () => ({
 			instanceId: '',
 			gameId: '',
