@@ -93,6 +93,8 @@
 			rolled: false,
 			diceValue: 1,
 			highlightIndex: -1,
+			trailIndex: -1,
+			fastSpinTimer: null,
 			ruleVisible: false,
 			activeRule: {},
 			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
@@ -143,6 +145,9 @@
 			}
 			await this.load()
 		},
+		onUnload() {
+			this.stopFastSpin()
+		},
 		methods: {
 			async load() {
 				this.loading = true
@@ -191,6 +196,7 @@
 					dim: !cell.pointNo && !cell.center,
 					reserved: cell.index === 7 || cell.index === 8,
 					active: this.highlightIndex === cell.index,
+					trail: this.trailIndex === cell.index,
 					selected: this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)
 				}
 			},
@@ -210,37 +216,74 @@
 			async roll() {
 				if (this.rolled || this.rolling) return
 				this.rolling = true
-				const startedAt = Date.now()
-				let ringIndex = 0
-				// 骰子面快速跳动，九宫格高亮沿外圈顺时针转动；两者同步营造投掷效果。
-				const timer = setInterval(() => {
-					this.diceValue = 1 + Math.floor(Math.random() * 6)
-					this.highlightIndex = RING[ringIndex % RING.length]
-					ringIndex++
-				}, 85)
-				const stop = () => {
-					clearInterval(timer)
-					this.rolling = false
-				}
+				// 请求期间先快速顺时针转动，响应回来后再减速停在目标格，形成转盘效果。
+				this.startFastSpin()
+				let res
 				try {
-					const res = await rollDice(this.recordId)
-					// 网络过快时也保证至少转动约 1.3 秒，避免一闪而过。
-					const remain = 1300 - (Date.now() - startedAt)
-					if (remain > 0) await new Promise(resolve => setTimeout(resolve, remain))
-					this.record = res.data || this.record
-					if (this.record.status === 'finished') {
-						stop()
-						uni.redirectTo({ url: `/pages/zcyltzj/result?${this.query()}` })
-						return
-					}
-					stop()
-					this.rolled = true
-					this.diceValue = this.record.pointNo
-					this.highlightIndex = POINT_CELL[this.record.pointNo]
+					res = await rollDice(this.recordId)
 				} catch (e) {
-					stop()
+					this.stopFastSpin()
+					this.rolling = false
 					uni.showToast({ title: userMessage(e, '骰子点数获取失败，请重试'), icon: 'none' })
+					return
 				}
+				const record = res.data || this.record
+				if (record.status === 'finished') {
+					this.stopFastSpin()
+					this.rolling = false
+					uni.redirectTo({ url: `/pages/zcyltzj/result?${this.query()}` })
+					return
+				}
+				const target = POINT_CELL[record.pointNo]
+				await this.slowSpinTo(target, record.pointNo)
+				this.record = record
+				this.rolled = true
+				this.rolling = false
+				this.diceValue = record.pointNo
+				this.highlightIndex = target
+			},
+			startFastSpin() {
+				this.stopFastSpin()
+				this.fastSpinTimer = setInterval(() => this.advanceSpin(), 70)
+			},
+			stopFastSpin() {
+				if (this.fastSpinTimer) {
+					clearInterval(this.fastSpinTimer)
+					this.fastSpinTimer = null
+				}
+			},
+			advanceSpin() {
+				const current = this.highlightIndex
+				const position = current < 0 ? -1 : RING.indexOf(current)
+				const next = RING[(position + 1) % RING.length]
+				this.trailIndex = current
+				this.highlightIndex = next
+				this.diceValue = 1 + Math.floor(Math.random() * 6)
+			},
+			/** 从当前格继续顺时针转动至少一圈，逐步减速并停在目标格。 */
+			async slowSpinTo(target, finalPoint) {
+				this.stopFastSpin()
+				const targetPos = RING.indexOf(target)
+				if (targetPos < 0) {
+					this.highlightIndex = target
+					this.diceValue = finalPoint
+					this.trailIndex = -1
+					return
+				}
+				const currentPos = RING.indexOf(this.highlightIndex)
+				const distance = (targetPos - currentPos + RING.length) % RING.length
+				const steps = RING.length + distance
+				let delay = 70
+				for (let i = 1; i <= steps; i++) {
+					await new Promise(resolve => setTimeout(resolve, delay))
+					this.trailIndex = this.highlightIndex
+					this.highlightIndex = RING[(currentPos + i + RING.length) % RING.length]
+					this.diceValue = 1 + Math.floor(Math.random() * 6)
+					delay = Math.min(190, delay + 14)
+				}
+				this.highlightIndex = target
+				this.diceValue = finalPoint
+				this.trailIndex = -1
 			},
 			goQuestion() {
 				if (this.finished) {
@@ -369,12 +412,21 @@
 		transition: none;
 	}
 
+	/* 上一格保留短暂余辉，形成转盘拖尾。 */
+	.grid.spinning .cell.trail {
+		opacity: 0.62;
+		transform: scale(0.99);
+		background: rgba(255, 209, 102, 0.18);
+		border-color: rgba(255, 209, 102, 0.45);
+		box-shadow: 0 0 18rpx rgba(255, 209, 102, 0.25);
+	}
+
 	.grid.spinning .cell.active {
 		opacity: 1;
-		transform: scale(1.03);
-		background: rgba(255, 209, 102, 0.35);
+		transform: scale(1.04);
+		background: linear-gradient(150deg, rgba(255, 226, 150, 0.5), rgba(255, 190, 61, 0.42));
 		border-color: #ffd166;
-		box-shadow: 0 0 28rpx rgba(255, 209, 102, 0.55);
+		box-shadow: 0 0 34rpx rgba(255, 209, 102, 0.65);
 	}
 
 	/* 停止后：最终点数所在格保持高亮，其余格子保持较暗。 */
@@ -388,6 +440,13 @@
 		background: linear-gradient(150deg, rgba(255, 209, 102, 0.96), rgba(255, 170, 51, 0.96));
 		border-color: #ffe08a;
 		box-shadow: 0 14rpx 32rpx rgba(255, 170, 51, 0.32);
+		animation: cell-pop 0.46s cubic-bezier(0.2, 1.35, 0.5, 1);
+	}
+
+	@keyframes cell-pop {
+		0% { transform: scale(1.12); }
+		60% { transform: scale(0.97); }
+		100% { transform: scale(1.02); }
 	}
 
 	.cell-no {
