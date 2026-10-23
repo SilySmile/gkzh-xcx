@@ -71,9 +71,9 @@
 	import { getPoints, getRuleCells, getRecord, rollDice, userMessage } from '@/api/zcyltzj'
 	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
-	// 九宫格按“从左到右、从上到下”的顺序放置六个点数：上排 1-3、中排左 4 和右 5、下排左 6；
-	// 中间为空，剩余的下中（第 8 格）、下右（第 9 格）用于展示后台配置的规则。
-	const POINT_CELL = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 5, 6: 6 }
+	// 九宫格按“从左到右、从上到下”的顺序放置六个点数：上排 1-3、中排左 4 和右 5、下排中 6；
+	// 中间为空，下左（第 7 格）、下右（第 9 格）用于展示后台配置的规则。
+	const POINT_CELL = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 5, 6: 7 }
 	// 高亮按顺时针环绕，与九宫格位置一致。
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 
@@ -115,8 +115,8 @@
 						index,
 						center: index === 4,
 						pointNo: index === 4 ? null : (pointValues[index] || null),
-						// 第 8 格（下中）、第 9 格（下右）展示规则格配置。
-						ruleCell: (cellNo === 8 || cellNo === 9) ? (ruleValues[cellNo] || null) : null
+						// 第 7 格（下左）、第 9 格（下右）展示规则格配置。
+						ruleCell: (cellNo === 7 || cellNo === 9) ? (ruleValues[cellNo] || null) : null
 					})
 				}
 				return list
@@ -194,7 +194,7 @@
 				const classes = []
 				if (cell.center) classes.push('center')
 				if (!cell.pointNo && !cell.center) classes.push('dim')
-				if (cell.index === 7 || cell.index === 8) classes.push('reserved')
+				if (cell.index === 6 || cell.index === 8) classes.push('reserved')
 				if (this.highlightIndex === cell.index) classes.push('active')
 				if (this.trailIndex === cell.index) classes.push('trail')
 				if (this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)) {
@@ -494,6 +494,10 @@
 		line-height: 1.35;
 		color: rgba(255, 255, 255, 0.82);
 		text-align: center;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
 	}
 
 	.cell-dot {
