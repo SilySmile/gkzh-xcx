@@ -2,7 +2,18 @@
 	<view class="page">
 		<zcyltzj-header title="职场压力·骰子局" @back="back" />
 
-		<scroll-view scroll-y class="content">
+		<view v-if="blocked" class="blocked">
+			<view class="blocked-card">
+				<text class="blocked-title">无法进入活动</text>
+				<text class="blocked-message">{{ blockMessage }}</text>
+				<view class="blocked-actions">
+					<view class="blocked-ghost" @click="back">返回</view>
+					<view class="blocked-primary" @click="retryEnter">重新校验</view>
+				</view>
+			</view>
+		</view>
+
+		<scroll-view v-else scroll-y class="content">
 			<view class="hero">
 				<text class="hero-tag">职场压力测试</text>
 				<text class="title">掷一枚骰子</text>
@@ -67,6 +78,8 @@
 			recordId: '',
 			loading: false,
 			buttonPressed: false,
+			blocked: false,
+			blockMessage: '',
 			// 开始页展示骰子 5 点，仅作装饰。
 			heroValue: 5,
 			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
@@ -76,7 +89,8 @@
 			this.instanceId = options.instanceId || options.activityId || ''
 			this.gameId = options.gameId || ''
 			this.recordId = options.recordId || ''
-			if (!this.recordId && this.instanceId && this.gameId) {
+			// 即使二维码带了 recordId，也重新校验一次学校和活动归属，防止跨校进入。
+			if (this.instanceId && this.gameId) {
 				await this.ensureRecord()
 			}
 		},
@@ -103,19 +117,29 @@
 					})
 					this.recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
 					if (!this.recordId) throw new Error('记录创建失败')
+					this.blocked = false
+					this.blockMessage = ''
 				} catch (e) {
-					uni.showToast({ title: userMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					// 校验失败时直接拦截页面，不能继续展示开始游戏入口。
+					this.recordId = ''
+					this.blocked = true
+					this.blockMessage = userMessage(e, '游戏入口校验失败，请重新扫码')
 				}
 			},
+			async retryEnter() {
+				this.blocked = false
+				this.blockMessage = ''
+				await this.ensureRecord()
+			},
 			async start() {
-				if (this.loading) return
+				if (this.loading || this.blocked) return
 				if (!this.instanceId || !this.gameId) {
 					uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
 					return
 				}
 				if (!this.recordId) {
 					await this.ensureRecord()
-					if (!this.recordId) return
+					if (!this.recordId || this.blocked) return
 				}
 				this.loading = true
 				const base = `recordId=${encodeURIComponent(this.recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(this.gameId)}`
@@ -183,6 +207,71 @@
 		flex: 1;
 		padding: 0 48rpx 48rpx;
 		box-sizing: border-box;
+	}
+
+	.blocked {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 48rpx 80rpx;
+		box-sizing: border-box;
+	}
+
+	.blocked-card {
+		width: 100%;
+		padding: 48rpx 40rpx 40rpx;
+		border-radius: 32rpx;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1rpx solid rgba(255, 255, 255, 0.1);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.blocked-title {
+		font-size: 36rpx;
+		font-weight: 700;
+		color: #ffd166;
+	}
+
+	.blocked-message {
+		margin-top: 24rpx;
+		font-size: 26rpx;
+		line-height: 1.7;
+		color: rgba(255, 255, 255, 0.8);
+		text-align: center;
+	}
+
+	.blocked-actions {
+		margin-top: 40rpx;
+		width: 100%;
+		display: flex;
+	}
+
+	.blocked-ghost {
+		width: 200rpx;
+		height: 88rpx;
+		line-height: 88rpx;
+		margin-right: 20rpx;
+		text-align: center;
+		border-radius: 999rpx;
+		font-size: 28rpx;
+		color: rgba(255, 255, 255, 0.8);
+		background: rgba(255, 255, 255, 0.08);
+		border: 1rpx solid rgba(255, 255, 255, 0.16);
+	}
+
+	.blocked-primary {
+		flex: 1;
+		height: 88rpx;
+		line-height: 88rpx;
+		text-align: center;
+		border-radius: 999rpx;
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #2a1d12;
+		background: linear-gradient(135deg, #ffe08a 0%, #ffc23d 100%);
 	}
 
 	.hero {
