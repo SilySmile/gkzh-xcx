@@ -190,15 +190,19 @@
 				}
 				return (map[this.diceValue] || []).indexOf(position) > -1
 			},
+			// 返回类名字符串：小程序对方法返回的对象不会自动转成 class，
+			// 会导致 active/trail/selected 等动态样式完全不生效。
 			cellClass(cell) {
-				return {
-					center: cell.center,
-					dim: !cell.pointNo && !cell.center,
-					reserved: cell.index === 7 || cell.index === 8,
-					active: this.highlightIndex === cell.index,
-					trail: this.trailIndex === cell.index,
-					selected: this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)
+				const classes = []
+				if (cell.center) classes.push('center')
+				if (!cell.pointNo && !cell.center) classes.push('dim')
+				if (cell.index === 7 || cell.index === 8) classes.push('reserved')
+				if (this.highlightIndex === cell.index) classes.push('active')
+				if (this.trailIndex === cell.index) classes.push('trail')
+				if (this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)) {
+					classes.push('selected')
 				}
+				return classes.join(' ')
 			},
 			pointName(pointNo) {
 				const point = this.points.find(item => Number(item.pointNo) === Number(pointNo))
