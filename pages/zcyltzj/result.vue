@@ -73,6 +73,7 @@
 
 <script>
 	import { getRecord, userMessage } from '@/api/zcyltzj'
+	import { getWeekFlow } from '@/api/activity/week'
 	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
 	export default {
@@ -134,27 +135,20 @@
 			query() {
 				return `recordId=${encodeURIComponent(this.recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(this.gameId)}`
 			},
-			/** 返回活动页：跳过掷骰子、答题页，不回到游戏流程中间。 */
-			backToActivity() {
-				const pages = getCurrentPages()
-				// 扫码进入时活动页仍在返回栈中，直接退回到该页。
-				for (let i = pages.length - 2; i >= 0; i--) {
-					const route = pages[i].route || ''
-					if (route.indexOf('pages/activity/week') > -1) {
-						uni.navigateBack({ delta: pages.length - 1 - i })
-						return
+			/** 返回到当前活动所属的“生涯活动”或“就业活动”页面。 */
+			async backToActivity() {
+				let bizType = this.record && this.record.bizType ? this.record.bizType : ''
+				if (!bizType && this.instanceId) {
+					try {
+						const res = await getWeekFlow(this.instanceId)
+						const instance = res && res.data && res.data.instance
+						if (instance && instance.bizType) bizType = instance.bizType
+					} catch (e) {
+						// 读取失败时按生涯活动处理，保证仍能回到活动页。
 					}
 				}
-				// 从“我的”、个人报告等入口进入时栈里没有活动页，直接打开当前活动。
-				if (this.instanceId) {
-					uni.reLaunch({ url: `/pages/activity/week?instanceId=${encodeURIComponent(this.instanceId)}` })
-					return
-				}
-				if (pages.length > 1) {
-					uni.navigateBack({ delta: 1 })
-					return
-				}
-				uni.reLaunch({ url: '/pages/mp/home/index' })
+				const target = bizType === 'job_week' ? 'job_week' : 'career_week'
+				uni.reLaunch({ url: `/pages/mp/sub-pages/career-week/index?bizType=${target}` })
 			}
 		}
 	}
