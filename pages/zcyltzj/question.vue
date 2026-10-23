@@ -6,45 +6,56 @@
 			<view class="back-placeholder"></view>
 		</view>
 
-		<scroll-view scroll-y class="scroll">
-			<view class="banner">
-				<text class="banner-no">点数 {{ record.pointNo }}</text>
-				<text class="banner-name">{{ record.pointName }}</text>
-				<text v-if="record.theme" class="banner-theme">主题：{{ record.theme }}</text>
-				<text class="banner-tip">共 {{ questions.length }} 道题，请按真实感受选择</text>
+		<view class="progress-wrap">
+			<view class="progress-head">
+				<text class="progress-theme">{{ record.theme || '请按真实感受作答' }}</text>
+				<text class="progress-count">{{ currentIndex + 1 }} / {{ questions.length }}</text>
 			</view>
+			<view class="progress-track">
+				<view class="progress-fill" :style="{ width: progressPercent + '%' }"></view>
+			</view>
+		</view>
 
-			<view v-for="(question, index) in questions" :key="question.questionNo" class="question-card">
-				<view class="question-head">
-					<text class="question-index">{{ index + 1 }}</text>
-					<text class="question-content">{{ question.content }}</text>
-				</view>
-				<view class="options">
-					<view
-						v-for="key in optionKeys"
-						:key="key"
-						class="option"
-						:class="{ selected: answers[question.questionNo] === key }"
-						@click="choose(question.questionNo, key)"
-					>
-						<text class="option-key">{{ key }}</text>
-						<text class="option-text">{{ question['option' + key] }}</text>
+		<scroll-view scroll-y class="body">
+			<view class="body-inner">
+				<view v-if="current" :key="currentIndex" class="question-card">
+					<view class="question-head">
+						<text class="question-no">第 {{ currentIndex + 1 }} 题</text>
+						<text v-if="answers[current.questionNo]" class="answered-badge">已答</text>
+					</view>
+					<text class="question-content">{{ current.content }}</text>
+					<view class="options">
+						<view
+							v-for="key in optionKeys"
+							:key="key"
+							class="option"
+							:class="{ selected: answers[current.questionNo] === key }"
+							@click="choose(key)"
+						>
+							<text class="option-key">{{ key }}</text>
+							<text class="option-text">{{ current['option' + key] }}</text>
+						</view>
 					</view>
 				</view>
 			</view>
-
-			<view class="scroll-bottom"></view>
 		</scroll-view>
 
 		<view class="footer">
-			<text class="progress">已作答 {{ answeredCount }} / {{ questions.length }}</text>
+			<view v-if="currentIndex > 0" class="ghost-button" @click="prev">上一题</view>
 			<view
-				class="submit-button"
+				v-if="!isLast"
+				class="primary-button"
+				:class="{ disabled: !currentAnswer }"
+				@click="next"
+				>下一题</view
+			>
+			<view
+				v-else
+				class="primary-button"
 				:class="{ disabled: answeredCount < questions.length || submitting }"
 				@click="submit"
+				>{{ submitting ? '提交中…' : '提交并生成压力值' }}</view
 			>
-				{{ submitting ? '提交中…' : '提交并生成压力值' }}
-			</view>
 		</view>
 	</view>
 </template>
@@ -61,12 +72,27 @@
 			questions: [],
 			answers: {},
 			optionKeys: ['A', 'B', 'C', 'D'],
+			currentIndex: 0,
 			submitting: false,
-			loading: true
+			loading: true,
+			advanceTimer: null
 		}),
 		computed: {
+			current() {
+				return this.questions[this.currentIndex] || null
+			},
+			isLast() {
+				return this.currentIndex >= this.questions.length - 1
+			},
 			answeredCount() {
 				return Object.keys(this.answers).length
+			},
+			currentAnswer() {
+				return this.current ? this.answers[this.current.questionNo] : ''
+			},
+			progressPercent() {
+				if (!this.questions.length) return 0
+				return Math.round(((this.currentIndex + 1) * 100) / this.questions.length)
 			}
 		},
 		async onLoad(options) {
@@ -78,6 +104,9 @@
 				return
 			}
 			await this.load()
+		},
+		onUnload() {
+			if (this.advanceTimer) clearTimeout(this.advanceTimer)
 		},
 		methods: {
 			async load() {
@@ -108,13 +137,42 @@
 					this.loading = false
 				}
 			},
-			choose(questionNo, key) {
-				if (this.submitting) return
-				this.$set(this.answers, questionNo, key)
+			choose(key) {
+				if (this.submitting || !this.current) return
+				this.$set(this.answers, this.current.questionNo, key)
+				if (this.advanceTimer) clearTimeout(this.advanceTimer)
+				// 选择后短暂停留，再自动跳到下一题；最后一题停留在本页等待提交。
+				if (!this.isLast) {
+					this.advanceTimer = setTimeout(() => this.next(), 350)
+				}
+			},
+			next() {
+				if (this.advanceTimer) {
+					clearTimeout(this.advanceTimer)
+					this.advanceTimer = null
+				}
+				if (!this.currentAnswer) {
+					uni.showToast({ title: '请选择一项后继续', icon: 'none' })
+					return
+				}
+				if (this.currentIndex < this.questions.length - 1) {
+					this.currentIndex += 1
+				}
+			},
+			prev() {
+				if (this.advanceTimer) {
+					clearTimeout(this.advanceTimer)
+					this.advanceTimer = null
+				}
+				if (this.currentIndex > 0) {
+					this.currentIndex -= 1
+				}
 			},
 			async submit() {
 				if (this.submitting) return
 				if (this.answeredCount < this.questions.length) {
+					const missing = this.questions.findIndex(item => !this.answers[item.questionNo])
+					if (missing > -1) this.currentIndex = missing
 					uni.showToast({ title: '请完成全部题目后提交', icon: 'none' })
 					return
 				}
@@ -180,82 +238,104 @@
 		color: rgba(255, 255, 255, 0.9);
 	}
 
-	.scroll {
+	.progress-wrap {
+		padding: 8rpx 40rpx 0;
+	}
+
+	.progress-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 12rpx;
+	}
+
+	.progress-theme {
+		font-size: 22rpx;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.progress-count {
+		font-size: 24rpx;
+		color: #ffd166;
+		font-weight: 600;
+	}
+
+	.progress-track {
+		height: 10rpx;
+		border-radius: 999rpx;
+		background: rgba(255, 255, 255, 0.12);
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		border-radius: 999rpx;
+		background: linear-gradient(90deg, #ffd166, #ffb020);
+		transition: width 0.28s ease;
+	}
+
+	.body {
 		flex: 1;
-		padding: 0 32rpx;
+		padding: 0 40rpx;
 		box-sizing: border-box;
 	}
 
-	.banner {
-		padding: 28rpx 30rpx;
-		margin-bottom: 24rpx;
-		border-radius: 28rpx;
-		background: linear-gradient(135deg, rgba(255, 209, 102, 0.16), rgba(255, 255, 255, 0.05));
-		border: 1rpx solid rgba(255, 209, 102, 0.22);
+	.body-inner {
+		min-height: 100%;
+		padding: 32rpx 0;
+		box-sizing: border-box;
 		display: flex;
-		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 	}
 
-	.banner-no {
+	.question-card {
+		width: 100%;
+		padding: 40rpx 36rpx 32rpx;
+		border-radius: 32rpx;
+		background: rgba(255, 255, 255, 0.07);
+		border: 1rpx solid rgba(255, 255, 255, 0.09);
+		box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.22);
+		animation: question-in 0.26s ease;
+	}
+
+	@keyframes question-in {
+		0% { opacity: 0; transform: translateX(36rpx); }
+		100% { opacity: 1; transform: translateX(0); }
+	}
+
+	.question-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.question-no {
 		font-size: 22rpx;
 		letter-spacing: 4rpx;
 		color: #ffd166;
 	}
 
-	.banner-name {
-		margin-top: 8rpx;
-		font-size: 38rpx;
-		font-weight: 700;
-		color: #ffffff;
-	}
-
-	.banner-theme {
-		margin-top: 10rpx;
-		font-size: 24rpx;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.banner-tip {
-		margin-top: 14rpx;
-		font-size: 22rpx;
-		color: rgba(255, 255, 255, 0.45);
-	}
-
-	.question-card {
-		padding: 28rpx 28rpx 18rpx;
-		margin-bottom: 22rpx;
-		border-radius: 26rpx;
-		background: rgba(255, 255, 255, 0.06);
-		border: 1rpx solid rgba(255, 255, 255, 0.08);
-	}
-
-	.question-head {
-		display: flex;
-		align-items: flex-start;
-		margin-bottom: 18rpx;
-	}
-
-	.question-index {
-		width: 42rpx;
-		height: 42rpx;
-		line-height: 42rpx;
-		margin-right: 16rpx;
-		flex-shrink: 0;
-		border-radius: 50%;
-		text-align: center;
-		font-size: 22rpx;
-		color: #2b2150;
-		background: #ffd166;
+	.answered-badge {
+		padding: 2rpx 14rpx;
+		border-radius: 999rpx;
+		font-size: 18rpx;
+		color: #7ee89a;
+		background: rgba(76, 217, 100, 0.12);
+		border: 1rpx solid rgba(76, 217, 100, 0.3);
 	}
 
 	.question-content {
-		flex: 1;
-		font-size: 28rpx;
-		line-height: 1.6;
+		display: block;
+		margin-top: 18rpx;
+		font-size: 34rpx;
+		line-height: 1.55;
+		font-weight: 600;
 		color: #ffffff;
 	}
 
 	.options {
+		margin-top: 32rpx;
 		display: flex;
 		flex-direction: column;
 	}
@@ -263,27 +343,29 @@
 	.option {
 		display: flex;
 		align-items: center;
-		padding: 18rpx 20rpx;
-		margin-bottom: 12rpx;
-		border-radius: 18rpx;
+		padding: 22rpx 24rpx;
+		margin-bottom: 16rpx;
+		border-radius: 20rpx;
 		background: rgba(255, 255, 255, 0.05);
-		border: 1rpx solid rgba(255, 255, 255, 0.08);
+		border: 1rpx solid rgba(255, 255, 255, 0.09);
+		transition: background 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
 	}
 
 	.option.selected {
 		background: rgba(255, 209, 102, 0.18);
-		border-color: rgba(255, 209, 102, 0.8);
+		border-color: rgba(255, 209, 102, 0.85);
+		transform: scale(1.01);
 	}
 
 	.option-key {
-		width: 42rpx;
-		height: 42rpx;
-		line-height: 42rpx;
-		margin-right: 16rpx;
+		width: 46rpx;
+		height: 46rpx;
+		line-height: 46rpx;
+		margin-right: 18rpx;
 		flex-shrink: 0;
 		border-radius: 50%;
 		text-align: center;
-		font-size: 22rpx;
+		font-size: 24rpx;
 		color: rgba(255, 255, 255, 0.7);
 		background: rgba(255, 255, 255, 0.1);
 	}
@@ -291,12 +373,12 @@
 	.option.selected .option-key {
 		color: #2b2150;
 		background: #ffd166;
-		font-weight: 600;
+		font-weight: 700;
 	}
 
 	.option-text {
 		flex: 1;
-		font-size: 26rpx;
+		font-size: 28rpx;
 		line-height: 1.5;
 		color: rgba(255, 255, 255, 0.86);
 	}
@@ -305,38 +387,40 @@
 		color: #ffffff;
 	}
 
-	.scroll-bottom {
-		height: 200rpx;
-	}
-
 	.footer {
-		padding: 18rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
-		background: rgba(23, 26, 52, 0.92);
-		border-top: 1rpx solid rgba(255, 255, 255, 0.08);
+		display: flex;
+		padding: 18rpx 40rpx calc(26rpx + env(safe-area-inset-bottom));
 	}
 
-	.progress {
-		display: block;
-		margin-bottom: 12rpx;
-		font-size: 22rpx;
-		color: rgba(255, 255, 255, 0.55);
+	.ghost-button {
+		width: 200rpx;
+		height: 96rpx;
+		line-height: 96rpx;
+		margin-right: 20rpx;
 		text-align: center;
+		border-radius: 999rpx;
+		font-size: 28rpx;
+		color: rgba(255, 255, 255, 0.8);
+		background: rgba(255, 255, 255, 0.08);
+		border: 1rpx solid rgba(255, 255, 255, 0.16);
 	}
 
-	.submit-button {
+	.primary-button {
+		flex: 1;
 		height: 96rpx;
 		line-height: 96rpx;
 		text-align: center;
 		border-radius: 999rpx;
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 600;
 		letter-spacing: 4rpx;
 		color: #2a1d12;
 		background: linear-gradient(135deg, #ffe08a 0%, #ffc23d 100%);
 		box-shadow: 0 14rpx 28rpx rgba(255, 190, 61, 0.25);
+		transition: opacity 0.15s ease;
 	}
 
-	.submit-button.disabled {
+	.primary-button.disabled {
 		opacity: 0.45;
 		box-shadow: none;
 	}

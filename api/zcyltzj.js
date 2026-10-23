@@ -57,6 +57,11 @@ export const getPoints = () => call({
 	method: 'GET'
 }, '点数配置加载失败，请稍后重试')
 
+export const getRuleCells = () => call({
+	url: '/api/zcyltzj/rule-cells',
+	method: 'GET'
+}, '规则内容加载失败，请稍后重试')
+
 export const getRecord = (recordId, params) => call({
 	url: `/api/zcyltzj/records/${recordId}`,
 	method: 'GET',
