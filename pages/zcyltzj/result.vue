@@ -57,10 +57,10 @@
 				</view>
 			</view>
 
-			<view class="note">
+<!-- 			<view class="note">
 				<text class="note-title">说明</text>
 				<text class="note-text">本结果根据 A、B 选项计入红色、C、D 选项计入绿色的规则计算，红色答案占比即压力值。结果仅用于自我探索参考。</text>
-			</view>
+			</view> -->
 
 			<view class="scroll-bottom"></view>
 		</scroll-view>
