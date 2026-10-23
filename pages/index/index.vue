@@ -430,12 +430,24 @@
 			async handleScanResult(result) {
 				// 新活动二维码：直接按 URL 跳转
 				// 游戏二维码以 GKZH_MP: 小程序文本码保存，微信相机不会把它当成网页 URL 打开。
-				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1)) {
+				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1)) {
 					const query = this.parseScanQuery(result)
 					const params = Object.keys(query).map(k => k + '=' + encodeURIComponent(query[k])).join('&')
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
 					const isSszctop = result.indexOf('/pages/sszctop/index') > -1 || query.gameType === 'sszctop'
 					const isZycck = result.indexOf('/pages/zycck/start') > -1 || query.gameType === 'zycck'
+					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || query.gameType === 'zcyltzj'
+					if (isZcyltzj) {
+						// 骰子局开始页会用 /api/zcyltzj/records/enter 完成学校与活动校验并创建记录。
+						if (!query.instanceId || !query.gameId) {
+							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+							return
+						}
+						uni.navigateTo({
+							url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}`
+						})
+						return
+					}
 					if (isZycck) {
 						if (!query.instanceId || !query.gameId) {
 							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })

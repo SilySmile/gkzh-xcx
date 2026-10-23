@@ -600,6 +600,10 @@
 					case 'zycck':
 						url = '/pages/zycck/start'
 						break
+
+					case 'zcyltzj':
+						url = '/pages/zcyltzj/start'
+						break
 					default:
 
 						url = '/pages/activity/week'

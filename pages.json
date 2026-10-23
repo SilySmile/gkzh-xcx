@@ -146,6 +146,10 @@
 		{"path":"pages/zycck/exploration-list","style":{"navigationBarTitleText":"探索清单","navigationStyle":"custom"}},
 		{"path":"pages/zycck/report","style":{"navigationBarTitleText":"探索报告","navigationStyle":"custom"}},
 		{"path":"pages/zycck/activity-feedback","style":{"navigationBarTitleText":"活动反馈","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/start","style":{"navigationBarTitleText":"职场压力·骰子局","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/index","style":{"navigationBarTitleText":"掷骰子","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/question","style":{"navigationBarTitleText":"场景答题","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/result","style":{"navigationBarTitleText":"压力结果","navigationStyle":"custom"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {

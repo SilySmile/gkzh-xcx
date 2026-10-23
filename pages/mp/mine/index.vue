@@ -170,7 +170,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -184,6 +184,7 @@ export default {
 				const isXyccStartCode = result.indexOf('/pages/xycc/start') > -1
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
 				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
+				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || params.gameType === 'zcyltzj'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -198,6 +199,17 @@ export default {
 					'zyxxz': '/pages/zyxxz/channel'
 				}
 				const gameUrl = isXyccStartCode ? '/pages/xycc/index' : (isSszctopDirectCode ? '/pages/sszctop/index' : (map[params.gameType] || ''))
+				if (isZcyltzj) {
+					// 骰子局开始页会用 /api/zcyltzj/records/enter 完成学校与活动校验并创建记录。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					uni.navigateTo({
+						url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}`
+					})
+					return
+				}
 				if (isZycck) {
 					if (!params.instanceId || !params.gameId) {
 						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
