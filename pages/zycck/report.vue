@@ -55,7 +55,7 @@
 			</button>
 			<!-- <text v-if="feedbackPending" class="feedback-tip">探索清单已确认，完成活动反馈后本次游戏才会结束。</text> -->
 			<!-- <button class="feedback-button" :disabled="loading" hover-class="button-hover" @click="openActivityFeedback">{{ feedbackPending ? '填写活动反馈并完成游戏' : '活动反馈' }}</button> -->
-			<button class="feedback-button" :disabled="loading" hover-class="button-hover" @click="openActivityFeedback">回顾探索，解锁抽奖资格⭐</button>
+			<button class="feedback-button" :disabled="loading" hover-class="button-hover" @click="openActivityFeedback">解锁抽奖资格⭐</button>
 			<view v-if="printPanelVisible" class="print-mask" @click="closePrint">
 				<view class="print-panel" @click.stop>
 					<view class="print-panel-title">选择打印机</view>

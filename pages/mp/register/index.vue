@@ -130,7 +130,7 @@
 
 			<!-- 手机号 -->
 			<view class="form-item">
-				<text class="label">手机号</text>
+				<text class="label">手机号(选填)</text>
 				<view class="input-wrap" :class="{ 'focused': focusFields.phone, 'shake': errors.phone }">
 					<input v-model="form.phone" class="form-input" type="number" maxlength="11" placeholder="请输入手机号"
 						placeholder-style="color:#b0bec5"
@@ -304,8 +304,8 @@ export default {
 			if (this.form.password !== this.form.confirmPwd) e.confirmPwd = '两次密码不一致'
 			if (!this.form.name.trim()) e.name = '请输入姓名'
 			if (!this.form.gender) e.gender = '请选择性别'
-			if (!this.form.phone.trim()) e.phone = '请输入手机号'
-			if (!/^1\d{10}$/.test(this.form.phone)) e.phone = '手机号格式不正确'
+			// if (!this.form.phone.trim()) e.phone = '请输入手机号'
+			// if (!/^1\d{10}$/.test(this.form.phone)) e.phone = '手机号格式不正确'
 			this.errors = e
 			return Object.keys(e).length === 0
 		},

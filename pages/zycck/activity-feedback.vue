@@ -1,9 +1,9 @@
 <template>
 	<scroll-view scroll-y class="page">
-		<zycck-header title="回顾探索" @back="back" />
+		<zycck-header title="抽奖资格" @back="back" />
 		<view class="content">
-			<text class="title">回顾探索</text>
-			<text class="subtitle">回顾探索，解锁惊喜⭐</text>
+			<text class="title">解锁抽奖资格</text>
+			<text class="subtitle">解锁抽奖资格⭐</text>
 			<view v-if="loading" class="state-tip">正在加载活动反馈…</view>
 			<view v-else-if="loadError" class="state-tip">
 				<text>{{ loadError }}</text>

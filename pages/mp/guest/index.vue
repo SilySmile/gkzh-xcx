@@ -39,32 +39,6 @@
 			</view>
 		</view>
 
-		<!-- 活动环节 -->
-		<view class="section">
-			<view class="section-head">
-				<text class="section-bar"></text>
-				<text class="section-title">活动环节</text>
-			</view>
-			<scroll-view scroll-x class="module-tabs" :show-scrollbar="false">
-				<view
-					v-for="(item, index) in modules"
-					:key="item.name"
-					class="module-tab"
-					:class="{ active: activeModule === index }"
-					@click="activeModule = index"
-				>{{ item.name }}</view>
-			</scroll-view>
-			<view class="module-detail">
-				<view class="module-head">
-					<text class="module-icon">{{ currentModule.icon }}</text>
-					<text class="module-name">{{ currentModule.name }}</text>
-				</view>
-				<text class="module-desc">{{ currentModule.desc }}</text>
-				<text class="module-tip">{{ currentModule.tip }}</text>
-			</view>
-			<text class="module-note">不同学校、不同活动会开放其中部分环节，以活动页面实际展示为准。</text>
-		</view>
-
 		<!-- 参与流程 -->
 		<view class="section">
 			<view class="section-head">
@@ -135,14 +109,6 @@
 					{ icon: '📝', name: '活动问卷', desc: '填写活动反馈问卷，帮助学校了解活动效果。' },
 					{ icon: '📄', name: '个人报告', desc: '汇总活动参与、答题和探索记录，形成个人成长报告。' },
 					{ icon: '🖨', name: '现场打印', desc: '在支持打印的活动现场，将探索报告打印留存。' }
-				],
-				modules: [
-					{ icon: '🪟', name: '心愿橱窗', desc: '通过选择感兴趣的职业场景和描述，了解自己的职业兴趣方向。', tip: '活动结束后可查看兴趣分析结果，作为职业探索的参考。' },
-					{ icon: '🎯', name: '未来职业猜猜看', desc: '根据工作场景图片选择对应职业，认识数字经济、人工智能等新场景下的职业。', tip: '完成五道职业竞猜后，可继续浏览职业墙并建立探索清单。' },
-					{ icon: '🏆', name: '谁是职场TOP', desc: '在职场情境中进行选择和协作，体验职场沟通、分工与决策。', tip: '活动结束后可查看本局结果和排名情况。' },
-					{ icon: '🧩', name: '职愿探究', desc: '回答职业兴趣相关问题，了解自己的职业倾向和适合的发展方向。', tip: '结果用于自我探索参考，不作为职业选择的唯一依据。' },
-					{ icon: '📚', name: '职业信息站', desc: '学习获取职业信息的常见渠道，练习筛选和判断职业信息。', tip: '帮助学生在求职前建立可靠的信息来源和判断方法。' },
-					{ icon: '💬', name: '活动问卷', desc: '完成活动反馈问卷，帮助学校了解活动效果并改进后续活动。', tip: '问卷内容根据活动设置，部分题目需要登录后填写。' }
 				],
 				flow: [
 					{ title: '登录账号', desc: '使用学校提供的学号和密码登录，完善个人身份信息。' },

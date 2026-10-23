@@ -12,13 +12,13 @@
 		</view>
 		<view class="filters">
 			<picker :range="collegeOptions" range-key="name" :value="collegeIndex" @change="changeCollege">
-				<view class="filter"><text>院系</text><text>{{ collegeOptions[collegeIndex].name }}⌄</text></view>
+				<view class="filter"><text>院系</text><text>{{ collegeOptions[collegeIndex].name }}</text></view>
 			</picker>
 			<picker :range="majorOptions" range-key="name" :value="majorIndex" @change="changeMajor">
-				<view class="filter"><text>专业</text><text>{{ majorOptions[majorIndex].name }}⌄</text></view>
+				<view class="filter"><text>专业</text><text>{{ majorOptions[majorIndex].name }}</text></view>
 			</picker>
 			<picker :range="genderOptions" range-key="name" :value="genderIndex" @change="changeGender">
-				<view class="filter"><text>性别</text><text>{{ genderOptions[genderIndex].name }}⌄</text></view>
+				<view class="filter"><text>性别</text><text>{{ genderOptions[genderIndex].name }}</text></view>
 			</picker>
 		</view>
 		<view class="view-tabs">

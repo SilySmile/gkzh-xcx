@@ -30,7 +30,8 @@
 					.filter(key => options[key] !== undefined && options[key] !== null && options[key] !== '')
 					.map(key => `${key}=${encodeURIComponent(options[key])}`)
 					.join('&')
-				uni.redirectTo({ url: `/pages/zycck/start${query ? '?' + query : ''}` })
+				// uni.redirectTo({ url: `/pages/zycck/start${query ? '?' + query : ''}` })
+				uni.reLaunch({ url: '/pages/mp/home/index' })
 			}
 		}
 	}
@@ -64,7 +65,7 @@
 		width: 140rpx;
 		height: 64rpx;
 		line-height: 64rpx;
-		font-size: 27rpx;
+		font-size: 34rpx;
 	}
 
 	.header-back {
@@ -76,7 +77,7 @@
 		left: 50%;
 		bottom: 18rpx;
 		transform: translateX(-50%);
-		font-size: 34rpx;
+		font-size: 42rpx;
 		font-weight: 800;
 		color: #1a2c4a;
 	}
