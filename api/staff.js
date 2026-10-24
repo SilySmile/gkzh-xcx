@@ -35,5 +35,5 @@ export const redeemPrize = (recordId, remark = '') => request({ url: '/api/staff
 export const getPrizeLogs = recordId => request({ url: `/api/staff/prize/${recordId}/logs` })
 export const getCodeStatistics = () => request({ url: '/api/staff/statistics/codes' })
 export const getInterestTypes = () => request({ url: '/api/staff/statistics/types' })
-export const getActivityStatistics = bizType => request({ url: `/api/staff/statistics/activities/${bizType}` })
+export const getActivityStatistics = (bizType, params = {}) => request({ url: `/api/staff/statistics/activities/${bizType}`, data: params })
 export const getStaffGameStatistics = (gameId, filters = {}) => request({ url: `/api/staff/statistics/games/${gameId}`, data: filters })

@@ -21,6 +21,15 @@
 				<view class="filter"><text>性别</text><text>{{ genderOptions[genderIndex].name }}</text></view>
 			</picker>
 		</view>
+		<view class="date-filters">
+			<picker mode="date" :value="startDate" @change="changeStartDate">
+				<view class="date-filter"><text>开始日期</text><text>{{ startDate || '不限' }}</text></view>
+			</picker>
+			<picker mode="date" :value="endDate" @change="changeEndDate">
+				<view class="date-filter"><text>结束日期</text><text>{{ endDate || '不限' }}</text></view>
+			</picker>
+			<text v-if="startDate || endDate" class="date-clear" @click="clearDates">清除</text>
+		</view>
 		<view class="view-tabs">
 			<view :class="viewMode === 'chart' ? 'active' : ''" @click="changeViewMode('chart')">图表统计</view>
 			<view :class="viewMode === 'table' ? 'active' : ''" @click="viewMode = 'table'">学生明细</view>
@@ -58,7 +67,7 @@
 	import { getStaffGameStatistics } from '@/api/staff.js'
 	export default {
 		data: () => ({
-			gameId: null, game: {}, rows: [], students: [], colleges: [], majors: [], viewMode: 'chart', chartDimension: 'collegeName', chartWidth: 320, collegeIndex: 0, majorIndex: 0, genderIndex: 0,
+			gameId: null, game: {}, rows: [], students: [], colleges: [], majors: [], viewMode: 'chart', chartDimension: 'collegeName', chartWidth: 320, collegeIndex: 0, majorIndex: 0, genderIndex: 0, startDate: '', endDate: '',
 			chartDimensions: [{ name: '院系', value: 'collegeName' }, { name: '专业', value: 'majorName' }, { name: '性别', value: 'gender' }],
 			genderOptions: [{ name: '全部性别', value: '' }, { name: '男', value: '0' }, { name: '女', value: '1' }, { name: '未知', value: '2' }]
 		}),
@@ -80,6 +89,8 @@
 		},
 		onLoad(options) {
 			this.gameId = options.gameId
+			this.startDate = options.startDate || ''
+			this.endDate = options.endDate || ''
 			if (!this.gameId) return uni.showToast({ title: '缺少游戏编号', icon: 'none' })
 			this.load()
 		},
@@ -93,8 +104,13 @@
 					if (college.id != null) filters.collegeId = college.id
 					if (major.id != null) filters.majorId = major.id
 					if (gender.value !== '') filters.gender = gender.value
+					if (this.startDate) filters.startDate = this.startDate
+					if (this.endDate) filters.endDate = this.endDate
 					const res = await getStaffGameStatistics(this.gameId, filters)
 					this.game = res.data.game || {}; this.rows = res.data.rows || []; this.students = res.data.students || []; this.colleges = res.data.colleges || []; this.majors = res.data.majors || []
+					// 日期或筛选变化后选项可能减少，避免选中下标越界。
+					if (this.collegeIndex >= this.collegeOptions.length) this.collegeIndex = 0
+					if (this.majorIndex >= this.majorOptions.length) this.majorIndex = 0
 					if (this.game.title) uni.setNavigationBarTitle({ title: this.game.title + '统计' })
 					this.drawLineChart()
 				} catch (e) { uni.showToast({ title: e.message || '统计加载失败', icon: 'none' }) }
@@ -102,6 +118,19 @@
 			changeCollege(e) { this.collegeIndex = Number(e.detail.value); this.majorIndex = 0; this.load() },
 			changeMajor(e) { this.majorIndex = Number(e.detail.value); this.load() },
 			changeGender(e) { this.genderIndex = Number(e.detail.value); this.load() },
+			changeStartDate(e) {
+				const value = e.detail.value
+				if (this.endDate && value > this.endDate) return uni.showToast({ title: '开始日期不能晚于结束日期', icon: 'none' })
+				this.startDate = value
+				this.load()
+			},
+			changeEndDate(e) {
+				const value = e.detail.value
+				if (this.startDate && this.startDate > value) return uni.showToast({ title: '结束日期不能早于开始日期', icon: 'none' })
+				this.endDate = value
+				this.load()
+			},
+			clearDates() { this.startDate = ''; this.endDate = ''; this.load() },
 			genderText(value) { return ({ '0': '男', '1': '女', '2': '未知' })[String(value)] || '未知' },
 			statusText(value) { return ({ '0': '进行中', '1': '已完成', '2': '未通过' })[String(value)] || '未知' },
 			statusClass(value) { return ({ '0': 'status-progress', '1': 'status-complete', '2': 'status-failed' })[String(value)] || '' },
@@ -157,6 +186,7 @@
 	.game-head { padding: 30rpx 32rpx; border-radius: 22rpx; color: #fff; background: linear-gradient(135deg, #2f80ed, #56ccf2) }.game-title { display: block; font-size: 34rpx; font-weight: 700 }.game-sub { display: block; margin-top: 10rpx; color: rgba(255,255,255,.85); font-size: 22rpx }
 	.summary { display: flex; margin-top: 22rpx; padding: 26rpx 8rpx; border-radius: 22rpx; background: #fff }.summary view { flex: 1; text-align: center; color: #8a9aae; font-size: 20rpx }.summary view + view { border-left: 1rpx solid #edf1f6 }.summary text { display: block }.number { margin-bottom: 6rpx; color: #1a2c4a; font-size: 30rpx; font-weight: 700 }.green { color: #25ad70 }.orange { color: #f29a38 }.red { color: #e95d68 }
 	.filters { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12rpx; margin-top: 22rpx }.filter { padding: 18rpx 15rpx; border-radius: 14rpx; background: #fff; font-size: 21rpx }.filter text { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }.filter text:first-child { margin-bottom: 6rpx; color: #9aaabd; font-size: 19rpx }
+	.date-filters { display: flex; align-items: center; margin-top: 12rpx }.date-filters picker { flex: 1 }.date-filters picker + picker { margin-left: 12rpx }.date-filter { padding: 18rpx 15rpx; border-radius: 14rpx; background: #fff; font-size: 21rpx }.date-filter text { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }.date-filter text:first-child { margin-bottom: 6rpx; color: #9aaabd; font-size: 19rpx }.date-clear { margin-left: 12rpx; color: #2f80ed; font-size: 22rpx }
 	.view-tabs { display: flex; margin-top: 22rpx; padding: 7rpx; border-radius: 16rpx; background: #e8eef6 }.view-tabs view { flex: 1; padding: 16rpx; border-radius: 12rpx; text-align: center; color: #74869c; font-size: 24rpx }.view-tabs .active { color: #2f80ed; background: #fff; font-weight: 700; box-shadow: 0 3rpx 10rpx rgba(42,83,136,.08) }
 	.chart-card { margin-top: 22rpx; padding: 28rpx 20rpx; border-radius: 22rpx; background: #fff }.chart-head { padding: 0 6rpx }.chart-title { font-size: 28rpx; font-weight: 700 }.dimension-tabs { display: flex; margin-top: 20rpx; gap: 12rpx }.dimension-tabs text { flex: 1; padding: 13rpx 8rpx; border-radius: 12rpx; text-align: center; color: #74869c; background: #f1f5fa; font-size: 22rpx }.dimension-tabs .active { color: #fff; background: #2f80ed; font-weight: 700 }.line-scroll { width: 100%; margin-top: 16rpx }.line-canvas { height: 440rpx }.empty-chart { padding: 80rpx 0; text-align: center; color: #9aaabd; font-size: 22rpx }
 	.table-card { margin-top: 22rpx; padding: 26rpx 20rpx; border-radius: 22rpx; background: #fff }.table-title { margin: 0 6rpx 18rpx; font-size: 28rpx; font-weight: 700 }.table-scroll { width: 100% }.table { min-width: 900rpx }

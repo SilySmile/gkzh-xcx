@@ -5,6 +5,17 @@
 			<text class="activity-title">{{ activity.title }}</text>
 			<text class="activity-time">{{ activity.startTime || '-' }} 至 {{ activity.endTime || '-' }}</text>
 		</view>
+		<view v-if="activity" class="date-filter">
+			<text class="date-label">统计日期</text>
+			<picker mode="date" :value="startDate" @change="changeStartDate">
+				<view class="date-value" :class="{ placeholder: !startDate }">{{ startDate || '开始日期' }}</view>
+			</picker>
+			<text class="date-sep">至</text>
+			<picker mode="date" :value="endDate" @change="changeEndDate">
+				<view class="date-value" :class="{ placeholder: !endDate }">{{ endDate || '结束日期' }}</view>
+			</picker>
+			<text v-if="startDate || endDate" class="date-clear" @click="clearDates">清除</text>
+		</view>
 		<view v-if="activity" class="section-title">当前活动游戏</view>
 		<view v-for="game in games" :key="game.gameId" class="game-card" @click="openGame(game)">
 			<view class="game-main">
@@ -32,7 +43,7 @@
 <script>
 	import { getActivityStatistics } from '@/api/staff.js'
 	export default {
-		data: () => ({ bizType: 'career_week', activity: null, games: [], loading: false }),
+		data: () => ({ bizType: 'career_week', activity: null, games: [], loading: false, startDate: '', endDate: '' }),
 		onLoad(options) {
 			this.bizType = options.bizType === 'job_week' ? 'job_week' : 'career_week'
 			uni.setNavigationBarTitle({ title: this.bizType === 'job_week' ? '就业活动统计' : '生涯活动统计' })
@@ -42,14 +53,43 @@
 			async load() {
 				this.loading = true
 				try {
-					const res = await getActivityStatistics(this.bizType)
+					const params = {}
+					if (this.startDate) params.startDate = this.startDate
+					if (this.endDate) params.endDate = this.endDate
+					const res = await getActivityStatistics(this.bizType, params)
 					this.activity = res.data ? res.data.activity : null
 					this.games = res.data ? (res.data.games || []) : []
 				} catch (e) {
 					uni.showToast({ title: e.message || '活动统计加载失败', icon: 'none' })
 				} finally { this.loading = false }
 			},
-			openGame(game) { uni.navigateTo({ url: `/pages/staff/game-statistics?gameId=${game.gameId}` }) }
+			changeStartDate(e) {
+				const value = e.detail.value
+				if (this.endDate && value > this.endDate) {
+					return uni.showToast({ title: '开始日期不能晚于结束日期', icon: 'none' })
+				}
+				this.startDate = value
+				this.load()
+			},
+			changeEndDate(e) {
+				const value = e.detail.value
+				if (this.startDate && this.startDate > value) {
+					return uni.showToast({ title: '结束日期不能早于开始日期', icon: 'none' })
+				}
+				this.endDate = value
+				this.load()
+			},
+			clearDates() {
+				this.startDate = ''
+				this.endDate = ''
+				this.load()
+			},
+			openGame(game) {
+				let url = `/pages/staff/game-statistics?gameId=${game.gameId}`
+				if (this.startDate) url += '&startDate=' + encodeURIComponent(this.startDate)
+				if (this.endDate) url += '&endDate=' + encodeURIComponent(this.endDate)
+				uni.navigateTo({ url })
+			}
 		}
 	}
 </script>
@@ -60,6 +100,12 @@
 	.activity-kind { display: inline-block; padding: 7rpx 18rpx; border-radius: 20rpx; background: rgba(255,255,255,.2); font-size: 22rpx }
 	.activity-title { display: block; margin-top: 22rpx; font-size: 36rpx; font-weight: 700 }
 	.activity-time { display: block; margin-top: 12rpx; color: rgba(255,255,255,.86); font-size: 23rpx }
+	.date-filter { display: flex; align-items: center; margin-top: 20rpx; padding: 18rpx 22rpx; border-radius: 20rpx; background: #fff }
+	.date-label { margin-right: 16rpx; color: #52657c; font-size: 23rpx }
+	.date-value { min-width: 160rpx; padding: 13rpx 18rpx; border-radius: 14rpx; background: #f4f7fb; color: #1a2c4a; font-size: 23rpx; text-align: center }
+	.date-value.placeholder { color: #9aaabd }
+	.date-sep { margin: 0 12rpx; color: #9aaabd; font-size: 21rpx }
+	.date-clear { margin-left: auto; color: #2f80ed; font-size: 23rpx }
 	.section-title { margin: 34rpx 6rpx 18rpx; font-size: 30rpx; font-weight: 700 }
 	.game-card { margin-bottom: 22rpx; padding: 28rpx; border-radius: 22rpx; background: #fff; box-shadow: 0 6rpx 18rpx rgba(31,65,112,.06) }
 	.game-main { display: flex; align-items: center }
