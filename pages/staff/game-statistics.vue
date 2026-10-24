@@ -68,7 +68,7 @@
 	export default {
 		data: () => ({
 			gameId: null, game: {}, rows: [], students: [], colleges: [], majors: [], viewMode: 'chart', chartDimension: 'collegeName', chartWidth: 320, collegeIndex: 0, majorIndex: 0, genderIndex: 0, startDate: '', endDate: '',
-			chartDimensions: [{ name: '院系', value: 'collegeName' }, { name: '专业', value: 'majorName' }, { name: '性别', value: 'gender' }],
+			chartDimensions: [{ name: '院系', value: 'collegeName' }, { name: '专业', value: 'majorName' }, { name: '日期', value: 'scanDate' }],
 			genderOptions: [{ name: '全部性别', value: '' }, { name: '男', value: '0' }, { name: '女', value: '1' }, { name: '未知', value: '2' }]
 		}),
 		computed: {
@@ -83,7 +83,11 @@
 				return current ? current.name : '院系'
 			},
 			lineItems() {
-				const formatter = this.chartDimension === 'gender' ? value => this.genderText(value) : value => value || (this.chartDimension === 'collegeName' ? '未填写院系' : '未填写专业')
+				if (this.chartDimension === 'scanDate') {
+					// 日期维度按时间正序展示，不能按人数倒序打乱时间线。
+					return this.chartItems('scanDate', value => value || '未记录').sort((a, b) => a.name.localeCompare(b.name))
+				}
+				const formatter = value => value || (this.chartDimension === 'collegeName' ? '未填写院系' : '未填写专业')
 				return this.chartItems(this.chartDimension, formatter)
 			}
 		},
@@ -107,7 +111,7 @@
 					if (this.startDate) filters.startDate = this.startDate
 					if (this.endDate) filters.endDate = this.endDate
 					const res = await getStaffGameStatistics(this.gameId, filters)
-					this.game = res.data.game || {}; this.rows = res.data.rows || []; this.students = res.data.students || []; this.colleges = res.data.colleges || []; this.majors = res.data.majors || []
+					this.game = res.data.game || {}; this.rows = res.data.rows || []; this.students = (res.data.students || []).map(item => ({ ...item, scanDate: item.scanTime ? String(item.scanTime).slice(0, 10) : '' })); this.colleges = res.data.colleges || []; this.majors = res.data.majors || []
 					// 日期或筛选变化后选项可能减少，避免选中下标越界。
 					if (this.collegeIndex >= this.collegeOptions.length) this.collegeIndex = 0
 					if (this.majorIndex >= this.majorOptions.length) this.majorIndex = 0
@@ -172,7 +176,7 @@
 					points.forEach(point => {
 						ctx.setFillStyle('#fff'); ctx.setStrokeStyle('#2f80ed'); ctx.setLineWidth(2); ctx.beginPath(); ctx.arc(point.x, point.y, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
 						ctx.setTextAlign('center'); ctx.setTextBaseline('bottom'); ctx.setFillStyle('#2f80ed'); ctx.setFontSize(11); ctx.fillText(point.item.count + '人', point.x, point.y - 7)
-						ctx.setTextBaseline('top'); ctx.setFillStyle('#52657c'); ctx.setFontSize(10); const label = point.item.name.length > 7 ? point.item.name.slice(0, 7) + '…' : point.item.name; ctx.fillText(label, point.x, height - bottom + 14)
+						ctx.setTextBaseline('top'); ctx.setFillStyle('#52657c'); ctx.setFontSize(10); const label = this.chartDimension === 'scanDate' && point.item.name.length === 10 ? point.item.name.slice(5) : (point.item.name.length > 7 ? point.item.name.slice(0, 7) + '…' : point.item.name); ctx.fillText(label, point.x, height - bottom + 14)
 					})
 					ctx.draw()
 				})
