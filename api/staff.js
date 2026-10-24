@@ -3,8 +3,18 @@ import config from '@/config/api.js'
 function request(options) {
     return new Promise((resolve, reject) => {
         const token = uni.getStorageSync('staffToken')
+        const params = options.params || {}
+        let url = config.BASE_URL + options.url
+        // 工作人员端自己的 request 需要显式拼接 params；之前只透传 data，GET 的筛选参数会被丢掉。
+        const query = Object.keys(params)
+            .filter(key => params[key] !== undefined && params[key] !== null && params[key] !== '')
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            .join('&')
+        if (query) {
+            url += (url.indexOf('?') > -1 ? '&' : '?') + query
+        }
         uni.request({
-            url: config.BASE_URL + options.url,
+            url,
             method: options.method || 'GET',
             data: options.data || {},
             header: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
