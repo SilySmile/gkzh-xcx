@@ -146,8 +146,7 @@
 				if (this.chartDimension === 'scanDate') {
 					return this.dateItems()
 				}
-				const formatter = value => value || (this.chartDimension === 'collegeName' ? '未填写院系' : '未填写专业')
-				return this.chartItems(this.chartDimension, formatter)
+				return this.categoryItems(this.chartDimension)
 			}
 		},
 		onLoad(options) {
@@ -270,6 +269,29 @@
 					name,
 					count: counts[name]
 				})).sort((a, b) => b.count - a.count)
+			},
+			categoryItems(field) {
+				const counts = {}
+				this.students.forEach(student => {
+					const name = student[field] || (field === 'collegeName' ? '未填写院系' : '未填写专业')
+					counts[name] = (counts[name] || 0) + 1
+				})
+				const options = (field === 'collegeName' ? this.collegeOptions : this.majorOptions)
+					.filter(item => item.id != null)
+				const items = options.map(item => ({
+					name: item.name,
+					count: counts[item.name] || 0
+				}))
+				// 补上学生里有、但院系/专业字典里已删除或未填写的分类，避免人数丢失。
+				Object.keys(counts).forEach(name => {
+					if (!items.some(item => item.name === name)) {
+						items.push({
+							name,
+							count: counts[name]
+						})
+					}
+				})
+				return items.sort((a, b) => b.count - a.count)
 			},
 			addDays(date, offset) {
 				const parts = String(date).split('-').map(Number)
