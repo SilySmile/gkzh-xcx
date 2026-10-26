@@ -36,7 +36,7 @@
 		</view>
 		<view v-if="viewMode === 'chart'" class="chart-card">
 			<view class="chart-head">
-				<view class="chart-title">{{ chartDimensionName }}人数折线图</view>
+				<view class="chart-title">{{ chartTitle }}</view>
 				<text v-if="chartDimension === 'scanDate' && !startDate && !endDate" class="chart-tip">选择上方开始/结束日期，可查看每天（含 0 人）趋势</text>
 				<view class="dimension-tabs">
 					<text v-for="item in chartDimensions" :key="item.value"
@@ -45,7 +45,7 @@
 				</view>
 			</view>
 			<scroll-view v-if="lineItems.length" scroll-x class="line-scroll">
-				<canvas canvas-id="dimensionLineChart" id="dimensionLineChart" class="line-canvas" :width="chartWidth"
+				<canvas canvas-id="dimensionChart" id="dimensionChart" class="line-canvas" :width="chartWidth"
 					height="220" :style="{ width: chartWidth + 'px' }"></canvas>
 			</scroll-view>
 			<view v-else class="empty-chart">当前筛选条件下暂无图表数据</view>
@@ -142,6 +142,9 @@
 				const current = this.chartDimensions.find(item => item.value === this.chartDimension)
 				return current ? current.name : '院系'
 			},
+			chartTitle() {
+				return this.chartDimension === 'scanDate' ? '日期人数折线图' : this.chartDimensionName + '人数柱状图'
+			},
 			lineItems() {
 				if (this.chartDimension === 'scanDate') {
 					return this.dateItems()
@@ -186,7 +189,7 @@
 					if (this.game.title) uni.setNavigationBarTitle({
 						title: this.game.title + '统计'
 					})
-					this.drawLineChart()
+					this.drawChart()
 				} catch (e) {
 					uni.showToast({
 						title: e.message || '统计加载失败',
@@ -253,11 +256,11 @@
 			},
 			changeViewMode(mode) {
 				this.viewMode = mode;
-				if (mode === 'chart') this.drawLineChart()
+				if (mode === 'chart') this.drawChart()
 			},
 			changeChartDimension(value) {
 				this.chartDimension = value;
-				this.drawLineChart()
+				this.drawChart()
 			},
 			chartItems(field, formatter) {
 				const counts = {}
@@ -325,6 +328,69 @@
 				if (counts['未记录']) items.push({ name: '未记录', count: counts['未记录'] })
 				return items
 			},
+			drawChart() {
+				if (this.viewMode !== 'chart' || !this.lineItems.length) return
+				if (this.chartDimension === 'scanDate') {
+					this.drawLineChart()
+				} else {
+					this.drawBarChart()
+				}
+			},
+			drawBarChart() {
+				if (this.viewMode !== 'chart' || !this.lineItems.length) return
+				const system = uni.getSystemInfoSync()
+				this.chartWidth = Math.max((system.windowWidth || 375) - 50, this.lineItems.length * 78 + 60)
+				this.$nextTick(() => {
+					const width = this.chartWidth
+					const height = 220
+					const left = 38,
+						right = 18,
+						top = 22,
+						bottom = 62
+					const plotWidth = width - left - right
+					const plotHeight = height - top - bottom
+					const maxCount = Math.max.apply(null, this.lineItems.map(item => item.count).concat([1]))
+					const yMax = Math.max(4, Math.ceil(maxCount / 4) * 4)
+					const ctx = uni.createCanvasContext('dimensionChart', this)
+					ctx.clearRect(0, 0, width, height)
+					ctx.setFontSize(10)
+					ctx.setTextAlign('right')
+					ctx.setTextBaseline('middle')
+					for (let i = 0; i <= 4; i++) {
+						const y = top + plotHeight * i / 4
+						const value = Math.round(yMax * (4 - i) / 4)
+						ctx.setStrokeStyle('#e8eef5')
+						ctx.setLineWidth(1)
+						ctx.beginPath()
+						ctx.moveTo(left, y)
+						ctx.lineTo(width - right, y)
+						ctx.stroke()
+						ctx.setFillStyle('#8a9aae')
+						ctx.fillText(String(value), left - 7, y)
+					}
+					const step = plotWidth / this.lineItems.length
+					const barWidth = Math.min(42, step * 0.55)
+					this.lineItems.forEach((item, index) => {
+						const centerX = left + step * index + step / 2
+						const barHeight = item.count / yMax * plotHeight
+						const drawHeight = item.count > 0 ? Math.max(barHeight, 2) : 2
+						const barTop = top + plotHeight - drawHeight
+						ctx.setFillStyle(item.count > 0 ? '#2f80ed' : '#c9d6e6')
+						ctx.fillRect(centerX - barWidth / 2, barTop, barWidth, drawHeight)
+						ctx.setTextAlign('center')
+						ctx.setTextBaseline('bottom')
+						ctx.setFillStyle(item.count > 0 ? '#2f80ed' : '#8a9aae')
+						ctx.setFontSize(11)
+						ctx.fillText(item.count + '人', centerX, barTop - 6)
+						ctx.setTextBaseline('top')
+						ctx.setFillStyle('#52657c')
+						ctx.setFontSize(10)
+						const label = item.name.length > 7 ? item.name.slice(0, 7) + '…' : item.name
+						ctx.fillText(label, centerX, height - bottom + 14)
+					})
+					ctx.draw()
+				})
+			},
 			drawLineChart() {
 				if (this.viewMode !== 'chart' || !this.lineItems.length) return
 				const system = uni.getSystemInfoSync()
@@ -340,7 +406,7 @@
 					const plotHeight = height - top - bottom
 					const maxCount = Math.max.apply(null, this.lineItems.map(item => item.count).concat([1]))
 					const yMax = Math.max(4, Math.ceil(maxCount / 4) * 4)
-					const ctx = uni.createCanvasContext('dimensionLineChart', this)
+					const ctx = uni.createCanvasContext('dimensionChart', this)
 					ctx.clearRect(0, 0, width, height)
 					ctx.setFontSize(10);
 					ctx.setTextAlign('right');
