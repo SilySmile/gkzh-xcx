@@ -75,6 +75,13 @@
 	import {
 		getStaffGameStatistics
 	} from '@/api/staff.js'
+
+	function todayText() {
+		const date = new Date()
+		const month = ('0' + (date.getMonth() + 1)).slice(-2)
+		const day = ('0' + date.getDate()).slice(-2)
+		return `${date.getFullYear()}-${month}-${day}`
+	}
 	export default {
 		data: () => ({
 			gameId: null,
@@ -90,7 +97,7 @@
 			majorIndex: 0,
 			genderIndex: 0,
 			startDate: '',
-			endDate: '',
+			endDate: todayText(),
 			chartDimensions: [{
 				name: '日期',
 				value: 'scanDate'
@@ -146,7 +153,7 @@
 		onLoad(options) {
 			this.gameId = options.gameId
 			this.startDate = options.startDate || ''
-			this.endDate = options.endDate || ''
+			this.endDate = options.endDate || todayText()
 			if (!this.gameId) return uni.showToast({
 				title: '缺少游戏编号',
 				icon: 'none'
@@ -221,7 +228,7 @@
 			},
 			clearDates() {
 				this.startDate = '';
-				this.endDate = '';
+				this.endDate = todayText();
 				this.load()
 			},
 			genderText(value) {
@@ -280,9 +287,9 @@
 				})
 				const dates = Object.keys(counts).filter(name => /^\d{4}-\d{2}-\d{2}$/.test(name)).sort()
 				let from = this.startDate
-				let to = this.endDate
-				if (!from) from = dates[0]
-				if (!to) to = dates[dates.length - 1]
+				let to = this.endDate || todayText()
+				if (!from) from = dates[0] || todayText()
+				if (!to) to = dates[dates.length - 1] || todayText()
 				if (!from || !to || from > to) {
 					return Object.keys(counts).map(name => ({ name, count: counts[name] })).sort((a, b) => a.name.localeCompare(b.name))
 				}

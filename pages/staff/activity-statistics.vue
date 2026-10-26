@@ -42,8 +42,15 @@
 
 <script>
 	import { getActivityStatistics } from '@/api/staff.js'
+
+	function todayText() {
+		const date = new Date()
+		const month = ('0' + (date.getMonth() + 1)).slice(-2)
+		const day = ('0' + date.getDate()).slice(-2)
+		return `${date.getFullYear()}-${month}-${day}`
+	}
 	export default {
-		data: () => ({ bizType: 'career_week', activity: null, games: [], loading: false, startDate: '', endDate: '' }),
+		data: () => ({ bizType: 'career_week', activity: null, games: [], loading: false, startDate: '', endDate: todayText() }),
 		onLoad(options) {
 			this.bizType = options.bizType === 'job_week' ? 'job_week' : 'career_week'
 			uni.setNavigationBarTitle({ title: this.bizType === 'job_week' ? '就业活动统计' : '生涯活动统计' })
@@ -81,7 +88,7 @@
 			},
 			clearDates() {
 				this.startDate = ''
-				this.endDate = ''
+				this.endDate = todayText()
 				this.load()
 			},
 			openGame(game) {
