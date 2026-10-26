@@ -37,6 +37,7 @@
 		<view v-if="viewMode === 'chart'" class="chart-card">
 			<view class="chart-head">
 				<view class="chart-title">{{ chartDimensionName }}人数折线图</view>
+				<text v-if="chartDimension === 'scanDate' && !startDate && !endDate" class="chart-tip">选择上方开始/结束日期，可查看每天（含 0 人）趋势</text>
 				<view class="dimension-tabs">
 					<text v-for="item in chartDimensions" :key="item.value"
 						:class="chartDimension === item.value ? 'active' : ''"
@@ -83,7 +84,7 @@
 			colleges: [],
 			majors: [],
 			viewMode: 'chart',
-			chartDimension: 'collegeName',
+			chartDimension: 'scanDate',
 			chartWidth: 320,
 			collegeIndex: 0,
 			majorIndex: 0,
@@ -91,14 +92,14 @@
 			startDate: '',
 			endDate: '',
 			chartDimensions: [{
+				name: '日期',
+				value: 'scanDate'
+			}, {
 				name: '院系',
 				value: 'collegeName'
 			}, {
 				name: '专业',
 				value: 'majorName'
-			}, {
-				name: '日期',
-				value: 'scanDate'
 			}],
 			genderOptions: [{
 				name: '全部性别',
@@ -543,6 +544,13 @@
 	.chart-title {
 		font-size: 28rpx;
 		font-weight: 700
+	}
+
+	.chart-tip {
+		display: block;
+		margin-top: 8rpx;
+		color: #9aaabd;
+		font-size: 20rpx
 	}
 
 	.dimension-tabs {
