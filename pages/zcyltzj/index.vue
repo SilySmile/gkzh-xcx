@@ -72,15 +72,15 @@
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 	// 效果图 21 上 3x3 卡片在整页中的位置（百分比），用于透明点击/高亮热区。
 	const CELL_RECT = [
-		{ left: '15%', top: '40%', width: '20%', height: '10%' },
-		{ left: '38%', top: '40%', width: '22%', height: '10%' },
-		{ left: '62%', top: '40%', width: '21%', height: '10%' },
-		{ left: '15%', top: '50%', width: '20%', height: '10%' },
-		{ left: '38%', top: '50%', width: '22%', height: '10%' },
-		{ left: '62%', top: '50%', width: '21%', height: '10%' },
-		{ left: '15%', top: '60%', width: '20%', height: '15%' },
-		{ left: '38%', top: '60%', width: '22%', height: '10%' },
-		{ left: '62%', top: '60%', width: '21%', height: '15%' }
+		{ left: '15%', top: '40.5%', width: '19.5%', height: '9.5%' },
+		{ left: '38.5%', top: '40.5%', width: '22.5%', height: '9.5%' },
+		{ left: '64.5%', top: '40.5%', width: '24%', height: '9.5%' },
+		{ left: '15%', top: '51%', width: '19.5%', height: '9%' },
+		{ left: '38.5%', top: '51%', width: '22.5%', height: '9%' },
+		{ left: '64.5%', top: '51%', width: '24%', height: '9%' },
+		{ left: '15%', top: '62%', width: '19.5%', height: '14%' },
+		{ left: '38.5%', top: '62%', width: '22.5%', height: '9%' },
+		{ left: '64.5%', top: '62%', width: '24%', height: '14%' }
 	]
 
 	export default {
@@ -335,7 +335,7 @@
 		z-index: 1;
 		top: 10%;
 		left: 50%;
-		width: 480rpx;
+		width: 560rpx;
 		transform: translateX(-50%);
 	}
 
@@ -433,7 +433,7 @@
 		width: 92%;
 		height: 92%;
 		border-radius: 18rpx;
-		background: linear-gradient(150deg, rgba(255, 205, 110, 0.22), rgba(243, 175, 65, 0.28));
+		background: linear-gradient(150deg, rgba(255, 200, 100, 0.32), rgba(242, 170, 55, 0.38));
 		pointer-events: none;
 	}
 
@@ -452,12 +452,12 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: 14rpx 10rpx;
+		padding: 12rpx 6rpx;
 		box-sizing: border-box;
 	}
 
 	.cell-no {
-		font-size: 38rpx;
+		font-size: 40rpx;
 		font-weight: 700;
 		line-height: 1;
 		color: #a96d0a;
@@ -465,7 +465,7 @@
 
 	.cell-name {
 		margin-top: 6rpx;
-		font-size: 18rpx;
+		font-size: 20rpx;
 		line-height: 1.2;
 		color: #ffffff;
 		text-align: center;
@@ -484,7 +484,7 @@
 
 	.rule-text {
 		margin-top: 10rpx;
-		font-size: 21rpx;
+		font-size: 22rpx;
 		line-height: 1.35;
 		color: #ffffff;
 		text-align: center;
