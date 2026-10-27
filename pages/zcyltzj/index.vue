@@ -1,8 +1,7 @@
 <template>
 	<view class="page">
-		<image class="game-bg" src="/static/zcyltzj/game-bg.jpg" mode="scaleToFill" />
+		<image class="game-bg" src="/static/zcyltzj/game-effect.jpg" mode="scaleToFill" />
 		<zcyltzj-header theme="dark" @back="back" />
-		<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 
 		<view class="grid" :class="{ spinning: rolling, settled: rolled }">
 			<view
@@ -10,38 +9,20 @@
 				:key="cell.index"
 				class="cell"
 				:class="cellClass(cell)"
+				:style="cellStyle(cell)"
 				@click="onCellTap(cell)"
 			>
-				<image
-					v-if="cell.pointNo"
-					class="cell-art"
-					:src="pointTile(cell.pointNo)"
-					mode="aspectFill"
-				/>
-				<image
-					v-else-if="cell.ruleCell"
-					class="cell-art"
-					:src="ruleTile(cell.ruleCell.cellNo)"
-					mode="aspectFill"
-				/>
-				<view v-if="cell.pointNo || cell.ruleCell" class="cell-tint"></view>
-				<text v-else-if="!cell.center" class="cell-dot">·</text>
+				<view v-if="!cell.center" class="cell-tint"></view>
 			</view>
 		</view>
 
-		<view class="dice-area">
-			<view class="dice-glow" :class="{ visible: rolled }"></view>
-			<view
-				class="dice-face"
-				:class="{ rolling: rolling, settled: rolled }"
-				@click="roll"
-			>
+		<view class="dice-hit" @click="roll">
+			<view class="dice-face" :class="{ rolling: rolling, settled: rolled }">
 				<image class="dice-img" :src="diceFace" mode="aspectFit" />
 			</view>
-			<view class="dice-shadow" :class="{ rolling: rolling }"></view>
-			<text class="dice-tip">{{ diceTip }}</text>
-			<text v-if="rolled && record.theme" class="dice-theme">主题：{{ record.theme }}</text>
 		</view>
+		<text class="dice-tip">{{ diceTip }}</text>
+		<text v-if="rolled && record.theme" class="dice-theme">主题：{{ record.theme }}</text>
 
 		<view v-if="rolled" class="action">
 			<view class="primary-button" @click="goQuestion">
@@ -70,6 +51,18 @@
 	const POINT_CELL = { 1: 0, 2: 1, 3: 2, 4: 5, 5: 7, 6: 3 }
 	// 高亮按顺时针环绕，与九宫格位置一致。
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
+	// 效果图 21 上 3x3 卡片在整页中的位置（百分比），用于透明点击/高亮热区。
+	const CELL_RECT = [
+		{ left: '15%', top: '40%', width: '20%', height: '10%' },
+		{ left: '38%', top: '40%', width: '22%', height: '10%' },
+		{ left: '62%', top: '40%', width: '21%', height: '10%' },
+		{ left: '15%', top: '50%', width: '20%', height: '10%' },
+		{ left: '38%', top: '50%', width: '22%', height: '10%' },
+		{ left: '62%', top: '50%', width: '21%', height: '10%' },
+		{ left: '15%', top: '60%', width: '20%', height: '15%' },
+		{ left: '38%', top: '60%', width: '22%', height: '10%' },
+		{ left: '62%', top: '60%', width: '21%', height: '15%' }
+	]
 
 	export default {
 		components: { ZcyltzjHeader },
@@ -177,8 +170,6 @@
 			cellClass(cell) {
 				const classes = []
 				if (cell.center) classes.push('center')
-				if (!cell.pointNo && !cell.center && !cell.ruleCell) classes.push('dim')
-				if (cell.pointNo || cell.ruleCell) classes.push('has-art')
 				if (this.highlightIndex === cell.index) classes.push('active')
 				if (this.trailIndex === cell.index) classes.push('trail')
 				if (this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)) {
@@ -186,16 +177,12 @@
 				}
 				return classes.join(' ')
 			},
+			cellStyle(cell) {
+				return CELL_RECT[cell.index] || {}
+			},
 			pointName(pointNo) {
 				const point = this.points.find(item => Number(item.pointNo) === Number(pointNo))
 				return point ? point.pointName : ''
-			},
-			pointTile(pointNo) {
-				const value = Math.min(6, Math.max(1, Number(pointNo) || 1))
-				return `/static/zcyltzj/tile-${value}.png`
-			},
-			ruleTile(cellNo) {
-				return cellNo === 9 ? '/static/zcyltzj/rule-2.png' : '/static/zcyltzj/rule-1.png'
 			},
 			onCellTap(cell) {
 				if (cell.ruleCell) {
@@ -386,61 +373,23 @@
 	.grid {
 		position: absolute;
 		z-index: 1;
-		left: 15%;
-		top: 34.5%;
-		width: 70%;
-		height: 39.5%;
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-content: space-between;
-	}
-
-	.cell {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 31.8%;
-		height: 31.8%;
-		margin-bottom: 0;
-		box-sizing: border-box;
-		border-radius: 24rpx;
-		background: rgba(255, 255, 255, 0.07);
-		border: 2rpx solid rgba(255, 255, 255, 0.1);
-		overflow: hidden;
-		transition: opacity 0.14s ease, transform 0.14s ease, background 0.14s ease,
-			border-color 0.14s ease, box-shadow 0.14s ease;
-	}
-
-	.cell.center {
-		background: transparent;
-		border: none;
-	}
-
-	.cell.dim {
-		background: rgba(255, 255, 255, 0.03);
-		border-color: rgba(255, 255, 255, 0.06);
-	}
-
-	.cell.reserved {
-		border-style: dashed;
-		border-color: rgba(255, 255, 255, 0.14);
-	}
-
-	.cell.has-art {
-		background: transparent;
-		border-color: transparent;
-	}
-
-	.cell-art {
-		position: absolute;
 		left: 0;
 		top: 0;
 		width: 100%;
 		height: 100%;
+	}
+
+	.cell {
+		position: absolute;
+		box-sizing: border-box;
 		border-radius: 24rpx;
+		overflow: hidden;
+		background: transparent;
+		border: none;
+	}
+
+	.cell.center {
+		background: transparent;
 	}
 
 	.cell-tint {
@@ -452,63 +401,29 @@
 		border-radius: 24rpx;
 		background: transparent;
 		pointer-events: none;
+		transition: background 0.14s ease, box-shadow 0.14s ease;
 	}
 
-	/* 投掷过程中：只有当前格保持明亮，其余格子压暗。 */
-	.grid.spinning .cell {
-		opacity: 0.22;
-		transform: scale(0.97);
-		transition: none;
-	}
-
-	/* 上一格保留短暂余辉，形成转盘拖尾。 */
-	.grid.spinning .cell.trail {
-		opacity: 0.62;
-		transform: scale(0.99);
-		background: rgba(255, 209, 102, 0.18);
-		border-color: rgba(255, 209, 102, 0.45);
-		box-shadow: 0 0 18rpx rgba(255, 209, 102, 0.25);
-	}
-
-	.grid.spinning .cell.active {
-		opacity: 1;
-		transform: scale(1.04);
-		background: linear-gradient(150deg, rgba(255, 226, 150, 0.5), rgba(255, 190, 61, 0.42));
-		border-color: #ffd166;
-		box-shadow: 0 0 34rpx rgba(255, 209, 102, 0.65);
-	}
-
-	/* 停止后：最终点数所在格保持高亮，其余格子保持较暗。 */
-	.grid.settled .cell {
-		opacity: 0.35;
-	}
-
-	.grid.settled .cell.selected {
-		opacity: 1;
-		transform: scale(1.02);
-		background: linear-gradient(150deg, rgba(255, 209, 102, 0.96), rgba(255, 170, 51, 0.96));
-		border-color: #ffe08a;
-		box-shadow: 0 14rpx 32rpx rgba(255, 170, 51, 0.32);
-		animation: cell-pop 0.46s cubic-bezier(0.2, 1.35, 0.5, 1);
+	.grid.spinning .cell .cell-tint {
+		background: rgba(255, 255, 255, 0.55);
 	}
 
 	.grid.spinning .cell.trail .cell-tint {
-		background: rgba(255, 209, 102, 0.22);
+		background: rgba(255, 220, 120, 0.35);
 	}
 
 	.grid.spinning .cell.active .cell-tint {
-		background: rgba(255, 226, 150, 0.32);
+		background: rgba(255, 235, 170, 0.12);
+		box-shadow: inset 0 0 0 4rpx #ffd166;
+	}
+
+	.grid.settled .cell .cell-tint {
+		background: rgba(255, 255, 255, 0.45);
 	}
 
 	.grid.settled .cell.selected .cell-tint {
-		background: rgba(255, 200, 80, 0.3);
-		box-shadow: inset 0 0 0 4rpx #ffe08a;
-	}
-
-	@keyframes cell-pop {
-		0% { transform: scale(1.12); }
-		60% { transform: scale(0.97); }
-		100% { transform: scale(1.02); }
+		background: rgba(255, 200, 80, 0.12);
+		box-shadow: inset 0 0 0 5rpx #ffe08a;
 	}
 
 	.cell-no {
@@ -687,6 +602,42 @@
 		margin-top: 10rpx;
 		font-size: 24rpx;
 		color: #6b4a1e;
+	}
+
+	.dice-hit {
+		position: absolute;
+		left: 38%;
+		top: 76%;
+		width: 23%;
+		height: 11.5%;
+		z-index: 2;
+	}
+
+	.dice-hit .dice-face {
+		width: 100%;
+		height: 100%;
+	}
+
+	.dice-tip {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 88.5%;
+		margin-top: 0;
+		font-size: 24rpx;
+		color: #6b4a1e;
+		text-align: center;
+	}
+
+	.dice-theme {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 91.5%;
+		margin-top: 0;
+		font-size: 24rpx;
+		color: #6b4a1e;
+		text-align: center;
 	}
 
 	.action {
