@@ -19,6 +19,7 @@
 						:src="cellActive(cell) ? '/static/zcyltzj/card-active.png' : '/static/zcyltzj/card.png'"
 						mode="scaleToFill"
 					/>
+					<view class="cell-wash"></view>
 					<view class="cell-content">
 						<template v-if="cell.pointNo">
 							<text class="cell-no">{{ cell.pointNo }}</text>
@@ -424,11 +425,27 @@
 		height: 100%;
 	}
 
+	.cell-wash {
+		position: absolute;
+		left: 4%;
+		top: 4%;
+		z-index: 2;
+		width: 92%;
+		height: 92%;
+		border-radius: 18rpx;
+		background: linear-gradient(150deg, rgba(255, 205, 110, 0.22), rgba(243, 175, 65, 0.28));
+		pointer-events: none;
+	}
+
+	.cell.on .cell-wash {
+		background: transparent;
+	}
+
 	.cell-content {
 		position: absolute;
 		left: 0;
 		top: 0;
-		z-index: 2;
+		z-index: 3;
 		width: 100%;
 		height: 100%;
 		display: flex;
@@ -450,9 +467,10 @@
 		margin-top: 6rpx;
 		font-size: 18rpx;
 		line-height: 1.2;
-		color: #7a4b10;
+		color: #ffffff;
 		text-align: center;
 		white-space: nowrap;
+		text-shadow: 0 1rpx 2rpx rgba(120, 70, 10, 0.45);
 	}
 
 	.rule-badge {
@@ -468,8 +486,9 @@
 		margin-top: 10rpx;
 		font-size: 21rpx;
 		line-height: 1.35;
-		color: #6b4a1e;
+		color: #ffffff;
 		text-align: center;
+		text-shadow: 0 1rpx 2rpx rgba(120, 70, 10, 0.35);
 	}
 
 	.cell.on .cell-no,
@@ -486,7 +505,7 @@
 		position: absolute;
 		left: 0;
 		top: 0;
-		z-index: 3;
+		z-index: 4;
 		width: 100%;
 		height: 100%;
 		border-radius: 24rpx;
