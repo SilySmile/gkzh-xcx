@@ -229,6 +229,7 @@
 		enterWeekGame
 	} from '@/api/activity/week'
 	import config from '@/config/api.js'
+	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
 	import {
 		checkLottery
 	} from '@/api/lottery.js'
@@ -528,7 +529,25 @@
 
 				}
 
-				if (task.id && task.type !== 'zycck') {
+				if (task.isFinish && task.type === 'zyjdc') {
+					try {
+						const entered = await enterZyjdc({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'zyjdc',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/zyjdc/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zyjdcMessage(e, '对局结果加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc') {
 					try {
 						// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 						await enterWeekGame(task.id, this.instanceId)
@@ -603,6 +622,10 @@
 
 					case 'zcyltzj':
 						url = '/pages/zcyltzj/start'
+						break
+
+					case 'zyjdc':
+						url = '/pages/zyjdc/start'
 						break
 					default:
 

@@ -100,6 +100,7 @@
 import { getWeekFlow, enterWeekGame } from '@/api/activity/week'
 import { enterRecord, userMessage } from '@/api/zycck'
 	import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj'
+	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
 
 export default {
 	data() {
@@ -171,7 +172,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -186,6 +187,7 @@ export default {
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
 				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
 				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || params.gameType === 'zcyltzj'
+				const isZyjdc = result.indexOf('/pages/zyjdc/start') > -1 || params.gameType === 'zyjdc'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -220,6 +222,29 @@ export default {
 						})
 					} catch (e) {
 						uni.showToast({ title: zcyltzjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZyjdc) {
+					// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZyjdc({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zyjdc',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zyjdc/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zyjdcMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 					}
 					return
 				}

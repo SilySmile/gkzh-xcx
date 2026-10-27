@@ -49,6 +49,7 @@ import { getMyResult as getZytjResult } from '@/api/zytj.js'
 import { getReport as getSszctopReport } from '@/api/sszctop.js'
 import { enterRecord, userMessage } from '@/api/zycck.js'
 import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj.js'
+import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
 import { reportArchiveUrl } from '@/utils/report-download.js'
@@ -106,7 +107,10 @@ export default {
 				'lottery': '抽奖',
 				'check-in': '签到',
 				'check-out': '签退',
-				'survey': '问卷调查'
+				'survey': '问卷调查',
+				'zycck': '未来职业猜猜看',
+				'zcyltzj': '职场压力·骰子局',
+				'zyjdc': '职业角斗场'
 			}
 			return map[type] || type
 		},
@@ -193,6 +197,25 @@ export default {
 					})
 				} catch (e) {
 					uni.showToast({ title: zcyltzjMessage(e, '压力结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'zyjdc') {
+				try {
+					// 职业角斗场按活动实例和游戏编号幂等取回本人记录，再打开结果页。
+					const entered = await enterZyjdc({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zyjdc',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zyjdc/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: zyjdcMessage(e, '对局结果加载失败，请重试'), icon: 'none' })
 				}
 				return
 			}
