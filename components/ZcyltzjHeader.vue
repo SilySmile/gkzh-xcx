@@ -1,5 +1,5 @@
 <template>
-	<view class="header" :style="{ paddingTop: statusBarHeight + 'px' }">
+	<view class="header" :class="'theme-' + theme" :style="{ paddingTop: statusBarHeight + 'px' }">
 		<view class="back" @click="back">‹</view>
 		<text class="title">{{ title }}</text>
 		<view class="placeholder"></view>
@@ -16,6 +16,11 @@
 			title: {
 				type: String,
 				default: ''
+			},
+			// light：深色页面白字；dark：浅色天空背景用深色字/半透明白底返回键。
+			theme: {
+				type: String,
+				default: 'light'
 			}
 		},
 		data: () => ({
@@ -62,5 +67,27 @@
 		font-size: 30rpx;
 		letter-spacing: 4rpx;
 		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.header.theme-dark {
+		color: #6b4a1e;
+	}
+
+	.header.theme-dark .back {
+		width: 56rpx;
+		height: 56rpx;
+		line-height: 50rpx;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.55);
+		font-size: 44rpx;
+	}
+
+	.header.theme-dark .placeholder {
+		width: 56rpx;
+		height: 56rpx;
+	}
+
+	.header.theme-dark .title {
+		color: #6b4a1e;
 	}
 </style>

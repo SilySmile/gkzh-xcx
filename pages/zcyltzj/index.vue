@@ -1,58 +1,52 @@
 <template>
 	<view class="page">
-		<zcyltzj-header title="职场压力·骰子局" @back="back" />
+		<zcyltzj-header title="" theme="dark" @back="back" />
+		<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 
-		<view class="content">
-			<view class="headline">
-				<text class="headline-main">{{ rolled ? '本次压力场景' : '掷出你的职场压力场景' }}</text>
-				<text class="headline-sub">{{ rolled ? (record.pointName || '') : '点击下方骰子，1-6 点对应九宫格中的一格' }}</text>
+		<view class="grid" :class="{ spinning: rolling, settled: rolled }">
+			<view
+				v-for="cell in cells"
+				:key="cell.index"
+				class="cell"
+				:class="cellClass(cell)"
+				@click="onCellTap(cell)"
+			>
+				<image
+					v-if="cell.pointNo"
+					class="cell-art"
+					:src="pointTile(cell.pointNo)"
+					mode="aspectFill"
+				/>
+				<image
+					v-else-if="cell.ruleCell"
+					class="cell-art"
+					:src="ruleTile(cell.ruleCell.cellNo)"
+					mode="aspectFill"
+				/>
+				<view v-if="cell.pointNo || cell.ruleCell" class="cell-tint"></view>
+				<text v-else-if="!cell.center" class="cell-dot">·</text>
 			</view>
+		</view>
 
-			<view class="grid" :class="{ spinning: rolling, settled: rolled }">
-				<view
-					v-for="cell in cells"
-					:key="cell.index"
-					class="cell"
-					:class="cellClass(cell)"
-					@click="onCellTap(cell)"
-				>
-					<image
-						v-if="cell.pointNo"
-						class="cell-art"
-						:src="pointTile(cell.pointNo)"
-						mode="aspectFill"
-					/>
-					<image
-						v-else-if="cell.ruleCell"
-						class="cell-art"
-						:src="ruleTile(cell.ruleCell.cellNo)"
-						mode="aspectFill"
-					/>
-					<view v-if="cell.pointNo || cell.ruleCell" class="cell-tint"></view>
-					<text v-else-if="!cell.center" class="cell-dot">·</text>
-				</view>
+		<view class="dice-area">
+			<view class="dice-glow" :class="{ visible: rolled }"></view>
+			<view
+				class="dice-face"
+				:class="{ rolling: rolling, settled: rolled }"
+				@click="roll"
+			>
+				<image class="dice-img" :src="diceFace" mode="aspectFit" />
 			</view>
+			<view class="dice-shadow" :class="{ rolling: rolling }"></view>
+			<text class="dice-tip">{{ diceTip }}</text>
+			<text v-if="rolled && record.theme" class="dice-theme">主题：{{ record.theme }}</text>
+		</view>
 
-			<view class="dice-area">
-				<view class="dice-glow" :class="{ visible: rolled }"></view>
-				<view
-					class="dice-face"
-					:class="{ rolling: rolling, settled: rolled }"
-					@click="roll"
-				>
-					<image class="dice-img" :src="diceFace" mode="aspectFit" />
-				</view>
-				<view class="dice-shadow" :class="{ rolling: rolling }"></view>
-				<text class="dice-tip">{{ diceTip }}</text>
-				<text v-if="rolled && record.theme" class="dice-theme">主题：{{ record.theme }}</text>
+		<view v-if="rolled" class="action">
+			<view class="primary-button" @click="goQuestion">
+				{{ finished ? '查看结果' : '开始答题' }}
 			</view>
-
-			<view v-if="rolled" class="action">
-				<view class="primary-button" @click="goQuestion">
-					{{ finished ? '查看结果' : '开始答题' }}
-				</view>
-				<text class="action-tip">{{ finished ? '本局已完成' : '共 ' + questionCount + ' 道题，答完即可查看压力值' }}</text>
-			</view>
+			<text class="action-tip">{{ finished ? '本局已完成' : '共 ' + questionCount + ' 道题，答完即可查看压力值' }}</text>
 		</view>
 
 		<view v-if="ruleVisible" class="rule-mask" @click="closeRule">
@@ -306,10 +300,20 @@
 
 <style scoped>
 	.page {
+		position: relative;
+		width: 100%;
+		height: 100vh;
 		min-height: 100vh;
-		background: linear-gradient(165deg, #171a34 0%, #2a1f4d 55%, #3d2560 100%);
-		display: flex;
-		flex-direction: column;
+		overflow: hidden;
+		background: url('/static/zcyltzj/game-bg.jpg') center / 100% 100% no-repeat;
+	}
+
+	.brand-logo {
+		position: absolute;
+		top: 10%;
+		left: 50%;
+		width: 480rpx;
+		transform: translateX(-50%);
 	}
 
 	.top-bar {
@@ -368,9 +372,15 @@
 	}
 
 	.grid {
+		position: absolute;
+		left: 15%;
+		top: 34.5%;
+		width: 70%;
+		height: 39.5%;
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
+		align-content: space-between;
 	}
 
 	.cell {
@@ -379,9 +389,9 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		width: 31.5%;
-		height: 186rpx;
-		margin-bottom: 16rpx;
+		width: 31.8%;
+		height: 31.8%;
+		margin-bottom: 0;
 		box-sizing: border-box;
 		border-radius: 24rpx;
 		background: rgba(255, 255, 255, 0.07);
@@ -393,7 +403,7 @@
 
 	.cell.center {
 		background: transparent;
-		border: 2rpx dashed rgba(255, 255, 255, 0.14);
+		border: none;
 	}
 
 	.cell.dim {
@@ -540,8 +550,11 @@
 	}
 
 	.dice-area {
-		position: relative;
-		margin-top: 44rpx;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 11%;
+		margin-top: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -566,8 +579,8 @@
 	.dice-face {
 		position: relative;
 		z-index: 2;
-		width: 192rpx;
-		height: 192rpx;
+		width: 160rpx;
+		height: 160rpx;
 		box-sizing: border-box;
 		border-radius: 38rpx;
 		background: transparent;
@@ -652,18 +665,22 @@
 	.dice-tip {
 		margin-top: 20rpx;
 		font-size: 24rpx;
-		color: rgba(255, 255, 255, 0.62);
+		color: #6b4a1e;
 		text-align: center;
 	}
 
 	.dice-theme {
 		margin-top: 10rpx;
 		font-size: 24rpx;
-		color: #ffd166;
+		color: #6b4a1e;
 	}
 
 	.action {
-		margin-top: 40rpx;
+		position: absolute;
+		left: 10%;
+		right: 10%;
+		bottom: 4%;
+		margin-top: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -689,7 +706,7 @@
 	.action-tip {
 		margin-top: 16rpx;
 		font-size: 22rpx;
-		color: rgba(255, 255, 255, 0.5);
+		color: #6b4a1e;
 	}
 
 	.rule-mask {
