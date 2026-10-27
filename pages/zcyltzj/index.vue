@@ -16,14 +16,19 @@
 					:class="cellClass(cell)"
 					@click="onCellTap(cell)"
 				>
-					<template v-if="cell.pointNo">
-						<text class="cell-no">{{ cell.pointNo }}</text>
-						<text class="cell-name">{{ pointName(cell.pointNo) }}</text>
-					</template>
-					<template v-else-if="cell.ruleCell">
-						<text class="cell-rule-badge">规则</text>
-						<text class="cell-rule-title">{{ cell.ruleCell.title }}</text>
-					</template>
+					<image
+						v-if="cell.pointNo"
+						class="cell-art"
+						:src="pointTile(cell.pointNo)"
+						mode="aspectFill"
+					/>
+					<image
+						v-else-if="cell.ruleCell"
+						class="cell-art"
+						:src="ruleTile(cell.ruleCell.cellNo)"
+						mode="aspectFill"
+					/>
+					<view v-if="cell.pointNo || cell.ruleCell" class="cell-tint"></view>
 					<text v-else-if="!cell.center" class="cell-dot">·</text>
 				</view>
 			</view>
@@ -35,14 +40,7 @@
 					:class="{ rolling: rolling, settled: rolled }"
 					@click="roll"
 				>
-					<view
-						v-for="n in pipSlots"
-						:key="n"
-						class="pip-slot"
-						:class="'slot-' + n"
-					>
-						<view v-if="pipOn(n)" class="pip"></view>
-					</view>
+					<image class="dice-img" :src="diceFace" mode="aspectFit" />
 				</view>
 				<view class="dice-shadow" :class="{ rolling: rolling }"></view>
 				<text class="dice-tip">{{ diceTip }}</text>
@@ -94,9 +92,7 @@
 			trailIndex: -1,
 			fastSpinTimer: null,
 			ruleVisible: false,
-			activeRule: {},
-			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
-			pipSlots: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+			activeRule: {}
 		}),
 		computed: {
 			cells() {
@@ -131,6 +127,10 @@
 				if (this.rolling) return '骰子转动中…'
 				if (this.rolled) return '点数 ' + this.record.pointNo + ' · ' + (this.record.pointName || '')
 				return '点击骰子掷出点数'
+			},
+			diceFace() {
+				const value = Math.min(6, Math.max(1, Number(this.diceValue) || 1))
+				return `/static/zcyltzj/dice-${value}.png`
 			}
 		},
 		async onLoad(options) {
@@ -176,25 +176,13 @@
 					this.loading = false
 				}
 			},
-			// 骰子点数对应的点位：1/2/3/4/5/6 使用九宫格中的固定位置。
-			pipOn(position) {
-				const map = {
-					1: [5],
-					2: [1, 9],
-					3: [1, 5, 9],
-					4: [1, 3, 7, 9],
-					5: [1, 3, 5, 7, 9],
-					6: [1, 3, 4, 6, 7, 9]
-				}
-				return (map[this.diceValue] || []).indexOf(position) > -1
-			},
 			// 返回类名字符串：小程序对方法返回的对象不会自动转成 class，
 			// 会导致 active/trail/selected 等动态样式完全不生效。
 			cellClass(cell) {
 				const classes = []
 				if (cell.center) classes.push('center')
-				if (!cell.pointNo && !cell.center) classes.push('dim')
-				if (cell.index === 6 || cell.index === 8) classes.push('reserved')
+				if (!cell.pointNo && !cell.center && !cell.ruleCell) classes.push('dim')
+				if (cell.pointNo || cell.ruleCell) classes.push('has-art')
 				if (this.highlightIndex === cell.index) classes.push('active')
 				if (this.trailIndex === cell.index) classes.push('trail')
 				if (this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)) {
@@ -205,6 +193,13 @@
 			pointName(pointNo) {
 				const point = this.points.find(item => Number(item.pointNo) === Number(pointNo))
 				return point ? point.pointName : ''
+			},
+			pointTile(pointNo) {
+				const value = Math.min(6, Math.max(1, Number(pointNo) || 1))
+				return `/static/zcyltzj/tile-${value}.png`
+			},
+			ruleTile(cellNo) {
+				return cellNo === 9 ? '/static/zcyltzj/rule-2.png' : '/static/zcyltzj/rule-1.png'
 			},
 			onCellTap(cell) {
 				if (cell.ruleCell) {
@@ -379,6 +374,7 @@
 	}
 
 	.cell {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -408,6 +404,31 @@
 	.cell.reserved {
 		border-style: dashed;
 		border-color: rgba(255, 255, 255, 0.14);
+	}
+
+	.cell.has-art {
+		background: transparent;
+		border-color: transparent;
+	}
+
+	.cell-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		border-radius: 24rpx;
+	}
+
+	.cell-tint {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		border-radius: 24rpx;
+		background: transparent;
+		pointer-events: none;
 	}
 
 	/* 投掷过程中：只有当前格保持明亮，其余格子压暗。 */
@@ -446,6 +467,19 @@
 		border-color: #ffe08a;
 		box-shadow: 0 14rpx 32rpx rgba(255, 170, 51, 0.32);
 		animation: cell-pop 0.46s cubic-bezier(0.2, 1.35, 0.5, 1);
+	}
+
+	.grid.spinning .cell.trail .cell-tint {
+		background: rgba(255, 209, 102, 0.22);
+	}
+
+	.grid.spinning .cell.active .cell-tint {
+		background: rgba(255, 226, 150, 0.32);
+	}
+
+	.grid.settled .cell.selected .cell-tint {
+		background: rgba(255, 200, 80, 0.3);
+		box-shadow: inset 0 0 0 4rpx #ffe08a;
 	}
 
 	@keyframes cell-pop {
@@ -536,9 +570,13 @@
 		height: 192rpx;
 		box-sizing: border-box;
 		border-radius: 38rpx;
-		background: radial-gradient(circle at 32% 24%, #ffffff 0%, #f5f2fb 55%, #ddd7ec 100%);
-		box-shadow: 0 20rpx 44rpx rgba(0, 0, 0, 0.42), inset 0 -10rpx 18rpx rgba(90, 70, 160, 0.18),
-			inset 0 6rpx 10rpx rgba(255, 255, 255, 0.9);
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.dice-img {
+		width: 100%;
+		height: 100%;
 	}
 
 	.dice-face.rolling {
@@ -641,7 +679,10 @@
 		font-weight: 600;
 		letter-spacing: 6rpx;
 		color: #2a1d12;
-		background: linear-gradient(135deg, #ffe08a 0%, #ffc23d 100%);
+		background-image: url('/static/zcyltzj/button.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		background-position: center;
 		box-shadow: 0 16rpx 32rpx rgba(255, 190, 61, 0.26);
 	}
 

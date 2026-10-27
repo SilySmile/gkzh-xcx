@@ -4,6 +4,7 @@
 
 		<scroll-view scroll-y class="scroll">
 			<view class="hero">
+				<image class="result-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 				<text class="hero-title">我的压力接受度</text>
 				<view class="bar">
 					<view class="bar-gradient"></view>
@@ -204,6 +205,12 @@
 		border: 1rpx solid rgba(255, 255, 255, 0.08);
 		display: flex;
 		flex-direction: column;
+	}
+
+	.result-logo {
+		display: block;
+		width: 300rpx;
+		margin: 0 auto 22rpx;
 	}
 
 	.hero-title {

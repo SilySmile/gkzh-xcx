@@ -4,21 +4,13 @@
 
 		<scroll-view scroll-y class="content">
 			<view class="hero">
+				<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 				<text class="hero-tag">职场压力测试</text>
 				<text class="title">掷一枚骰子</text>
 				<text class="title title-small">看看你的职场压力落在哪一格</text>
 
 				<view class="dice-hero">
-					<view class="dice-face">
-						<view
-							v-for="n in pipSlots"
-							:key="n"
-							class="pip-slot"
-							:class="'slot-' + n"
-						>
-							<view v-if="pipOn(n)" class="pip"></view>
-						</view>
-					</view>
+					<image class="dice-face" src="/static/zcyltzj/dice-5.png" mode="aspectFit" />
 					<view class="dice-shadow"></view>
 				</view>
 			</view>
@@ -68,9 +60,7 @@
 			loading: false,
 			buttonPressed: false,
 			// 开始页展示骰子 5 点，仅作装饰。
-			heroValue: 5,
-			// 显式数组避免小程序把 v-for="n in 9" 编译成 0-8，导致第 9 个点位缺失。
-			pipSlots: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+			heroValue: 5
 		}),
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''
@@ -81,18 +71,6 @@
 			}
 		},
 		methods: {
-			// 骰子点数对应的点位：1/2/3/4/5/6 使用九宫格中的固定位置。
-			pipOn(position) {
-				const map = {
-					1: [5],
-					2: [1, 9],
-					3: [1, 5, 9],
-					4: [1, 3, 7, 9],
-					5: [1, 3, 5, 7, 9],
-					6: [1, 3, 4, 6, 7, 9]
-				}
-				return (map[this.heroValue] || []).indexOf(position) > -1
-			},
 			async ensureRecord() {
 				try {
 					const entered = await enterRecord({
@@ -192,6 +170,12 @@
 		align-items: center;
 	}
 
+	.brand-logo {
+		display: block;
+		width: 520rpx;
+		margin: 0 auto 24rpx;
+	}
+
 	.hero-tag {
 		padding: 8rpx 22rpx;
 		border-radius: 999rpx;
@@ -231,36 +215,10 @@
 		margin: 0 auto;
 		box-sizing: border-box;
 		border-radius: 44rpx;
-		background: linear-gradient(155deg, #ffffff 0%, #e9e4f7 100%);
-		box-shadow: 0 22rpx 48rpx rgba(0, 0, 0, 0.38), inset 0 -8rpx 18rpx rgba(90, 70, 160, 0.16);
+		background: transparent;
+		box-shadow: none;
 		transform: rotate(-8deg);
 	}
-
-	/* 绝对定位九个点位，避免部分微信版本不支持 CSS Grid 导致点位错位。 */
-	.pip-slot {
-		position: absolute;
-		width: 32rpx;
-		height: 32rpx;
-		transform: translate(-50%, -50%);
-	}
-
-	.pip {
-		width: 100%;
-		height: 100%;
-		border-radius: 50%;
-		background: radial-gradient(circle at 35% 30%, #4b4077 0%, #241d3f 65%, #151025 100%);
-		box-shadow: inset 0 3rpx 5rpx rgba(0, 0, 0, 0.55), 0 1rpx 1rpx rgba(255, 255, 255, 0.7);
-	}
-
-	.slot-1 { left: 22%; top: 22%; }
-	.slot-2 { left: 50%; top: 22%; }
-	.slot-3 { left: 78%; top: 22%; }
-	.slot-4 { left: 22%; top: 50%; }
-	.slot-5 { left: 50%; top: 50%; }
-	.slot-6 { left: 78%; top: 50%; }
-	.slot-7 { left: 22%; top: 78%; }
-	.slot-8 { left: 50%; top: 78%; }
-	.slot-9 { left: 78%; top: 78%; }
 
 	.dice-shadow {
 		position: absolute;
@@ -325,7 +283,10 @@
 		font-weight: 600;
 		letter-spacing: 8rpx;
 		color: #2a1d12;
-		background: linear-gradient(135deg, #ffe08a 0%, #ffc23d 100%);
+		background-image: url('/static/zcyltzj/button.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		background-position: center;
 		box-shadow: 0 18rpx 36rpx rgba(255, 190, 61, 0.28);
 		transition: transform 0.12s ease;
 	}
