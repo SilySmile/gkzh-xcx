@@ -13,17 +13,24 @@
 				:style="cellStyle(cell)"
 				@click="onCellTap(cell)"
 			>
-				<image
-					v-if="cell.pointNo"
-					class="cell-art"
-					:src="pointTile(cell.pointNo)"
-					mode="scaleToFill"
-				/>
-				<view v-else-if="cell.ruleCell" class="rule-card">
-					<text class="rule-badge">规则</text>
-					<text class="rule-text">{{ cell.ruleCell.title }}</text>
-				</view>
-				<view v-if="!cell.center" class="cell-tint"></view>
+				<template v-if="!cell.center">
+					<image
+						class="cell-bg"
+						:src="cellActive(cell) ? '/static/zcyltzj/card-active.png' : '/static/zcyltzj/card.png'"
+						mode="scaleToFill"
+					/>
+					<view class="cell-content">
+						<template v-if="cell.pointNo">
+							<text class="cell-no">{{ cell.pointNo }}</text>
+							<text class="cell-name">{{ pointName(cell.pointNo) }}</text>
+						</template>
+						<template v-else-if="cell.ruleCell">
+							<text class="rule-badge">规则</text>
+							<text class="rule-text">{{ cell.ruleCell.title }}</text>
+						</template>
+					</view>
+					<view class="cell-tint"></view>
+				</template>
 			</view>
 		</view>
 
@@ -181,6 +188,7 @@
 			cellClass(cell) {
 				const classes = []
 				if (cell.center) classes.push('center')
+				if (this.cellActive(cell)) classes.push('on')
 				if (this.highlightIndex === cell.index) classes.push('active')
 				if (this.trailIndex === cell.index) classes.push('trail')
 				if (this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)) {
@@ -188,12 +196,12 @@
 				}
 				return classes.join(' ')
 			},
+			cellActive(cell) {
+				if (this.highlightIndex === cell.index) return true
+				return this.rolled && cell.pointNo && Number(cell.pointNo) === Number(this.record.pointNo)
+			},
 			cellStyle(cell) {
 				return CELL_RECT[cell.index] || {}
-			},
-			pointTile(pointNo) {
-				const value = Math.min(6, Math.max(1, Number(pointNo) || 1))
-				return `/static/zcyltzj/tile-${value}.png`
 			},
 			pointName(pointNo) {
 				const point = this.points.find(item => Number(item.pointNo) === Number(pointNo))
@@ -407,7 +415,7 @@
 		background: transparent;
 	}
 
-	.cell-art {
+	.cell-bg {
 		position: absolute;
 		left: 0;
 		top: 0;
@@ -416,23 +424,35 @@
 		height: 100%;
 	}
 
-	.rule-card {
+	.cell-content {
 		position: absolute;
 		left: 0;
 		top: 0;
-		z-index: 1;
+		z-index: 2;
 		width: 100%;
 		height: 100%;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: 12rpx 10rpx;
+		padding: 14rpx 10rpx;
 		box-sizing: border-box;
-		border-radius: 24rpx;
-		background: linear-gradient(150deg, #ffe6a3 0%, #f2b64b 100%);
-		border: 3rpx solid rgba(255, 255, 255, 0.7);
-		box-shadow: 0 10rpx 22rpx rgba(150, 95, 10, 0.22);
+	}
+
+	.cell-no {
+		font-size: 38rpx;
+		font-weight: 700;
+		line-height: 1;
+		color: #a96d0a;
+	}
+
+	.cell-name {
+		margin-top: 6rpx;
+		font-size: 18rpx;
+		line-height: 1.2;
+		color: #7a4b10;
+		text-align: center;
+		white-space: nowrap;
 	}
 
 	.rule-badge {
@@ -448,16 +468,25 @@
 		margin-top: 10rpx;
 		font-size: 21rpx;
 		line-height: 1.35;
-		color: #ffffff;
+		color: #6b4a1e;
 		text-align: center;
-		text-shadow: 0 1rpx 2rpx rgba(120, 70, 10, 0.35);
+	}
+
+	.cell.on .cell-no,
+	.cell.on .cell-name,
+	.cell.on .rule-text {
+		color: #ffffff;
+	}
+
+	.cell.on {
+		box-shadow: 0 0 24rpx rgba(255, 200, 80, 0.65);
 	}
 
 	.cell-tint {
 		position: absolute;
 		left: 0;
 		top: 0;
-		z-index: 2;
+		z-index: 3;
 		width: 100%;
 		height: 100%;
 		border-radius: 24rpx;
@@ -488,50 +517,10 @@
 		box-shadow: inset 0 0 0 5rpx #ffe08a;
 	}
 
-	.cell-no {
-		font-size: 26rpx;
-		color: #ffd166;
-		font-weight: 700;
-	}
-
-	.cell.selected .cell-no {
-		color: rgba(43, 33, 80, 0.7);
-	}
-
-	.cell-name {
-		margin-top: 8rpx;
-		padding: 0 12rpx;
-		font-size: 24rpx;
-		line-height: 1.35;
-		color: #ffffff;
-		text-align: center;
-	}
-
-	.cell.selected .cell-name {
-		color: #2b2150;
-		font-weight: 600;
-	}
-
-	.cell-rule-badge {
-		padding: 2rpx 12rpx;
-		border-radius: 999rpx;
-		font-size: 18rpx;
-		color: #ffd166;
-		background: rgba(255, 209, 102, 0.14);
-		border: 1rpx solid rgba(255, 209, 102, 0.3);
-	}
-
-	.cell-rule-title {
-		margin-top: 10rpx;
-		padding: 0 10rpx;
-		font-size: 22rpx;
-		line-height: 1.35;
-		color: rgba(255, 255, 255, 0.82);
-		text-align: center;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		overflow: hidden;
+	.grid.spinning .cell.on .cell-tint,
+	.grid.settled .cell.on .cell-tint {
+		background: transparent;
+		box-shadow: inset 0 0 0 6rpx #fff6d8;
 	}
 
 	.cell-dot {
