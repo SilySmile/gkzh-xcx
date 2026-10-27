@@ -1,7 +1,8 @@
 <template>
 	<view class="page">
-		<image class="game-bg" src="/static/zcyltzj/game-effect.jpg" mode="scaleToFill" />
+		<image class="game-bg" src="/static/zcyltzj/game-bg.jpg" mode="scaleToFill" />
 		<zcyltzj-header theme="dark" @back="back" />
+		<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 
 		<view class="grid" :class="{ spinning: rolling, settled: rolled }">
 			<view
@@ -12,6 +13,16 @@
 				:style="cellStyle(cell)"
 				@click="onCellTap(cell)"
 			>
+				<image
+					v-if="cell.pointNo"
+					class="cell-art"
+					:src="pointTile(cell.pointNo)"
+					mode="scaleToFill"
+				/>
+				<view v-else-if="cell.ruleCell" class="rule-card">
+					<text class="rule-badge">规则</text>
+					<text class="rule-text">{{ cell.ruleCell.title }}</text>
+				</view>
 				<view v-if="!cell.center" class="cell-tint"></view>
 			</view>
 		</view>
@@ -179,6 +190,10 @@
 			},
 			cellStyle(cell) {
 				return CELL_RECT[cell.index] || {}
+			},
+			pointTile(pointNo) {
+				const value = Math.min(6, Math.max(1, Number(pointNo) || 1))
+				return `/static/zcyltzj/tile-${value}.png`
 			},
 			pointName(pointNo) {
 				const point = this.points.find(item => Number(item.pointNo) === Number(pointNo))
@@ -392,10 +407,57 @@
 		background: transparent;
 	}
 
+	.cell-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+	}
+
+	.rule-card {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 12rpx 10rpx;
+		box-sizing: border-box;
+		border-radius: 24rpx;
+		background: linear-gradient(150deg, #ffe6a3 0%, #f2b64b 100%);
+		border: 3rpx solid rgba(255, 255, 255, 0.7);
+		box-shadow: 0 10rpx 22rpx rgba(150, 95, 10, 0.22);
+	}
+
+	.rule-badge {
+		padding: 2rpx 12rpx;
+		border-radius: 999rpx;
+		font-size: 19rpx;
+		color: #7a4b10;
+		background: rgba(255, 255, 255, 0.5);
+		border: 1rpx solid rgba(122, 75, 16, 0.25);
+	}
+
+	.rule-text {
+		margin-top: 10rpx;
+		font-size: 21rpx;
+		line-height: 1.35;
+		color: #ffffff;
+		text-align: center;
+		text-shadow: 0 1rpx 2rpx rgba(120, 70, 10, 0.35);
+	}
+
 	.cell-tint {
 		position: absolute;
 		left: 0;
 		top: 0;
+		z-index: 2;
 		width: 100%;
 		height: 100%;
 		border-radius: 24rpx;
