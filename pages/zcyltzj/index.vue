@@ -2,7 +2,6 @@
 	<view class="page">
 		<image class="game-bg" src="/static/zcyltzj/game-bg.jpg" mode="scaleToFill" />
 		<zcyltzj-header theme="dark" @back="back" />
-		<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 
 		<view class="grid" :class="{ spinning: rolling, settled: rolled }">
 			<view
@@ -72,15 +71,15 @@
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 	// 效果图 21 上 3x3 卡片在整页中的位置（百分比），用于透明点击/高亮热区。
 	const CELL_RECT = [
-		{ left: '15%', top: '40.5%', width: '19.5%', height: '9.5%' },
-		{ left: '38.5%', top: '40.5%', width: '22.5%', height: '9.5%' },
-		{ left: '64.5%', top: '40.5%', width: '24%', height: '9.5%' },
-		{ left: '15%', top: '51%', width: '19.5%', height: '9%' },
-		{ left: '38.5%', top: '51%', width: '22.5%', height: '9%' },
-		{ left: '64.5%', top: '51%', width: '24%', height: '9%' },
-		{ left: '15%', top: '62%', width: '19.5%', height: '14%' },
-		{ left: '38.5%', top: '62%', width: '22.5%', height: '9%' },
-		{ left: '64.5%', top: '62%', width: '24%', height: '14%' }
+		{ left: '15%', top: '40.5%', width: '20%', height: '9.5%' },
+		{ left: '38.5%', top: '40.5%', width: '21.5%', height: '9.5%' },
+		{ left: '62.5%', top: '40.5%', width: '21%', height: '9.5%' },
+		{ left: '15%', top: '51%', width: '20%', height: '9.5%' },
+		{ left: '38.5%', top: '51%', width: '21.5%', height: '9.5%' },
+		{ left: '62.5%', top: '51%', width: '21%', height: '9.5%' },
+		{ left: '15%', top: '61.5%', width: '20%', height: '14%' },
+		{ left: '38.5%', top: '61.5%', width: '21.5%', height: '9.5%' },
+		{ left: '62.5%', top: '61.5%', width: '21%', height: '14%' }
 	]
 
 	export default {
@@ -328,15 +327,6 @@
 		width: 100%;
 		height: 100%;
 		z-index: 0;
-	}
-
-	.brand-logo {
-		position: absolute;
-		z-index: 1;
-		top: 10%;
-		left: 50%;
-		width: 560rpx;
-		transform: translateX(-50%);
 	}
 
 	.top-bar {
