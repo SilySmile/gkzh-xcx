@@ -1,6 +1,7 @@
 <template>
 	<view class="page">
-		<zcyltzj-header title="" theme="dark" @back="back" />
+		<image class="game-bg" src="/static/zcyltzj/game-bg.jpg" mode="scaleToFill" />
+		<zcyltzj-header theme="dark" @back="back" />
 		<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
 
 		<view class="grid" :class="{ spinning: rolling, settled: rolled }">
@@ -44,7 +45,8 @@
 
 		<view v-if="rolled" class="action">
 			<view class="primary-button" @click="goQuestion">
-				{{ finished ? '查看结果' : '开始答题' }}
+				<image class="primary-button-bg" src="/static/zcyltzj/button.png" mode="scaleToFill" />
+				<text class="primary-button-text">{{ finished ? '查看结果' : '开始答题' }}</text>
 			</view>
 			<text class="action-tip">{{ finished ? '本局已完成' : '共 ' + questionCount + ' 道题，答完即可查看压力值' }}</text>
 		</view>
@@ -305,11 +307,21 @@
 		height: 100vh;
 		min-height: 100vh;
 		overflow: hidden;
-		background: url('/static/zcyltzj/game-bg.jpg') center / 100% 100% no-repeat;
+		background: #fff8e8;
+	}
+
+	.game-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
 	}
 
 	.brand-logo {
 		position: absolute;
+		z-index: 1;
 		top: 10%;
 		left: 50%;
 		width: 480rpx;
@@ -373,6 +385,7 @@
 
 	.grid {
 		position: absolute;
+		z-index: 1;
 		left: 15%;
 		top: 34.5%;
 		width: 70%;
@@ -551,6 +564,7 @@
 
 	.dice-area {
 		position: absolute;
+		z-index: 1;
 		left: 0;
 		right: 0;
 		bottom: 11%;
@@ -677,6 +691,7 @@
 
 	.action {
 		position: absolute;
+		z-index: 1;
 		left: 10%;
 		right: 10%;
 		bottom: 4%;
@@ -687,6 +702,10 @@
 	}
 
 	.primary-button {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		width: 100%;
 		height: 100rpx;
 		line-height: 100rpx;
@@ -696,11 +715,21 @@
 		font-weight: 600;
 		letter-spacing: 6rpx;
 		color: #2a1d12;
-		background-image: url('/static/zcyltzj/button.png');
-		background-size: 100% 100%;
-		background-repeat: no-repeat;
-		background-position: center;
+		overflow: hidden;
 		box-shadow: 0 16rpx 32rpx rgba(255, 190, 61, 0.26);
+	}
+
+	.primary-button-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.primary-button-text {
+		position: relative;
+		z-index: 1;
 	}
 
 	.action-tip {

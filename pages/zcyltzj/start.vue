@@ -39,7 +39,8 @@
 					@touchcancel="buttonPressed = false"
 					@click="start"
 				>
-					{{ loading ? '正在进入…' : '开始游戏' }}
+					<image class="start-button-bg" src="/static/zcyltzj/button.png" mode="scaleToFill" />
+					<text class="start-button-text">{{ loading ? '正在进入…' : '开始游戏' }}</text>
 				</view>
 				<text class="start-tip">完成答题后可查看本次压力结果</text>
 			</view>
@@ -274,6 +275,10 @@
 	}
 
 	.start-button {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		width: 100%;
 		height: 104rpx;
 		line-height: 104rpx;
@@ -283,12 +288,22 @@
 		font-weight: 600;
 		letter-spacing: 8rpx;
 		color: #2a1d12;
-		background-image: url('/static/zcyltzj/button.png');
-		background-size: 100% 100%;
-		background-repeat: no-repeat;
-		background-position: center;
+		overflow: hidden;
 		box-shadow: 0 18rpx 36rpx rgba(255, 190, 61, 0.28);
 		transition: transform 0.12s ease;
+	}
+
+	.start-button-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.start-button-text {
+		position: relative;
+		z-index: 1;
 	}
 
 	.start-button.pressed {
