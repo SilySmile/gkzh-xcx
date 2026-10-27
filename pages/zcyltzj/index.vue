@@ -63,9 +63,9 @@
 	import { getPoints, getRuleCells, getRecord, rollDice, userMessage } from '@/api/zcyltzj'
 	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
 
-	// 九宫格按“从左到右、从上到下”的顺序放置六个点数：上排 1-3、中排左 4 和右 5、下排中 6；
+	// 与效果图一致：上排 1-3、中排左 6 和右 4、下排中 5；
 	// 中间为空，下左（第 7 格）、下右（第 9 格）用于展示后台配置的规则。
-	const POINT_CELL = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 5, 6: 7 }
+	const POINT_CELL = { 1: 0, 2: 1, 3: 2, 4: 5, 5: 7, 6: 3 }
 	// 高亮按顺时针环绕，与九宫格位置一致。
 	const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 
