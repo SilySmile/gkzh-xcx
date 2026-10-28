@@ -296,9 +296,10 @@
 		position: absolute;
 		z-index: 2;
 		left: 8.5%;
-		right: 8.5%;
 		top: 21.5%;
-		bottom: 23.5%;
+		width: 83%;
+		height: 55%;
+		box-sizing: border-box;
 	}
 
 	.dim-block {

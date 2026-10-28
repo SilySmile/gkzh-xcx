@@ -251,9 +251,10 @@
 	.panel-scroll {
 		position: absolute;
 		left: 7%;
-		right: 7%;
 		top: 5%;
-		bottom: 5%;
+		width: 86%;
+		height: 90%;
+		box-sizing: border-box;
 	}
 
 	.panel-label {
