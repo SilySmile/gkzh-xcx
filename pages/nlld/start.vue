@@ -8,9 +8,9 @@
 
 		<view class="note">
 			<image class="note-bg" :src="assets.notePanel" mode="scaleToFill" />
-			<scroll-view scroll-y class="note-scroll">
+			<view class="note-inner">
 				<text class="note-text">你来到了一座神秘的职业小岛。探索途中，你会遇到不同的任务，也会发现各种各样的物品。跟随自己的直觉，挑选最吸引你的物品，一步步发现什么能为你充电，什么又会消耗你的能量。准备好了吗？开启探索，绘制属于你的职业能量画像吧！</text>
-			</scroll-view>
+			</view>
 		</view>
 
 		<view class="start-wrap" :class="{ disabled: loading, pressed: buttonPressed }"
@@ -178,20 +178,24 @@
 		height: 100%;
 	}
 
-	.note-scroll {
+	.note-inner {
 		position: absolute;
-		left: 10%;
-		right: 10%;
-		top: 13%;
-		bottom: 10%;
+		left: 9%;
+		top: 16%;
+		width: 82%;
+		height: 70%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.note-text {
 		display: block;
+		width: 100%;
 		color: #3b3226;
-		font-size: 26rpx;
-		line-height: 1.95;
-		text-align: justify;
+		font-size: 25rpx;
+		line-height: 1.9;
+		text-align: center;
 	}
 
 	.start-wrap {
