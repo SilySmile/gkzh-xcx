@@ -1,13 +1,13 @@
 <template>
 	<view class="page">
-		<image class="page-bg" src="/static/nlld/start-bg.jpg" mode="scaleToFill" />
+		<image class="page-bg" :src="assets.startBg" mode="scaleToFill" />
 		<view class="page-header"><nlld-header theme="dark" @back="back" /></view>
 
-		<image class="logo" src="/static/nlld/logo.png" mode="widthFix" />
-		<image class="slogan" src="/static/nlld/slogan.png" mode="widthFix" />
+		<image class="logo" :src="assets.logo" mode="widthFix" />
+		<image class="slogan" :src="assets.slogan" mode="widthFix" />
 
 		<view class="note">
-			<image class="note-bg" src="/static/nlld/note-panel.png" mode="scaleToFill" />
+			<image class="note-bg" :src="assets.notePanel" mode="scaleToFill" />
 			<scroll-view scroll-y class="note-scroll">
 				<text class="note-text">你来到了一座神秘的职业小岛。探索途中，你会遇到不同的任务，也会发现各种各样的物品。跟随自己的直觉，挑选最吸引你的物品，一步步发现什么能为你充电，什么又会消耗你的能量。准备好了吗？开启探索，绘制属于你的职业能量画像吧！</text>
 			</scroll-view>
@@ -16,7 +16,7 @@
 		<view class="start-wrap" :class="{ disabled: loading, pressed: buttonPressed }"
 			@touchstart="buttonPressed = true" @touchend="buttonPressed = false"
 			@touchcancel="buttonPressed = false" @click="start">
-			<image class="btn-bg" src="/static/nlld/btn-blue.png" mode="scaleToFill" />
+			<image class="btn-bg" :src="assets.btnBlue" mode="scaleToFill" />
 			<text class="btn-text">{{ loading ? '正在进入…' : '开始探险' }}</text>
 		</view>
 	</view>
@@ -25,10 +25,12 @@
 <script>
 	import { enterRecord, getRecord, userMessage } from '@/api/nlld'
 	import NlldHeader from '@/components/NlldHeader.vue'
+	import { NLLD_ASSETS } from '@/config/nlld-assets'
 
 	export default {
 		components: { NlldHeader },
 		data: () => ({
+			assets: NLLD_ASSETS,
 			instanceId: '',
 			gameId: '',
 			recordId: '',

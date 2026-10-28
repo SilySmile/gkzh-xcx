@@ -1,23 +1,23 @@
 <template>
 	<view class="page">
-		<image class="page-bg" src="/static/nlld/round-bg.jpg" mode="scaleToFill" />
+		<image class="page-bg" :src="assets.roundBg" mode="scaleToFill" />
 		<view class="page-header"><nlld-header theme="dark" @back="back" /></view>
 
-		<image class="round-title" src="/static/nlld/round-title.png" mode="widthFix" />
+		<image class="round-title" :src="assets.roundTitle" mode="widthFix" />
 
 		<view v-if="currentRound" class="ribbon">
-			<image class="ribbon-bg" src="/static/nlld/ribbon.png" mode="scaleToFill" />
+			<image class="ribbon-bg" :src="assets.ribbon" mode="scaleToFill" />
 			<text class="ribbon-text">{{ currentRound.title }}</text>
 		</view>
 
 		<view v-if="currentRound" class="panel">
-			<image class="panel-bg" src="/static/nlld/panel.png" mode="scaleToFill" />
+			<image class="panel-bg" :src="assets.panel" mode="scaleToFill" />
 			<scroll-view scroll-y class="panel-scroll" :scroll-top="scrollTop">
 				<text class="panel-label">任务情景</text>
 				<text class="scene">{{ currentRound.scene }}</text>
 				<text class="panel-label">可选物品</text>
 				<view v-for="opt in currentRound.options" :key="opt.optionId" :class="optionClass(opt.optionId)" @click="toggle(opt.optionId)">
-					<image class="option-bg" src="/static/nlld/option.png" mode="scaleToFill" />
+					<image class="option-bg" :src="assets.option" mode="scaleToFill" />
 					<text class="option-text">{{ opt.label }}、{{ opt.name }}</text>
 					<text v-if="isSelected(opt.optionId)" class="option-check">✓</text>
 				</view>
@@ -29,7 +29,7 @@
 			<view class="confirm" :class="{ disabled: !canConfirm, pressed: buttonPressed }"
 				@touchstart="buttonPressed = true" @touchend="buttonPressed = false"
 				@touchcancel="buttonPressed = false" @click="confirm">
-				<image class="btn-bg" src="/static/nlld/btn-blue.png" mode="scaleToFill" />
+				<image class="btn-bg" :src="assets.btnBlue" mode="scaleToFill" />
 				<text class="btn-text">{{ submitting ? '提交中…' : '确认选择' }}</text>
 			</view>
 		</view>
@@ -43,10 +43,12 @@
 <script>
 	import { answerRound, getRecord, userMessage } from '@/api/nlld'
 	import NlldHeader from '@/components/NlldHeader.vue'
+	import { NLLD_ASSETS } from '@/config/nlld-assets'
 
 	export default {
 		components: { NlldHeader },
 		data: () => ({
+			assets: NLLD_ASSETS,
 			recordId: '',
 			instanceId: '',
 			gameId: '',

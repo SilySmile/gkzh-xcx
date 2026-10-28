@@ -1,16 +1,16 @@
 <template>
 	<view class="page">
-		<image class="page-bg" src="/static/nlld/report-bg.jpg" mode="scaleToFill" />
+		<image class="page-bg" :src="assets.reportBg" mode="scaleToFill" />
 		<view class="page-header"><nlld-header theme="dark" @back="back" /></view>
 
-		<image class="report-title" src="/static/nlld/report-title.png" mode="widthFix" />
-		<image class="report-card" src="/static/nlld/report-card.png" mode="scaleToFill" />
+		<image class="report-title" :src="assets.reportTitle" mode="widthFix" />
+		<image class="report-card" :src="assets.reportCard" mode="scaleToFill" />
 
 		<scroll-view scroll-y class="card-scroll">
 			<block v-if="result.resultType === 'top2'">
 				<view v-for="(dim, index) in tops" :key="index" class="dim-block">
 					<view class="dim-head">
-						<image class="dim-plate" src="/static/nlld/dim-plate.png" mode="scaleToFill" />
+						<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
 						<text class="dim-name">{{ dim.name }}</text>
 					</view>
 					<text class="dim-summary">{{ dim.summary }}</text>
@@ -19,7 +19,7 @@
 			</block>
 			<block v-else>
 				<view class="dim-head open-head">
-					<image class="dim-plate" src="/static/nlld/dim-plate.png" mode="scaleToFill" />
+					<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
 					<text class="dim-name">多元开放型</text>
 				</view>
 				<text class="open-text">{{ result.openText }}</text>
@@ -29,7 +29,7 @@
 		<view class="save-wrap" :class="{ disabled: saving, pressed: buttonPressed }"
 			@touchstart="buttonPressed = true" @touchend="buttonPressed = false"
 			@touchcancel="buttonPressed = false" @click="savePoster">
-			<image class="btn-bg" src="/static/nlld/btn-blue.png" mode="scaleToFill" />
+			<image class="btn-bg" :src="assets.btnBlue" mode="scaleToFill" />
 			<text class="btn-text">{{ saving ? '正在生成…' : '保存截图' }}</text>
 		</view>
 
@@ -44,10 +44,12 @@
 <script>
 	import { getRecord, userMessage } from '@/api/nlld'
 	import NlldHeader from '@/components/NlldHeader.vue'
+	import { NLLD_ASSETS } from '@/config/nlld-assets'
 
 	export default {
 		components: { NlldHeader },
 		data: () => ({
+			assets: NLLD_ASSETS,
 			recordId: '',
 			instanceId: '',
 			gameId: '',
@@ -142,10 +144,10 @@
 			},
 			async drawPoster() {
 				const [bg, title, card, plate] = await Promise.all([
-					this.imageInfo('/static/nlld/report-bg.jpg'),
-					this.imageInfo('/static/nlld/report-title.png'),
-					this.imageInfo('/static/nlld/report-card.png'),
-					this.imageInfo('/static/nlld/dim-plate.png')
+					this.imageInfo(this.assets.reportBg),
+					this.imageInfo(this.assets.reportTitle),
+					this.imageInfo(this.assets.reportCard),
+					this.imageInfo(this.assets.dimPlate)
 				])
 				const ctx = uni.createCanvasContext('nlldPoster', this)
 				ctx.drawImage(bg.path, 0, 0, 750, 1334)
