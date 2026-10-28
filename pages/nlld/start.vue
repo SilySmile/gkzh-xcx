@@ -98,9 +98,14 @@
 					const data = current.data || {}
 					if (data.status === 'finished') {
 						this.routeByRecord(data)
-					} else {
-						this.routeByRecord({ status: 'participating', answeredRounds: data.answeredRounds || 0 })
+						return
 					}
+					if (!this.recordId) {
+						throw new Error('记录创建失败')
+					}
+					// 新记录已答 0 关也要进入关卡页；routeByRecord 只用于恢复已有进度。
+					const base = `recordId=${encodeURIComponent(this.recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(this.gameId)}`
+					uni.navigateTo({ url: `/pages/nlld/index?${base}` })
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '游戏入口校验失败，请稍后重试'), icon: 'none' })
 				} finally {
