@@ -1,60 +1,44 @@
 <template>
-	<view class="page">
-		<zcyltzj-header title="职场压力·骰子局" @back="back" />
 
-		<scroll-view scroll-y class="content">
-			<view class="hero">
-				<image class="brand-logo" src="/static/zcyltzj/logo.png" mode="widthFix" />
-				<text class="hero-tag">职场压力测试</text>
-				<text class="title">掷一枚骰子</text>
-				<text class="title title-small">看看你的职场压力落在哪一格</text>
-
-				<view class="dice-hero">
-					<image class="dice-face" src="/static/zcyltzj/dice-5.png" mode="aspectFit" />
-					<view class="dice-shadow"></view>
-				</view>
-			</view>
-
-			<view class="rules-card">
-				<view class="rule-item">
-					<text class="rule-index">1</text>
-					<text class="rule-text">掷出骰子，选中九宫格中对应点数的职场压力场景</text>
-				</view>
-				<view class="rule-item">
-					<text class="rule-index">2</text>
-					<text class="rule-text">完成该场景的 6 道选择题，题目没有对错</text>
-				</view>
-				<view class="rule-item">
-					<text class="rule-index">3</text>
-					<text class="rule-text">生成你的压力接受度进度条和压力值</text>
-				</view>
-			</view>
-
-			<view class="start-wrap">
-				<view
-					class="start-button"
-					:class="{ pressed: buttonPressed, disabled: loading }"
-					@touchstart="buttonPressed = true"
-					@touchend="buttonPressed = false"
-					@touchcancel="buttonPressed = false"
-					@click="start"
-				>
-					<image class="start-button-bg" src="/static/zcyltzj/button.png" mode="scaleToFill" />
-					<text class="start-button-text">{{ loading ? '正在进入…' : '开始游戏' }}</text>
-				</view>
-				<text class="start-tip">完成答题后可查看本次压力结果</text>
-			</view>
-		</scroll-view>
-	</view>
+  <view class="page">
+    <image class="page-bg" :src="assets['page-bg']" mode="scaleToFill" />
+    <view class="page-header"><zcyltzj-header theme="dark" @back="back" /></view>
+    <image class="intro-logo" :src="assets.logo" mode="aspectFit" />
+    <view class="intro-panel">
+      <scroll-view scroll-y class="intro-scroll">
+        <view class="intro-copy">
+          <text class="intro-heading">欢迎来到压力探索小世界！</text>
+          <text class="intro-paragraph">在这里，早八、DDL、期末考、毕业选择……各种压力场景等你解锁。掷出骰子，看看你会遇到哪一种压力挑战吧！</text>
+          <text class="intro-heading">游戏玩法</text>
+          <text class="intro-paragraph">①点击开始游戏
+进入压力探索界面，准备开启你的挑战。</text>
+          <text class="intro-paragraph">②掷出幸运骰子
+点击骰子，随机触发一个数字，点亮对应的压力场景。</text>
+          <text class="intro-paragraph">③解锁压力场景
+点击被点亮的场景，进入对应的趣味问答，选择最符合自己真实想法的答案。</text>
+          <text class="intro-paragraph">④完成问答挑战
+根据自己的实际感受作答，探索自己面对不同压力时的反应。</text>
+          <text class="intro-paragraph last">⑤查看探索结果
+完成挑战后，查看属于自己的压力探索结果，发现自己的压力应对特点。</text>
+        </view>
+      </scroll-view>
+    </view>
+    <view class="intro-start" :class="{ disabled: loading, pressed: buttonPressed }" @touchstart="buttonPressed = true" @touchend="buttonPressed = false" @touchcancel="buttonPressed = false" @click="start">
+      <image class="action-art" :src="assets['intro-button']" mode="scaleToFill" />
+      <view v-if="loading" class="starting-label">正在进入…</view>
+    </view>
+  </view>
 </template>
 
 <script>
 	import { enterRecord, getRecord, userMessage } from '@/api/zcyltzj'
 	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
+	import { ZCYLTZJ_ASSETS } from '@/config/zcyltzj-assets'
 
 	export default {
 		components: { ZcyltzjHeader },
 		data: () => ({
+			assets: ZCYLTZJ_ASSETS,
 			instanceId: '',
 			gameId: '',
 			recordId: '',
@@ -126,197 +110,27 @@
 </script>
 
 <style scoped>
-	.page {
-		min-height: 100vh;
-		display: flex;
-		flex-direction: column;
-		background: linear-gradient(160deg, #171a34 0%, #241a45 48%, #3a2258 100%);
-	}
 
-	.top-bar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding-left: 24rpx;
-		padding-right: 24rpx;
-		padding-bottom: 16rpx;
-		color: #ffffff;
-	}
+.page { position: relative; height: 100vh; min-height: 1440rpx; width: 100%; background: #fff4d8; color: #8e541c; }
+.page-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.page-header { position: absolute; z-index: 3; left: 0; top: 0; width: 100%; }
+.gold-action { position: absolute; z-index: 2; left: 5.2%; width: 91.5%; top: 89.5%; height: 6%; display: flex; align-items: center; justify-content: center; color: #8b4e14; font-size: 30rpx; font-weight: 600; }
+.gold-action.disabled { opacity: .65; }
+.action-art { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.action-label { position: relative; z-index: 1; }
+.load-message { position: absolute; z-index: 2; left: 10%; right: 10%; top: 82%; font-size: 24rpx; line-height: 1.5; text-align: center; }
+.retry { margin-left: 16rpx; text-decoration: underline; }
 
-	.back,
-	.back-placeholder {
-		width: 72rpx;
-		height: 72rpx;
-		line-height: 64rpx;
-		font-size: 56rpx;
-		text-align: center;
-	}
+.intro-logo { position: absolute; left: 1.8%; top: 14%; width: 96.4%; height: 17%; }
+.intro-panel { position: absolute; left: 4.5%; top: 31.3%; width: 91%; height: 48.3%; padding: 26rpx; box-sizing: border-box; border: 2rpx solid rgba(255,255,255,.9); border-radius: 66rpx; background: linear-gradient(135deg,rgba(223,223,233,.78),rgba(255,244,218,.75)); box-shadow: inset 0 0 22rpx #fff9d9, 0 0 12rpx rgba(255,255,255,.9); }
+.intro-scroll { height: 100%; width: 100%; overflow-y: auto; border: 2rpx solid #fff9d0; border-radius: 48rpx; box-sizing: border-box; }
+.intro-copy { padding: 26rpx 32rpx; font-family: 'Songti SC','SimSun',serif; font-size: 23rpx; line-height: 1.3; }
+.intro-heading { display: block; font-size: 24rpx; font-weight: 700; margin-bottom: 24rpx; }
+.intro-paragraph { display: block; white-space: pre-wrap; margin-bottom: 24rpx; }
+.intro-paragraph.last { margin-bottom: 0; }
+.intro-start { position: absolute; left: 11%; top: 82.5%; width: 77%; height: 10%; }
+.intro-start.pressed { transform: scale(.98); }
+.intro-start.disabled { opacity: .8; }
+.starting-label { position: absolute; left: 25%; right: 15%; top: 24%; bottom: 24%; display: flex; align-items: center; justify-content: center; color: #8b4e14; background: #ffe89c; font-size: 36rpx; }
 
-	.top-title {
-		font-size: 30rpx;
-		letter-spacing: 4rpx;
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.content {
-		flex: 1;
-		padding: 0 48rpx 48rpx;
-		box-sizing: border-box;
-	}
-
-	.hero {
-		padding-top: 40rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.brand-logo {
-		display: block;
-		width: 520rpx;
-		margin: 0 auto 24rpx;
-	}
-
-	.hero-tag {
-		padding: 8rpx 22rpx;
-		border-radius: 999rpx;
-		background: rgba(255, 209, 102, 0.16);
-		color: #ffd166;
-		font-size: 22rpx;
-		letter-spacing: 6rpx;
-	}
-
-	.title {
-		margin-top: 26rpx;
-		font-size: 52rpx;
-		font-weight: 700;
-		color: #ffffff;
-		letter-spacing: 2rpx;
-	}
-
-	.title-small {
-		margin-top: 12rpx;
-		font-size: 30rpx;
-		font-weight: 400;
-		color: rgba(255, 255, 255, 0.72);
-	}
-
-	.dice-hero {
-		position: relative;
-		margin-top: 64rpx;
-		width: 240rpx;
-		height: 260rpx;
-	}
-
-	.dice-face {
-		position: relative;
-		z-index: 2;
-		width: 220rpx;
-		height: 220rpx;
-		margin: 0 auto;
-		box-sizing: border-box;
-		border-radius: 44rpx;
-		background: transparent;
-		box-shadow: none;
-		transform: rotate(-8deg);
-	}
-
-	.dice-shadow {
-		position: absolute;
-		left: 50%;
-		bottom: 0;
-		transform: translateX(-50%);
-		width: 190rpx;
-		height: 36rpx;
-		border-radius: 50%;
-		background: rgba(0, 0, 0, 0.35);
-		filter: blur(10rpx);
-	}
-
-	.rules-card {
-		margin-top: 72rpx;
-		padding: 28rpx 30rpx;
-		border-radius: 28rpx;
-		background: rgba(255, 255, 255, 0.06);
-		border: 1rpx solid rgba(255, 255, 255, 0.08);
-	}
-
-	.rule-item {
-		display: flex;
-		align-items: flex-start;
-		padding: 14rpx 0;
-	}
-
-	.rule-index {
-		width: 40rpx;
-		height: 40rpx;
-		line-height: 40rpx;
-		margin-right: 18rpx;
-		border-radius: 50%;
-		text-align: center;
-		font-size: 22rpx;
-		color: #241a45;
-		background: #ffd166;
-	}
-
-	.rule-text {
-		flex: 1;
-		font-size: 26rpx;
-		line-height: 1.7;
-		color: rgba(255, 255, 255, 0.82);
-	}
-
-	.start-wrap {
-		margin-top: 64rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding-bottom: 40rpx;
-	}
-
-	.start-button {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 104rpx;
-		line-height: 104rpx;
-		text-align: center;
-		border-radius: 999rpx;
-		font-size: 34rpx;
-		font-weight: 600;
-		letter-spacing: 8rpx;
-		color: #2a1d12;
-		overflow: hidden;
-		box-shadow: 0 18rpx 36rpx rgba(255, 190, 61, 0.28);
-		transition: transform 0.12s ease;
-	}
-
-	.start-button-bg {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-	}
-
-	.start-button-text {
-		position: relative;
-		z-index: 1;
-	}
-
-	.start-button.pressed {
-		transform: scale(0.98);
-	}
-
-	.start-button.disabled {
-		opacity: 0.7;
-	}
-
-	.start-tip {
-		margin-top: 18rpx;
-		font-size: 24rpx;
-		color: rgba(255, 255, 255, 0.55);
-	}
 </style>

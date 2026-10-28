@@ -1,68 +1,44 @@
 <template>
-	<view class="page">
-		<zcyltzj-header :title="record.pointName || '场景答题'" @back="back" />
 
-		<view class="progress-wrap">
-			<view class="progress-head">
-				<text class="progress-theme">{{ record.theme || '请按真实感受作答' }}</text>
-				<text class="progress-count">{{ currentIndex + 1 }} / {{ questions.length }}</text>
-			</view>
-			<view class="progress-track">
-				<view class="progress-fill" :style="{ width: progressPercent + '%' }"></view>
-			</view>
-		</view>
-
-		<scroll-view scroll-y class="body">
-			<view class="body-inner">
-				<view v-if="current" :key="currentIndex" class="question-card">
-					<view class="question-head">
-						<text class="question-no">第 {{ currentIndex + 1 }} 题</text>
-						<text v-if="answers[current.questionNo]" class="answered-badge">已答</text>
-					</view>
-					<text class="question-content">{{ current.content }}</text>
-					<view class="options">
-						<view
-							v-for="key in optionKeys"
-							:key="key"
-							class="option"
-							:class="{ selected: answers[current.questionNo] === key }"
-							@click="choose(key)"
-						>
-							<text class="option-key">{{ key }}</text>
-							<text class="option-text">{{ current['option' + key] }}</text>
-						</view>
-					</view>
-				</view>
-			</view>
-		</scroll-view>
-
-		<view class="footer">
-			<view v-if="currentIndex > 0" class="ghost-button" @click="prev">上一题</view>
-			<view
-				v-if="!isLast"
-				class="primary-button"
-				:class="{ disabled: !currentAnswer }"
-				@click="next"
-				>下一题</view
-			>
-			<view
-				v-else
-				class="primary-button"
-				:class="{ disabled: answeredCount < questions.length || submitting }"
-				@click="submit"
-				>{{ submitting ? '提交中…' : '提交并生成压力值' }}</view
-			>
-		</view>
-	</view>
+  <view class="page">
+    <image class="page-bg" :src="assets['question-bg']" mode="scaleToFill" />
+    <view class="page-header"><zcyltzj-header theme="dark" @back="back" /></view>
+    <view class="question-heading" v-if="current">
+      <view class="question-meta"><text>{{ record.pointName || '场景答题' }}</text><text>{{ currentIndex + 1 }} / {{ questions.length }}</text></view>
+      <view class="progress-track"><view class="progress-fill" :style="{ width: progressPercent + '%' }" /></view>
+      <text class="question-theme">{{ record.theme || '请按真实感受作答' }}</text>
+    </view>
+    <scroll-view scroll-y class="question-area" :scroll-top="panelScrollTop" @scroll="onPanelScroll">
+      <view class="question-inner">
+      <view class="question-copy" v-if="current">
+        <text class="question-number">第 {{ currentIndex + 1 }} 题</text>
+        <text class="question-content">{{ current.content }}</text>
+        <view class="options">
+          <view v-for="key in optionKeys" :key="key" class="option" :class="{ selected: answers[current.questionNo] === key }" @click="choose(key)">
+            <text class="option-key">{{ key }}</text><text class="option-text">{{ current['option' + key] }}</text>
+          </view>
+        </view>
+      </view>
+      <text v-else class="empty-text">{{ loading ? '题目加载中…' : loadError || '暂无题目，请重新进入游戏' }}</text>
+      </view>
+    </scroll-view>
+    <view class="answer-summary"><text>已完成 {{ answeredCount }} / {{ questions.length }} 题</text><text v-if="currentIndex > 0" class="previous" @click="prev">上一题</text></view>
+    <view v-if="loadError" class="load-message"><text>{{ loadError }}</text><text v-if="recordId" class="retry" @click="load">重新加载</text></view>
+    <view v-if="current" class="gold-action" :class="{ disabled: submitting || (isLast ? answeredCount < questions.length : !currentAnswer) }" @click="isLast ? submit() : next()">
+      <text class="action-label">{{ submitting ? '提交中…' : isLast ? '提交并生成压力值' : '下一题' }}</text>
+    </view>
+  </view>
 </template>
 
 <script>
 	import { getRecord, submitAnswers, userMessage } from '@/api/zcyltzj'
 	import ZcyltzjHeader from '@/components/ZcyltzjHeader.vue'
+	import { ZCYLTZJ_ASSETS } from '@/config/zcyltzj-assets'
 
 	export default {
 		components: { ZcyltzjHeader },
 		data: () => ({
+			assets: ZCYLTZJ_ASSETS,
 			recordId: '',
 			instanceId: '',
 			gameId: '',
@@ -73,8 +49,15 @@
 			currentIndex: 0,
 			submitting: false,
 			loading: true,
-			advanceTimer: null
+			loadError: '',
+			advanceTimer: null,
+			panelScrollTop: 0
 		}),
+		watch: {
+			currentIndex() {
+				this.$nextTick(() => { this.panelScrollTop = 0 })
+			}
+		},
 		computed: {
 			current() {
 				return this.questions[this.currentIndex] || null
@@ -98,6 +81,8 @@
 			this.instanceId = options.instanceId || options.activityId || ''
 			this.gameId = options.gameId || ''
 			if (!this.recordId) {
+				this.loading = false
+				this.loadError = '缺少游戏记录，请重新扫码进入'
 				uni.showToast({ title: '缺少游戏记录，请重新扫码进入', icon: 'none' })
 				return
 			}
@@ -107,8 +92,12 @@
 			if (this.advanceTimer) clearTimeout(this.advanceTimer)
 		},
 		methods: {
+			onPanelScroll(event) {
+				this.panelScrollTop = event.detail.scrollTop
+			},
 			async load() {
 				this.loading = true
+				this.loadError = ''
 				try {
 					const res = await getRecord(this.recordId, { instanceId: this.instanceId, gameId: this.gameId })
 					const data = res.data || {}
@@ -130,7 +119,8 @@
 					})
 					this.answers = saved
 				} catch (e) {
-					uni.showToast({ title: userMessage(e, '题目加载失败，请稍后重试'), icon: 'none' })
+					this.loadError = userMessage(e, '题目加载失败，请稍后重试')
+					uni.showToast({ title: this.loadError, icon: 'none' })
 				} finally {
 					this.loading = false
 				}
@@ -204,222 +194,34 @@
 </script>
 
 <style scoped>
-	.page {
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-		background: linear-gradient(170deg, #171a34 0%, #251c46 60%, #35215a 100%);
-	}
 
-	.top-bar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding-left: 24rpx;
-		padding-right: 24rpx;
-		padding-bottom: 12rpx;
-		color: #ffffff;
-	}
+.page { position: relative; height: 100vh; min-height: 1440rpx; width: 100%; background: #fff4d8; color: #8e541c; }
+.page-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.page-header { position: absolute; z-index: 3; left: 0; top: 0; width: 100%; }
+.gold-action { position: absolute; z-index: 2; left: 5.2%; width: 91.5%; top: 89.5%; height: 6%; display: flex; align-items: center; justify-content: center; color: #8b4e14; font-size: 30rpx; font-weight: 600; }
+.gold-action.disabled { opacity: .65; }
+.action-art { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.action-label { position: relative; z-index: 1; }
+.load-message { position: absolute; z-index: 2; left: 10%; right: 10%; top: 82%; font-size: 24rpx; line-height: 1.5; text-align: center; }
+.retry { margin-left: 16rpx; text-decoration: underline; }
 
-	.back,
-	.back-placeholder {
-		width: 72rpx;
-		height: 72rpx;
-		line-height: 64rpx;
-		font-size: 56rpx;
-		text-align: center;
-	}
+.question-heading { position: absolute; left: 11%; top: 23%; width: 78%; }
+.question-area { position: absolute; left: 11%; top: 35%; width: 78%; height: 33.5%; overflow-y: auto; }
+.question-inner { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.question-copy { flex-shrink: 0; width: 100%; padding: 20rpx 12rpx; box-sizing: border-box; }
+.question-meta { display: flex; align-items: center; justify-content: space-between; font-size: 24rpx; font-weight: 600; gap: 20rpx; }
+.progress-track { margin: 18rpx 0; height: 8rpx; background: rgba(255,255,255,.6); border-radius: 20rpx; overflow: hidden; }
+.progress-fill { height: 100%; background: #bc7c27; border-radius: 20rpx; transition: width .2s; }
+.question-theme { display: block; font-size: 23rpx; line-height: 1.5; opacity: .8; }
+.question-number { display: block; font-size: 25rpx; margin-bottom: 12rpx; }
+.question-content { display: block; font-size: 30rpx; line-height: 1.5; font-weight: 600; white-space: pre-wrap; }
+.options { padding: 16rpx 0 0; }
+.option { display: flex; align-items: flex-start; padding: 9rpx 16rpx; margin-bottom: 4rpx; border: 2rpx solid transparent; border-radius: 16rpx; font-size: 24rpx; line-height: 1.35; }
+.option.selected { border-color: #be7d24; background: rgba(255,255,255,.5); }
+.option-key { flex-shrink: 0; width: 32rpx; margin-right: 12rpx; font-weight: 700; }
+.option-text { flex: 1; white-space: pre-wrap; }
+.answer-summary { position: absolute; left: 11%; top: 74%; width: 78%; height: 6%; display: flex; align-items: center; justify-content: space-between; font-size: 26rpx; }
+.previous { padding: 18rpx 0 18rpx 24rpx; text-decoration: underline; }
+.empty-text { display: block; padding: 36rpx 12rpx; font-size: 28rpx; line-height: 1.6; }
 
-	.top-title {
-		font-size: 30rpx;
-		letter-spacing: 2rpx;
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.progress-wrap {
-		padding: 8rpx 40rpx 0;
-	}
-
-	.progress-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 12rpx;
-	}
-
-	.progress-theme {
-		font-size: 22rpx;
-		color: rgba(255, 255, 255, 0.5);
-	}
-
-	.progress-count {
-		font-size: 24rpx;
-		color: #ffd166;
-		font-weight: 600;
-	}
-
-	.progress-track {
-		height: 10rpx;
-		border-radius: 999rpx;
-		background: rgba(255, 255, 255, 0.12);
-		overflow: hidden;
-	}
-
-	.progress-fill {
-		height: 100%;
-		border-radius: 999rpx;
-		background: linear-gradient(90deg, #ffd166, #ffb020);
-		transition: width 0.28s ease;
-	}
-
-	.body {
-		flex: 1;
-		padding: 0 40rpx;
-		box-sizing: border-box;
-	}
-
-	.body-inner {
-		min-height: 100%;
-		padding: 32rpx 0;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.question-card {
-		width: 100%;
-		padding: 40rpx 36rpx 32rpx;
-		border-radius: 32rpx;
-		background: rgba(255, 255, 255, 0.07);
-		border: 1rpx solid rgba(255, 255, 255, 0.09);
-		box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.22);
-		animation: question-in 0.26s ease;
-	}
-
-	@keyframes question-in {
-		0% { opacity: 0; transform: translateX(36rpx); }
-		100% { opacity: 1; transform: translateX(0); }
-	}
-
-	.question-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.question-no {
-		font-size: 22rpx;
-		letter-spacing: 4rpx;
-		color: #ffd166;
-	}
-
-	.answered-badge {
-		padding: 2rpx 14rpx;
-		border-radius: 999rpx;
-		font-size: 18rpx;
-		color: #7ee89a;
-		background: rgba(76, 217, 100, 0.12);
-		border: 1rpx solid rgba(76, 217, 100, 0.3);
-	}
-
-	.question-content {
-		display: block;
-		margin-top: 18rpx;
-		font-size: 34rpx;
-		line-height: 1.55;
-		font-weight: 600;
-		color: #ffffff;
-	}
-
-	.options {
-		margin-top: 32rpx;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.option {
-		display: flex;
-		align-items: center;
-		padding: 22rpx 24rpx;
-		margin-bottom: 16rpx;
-		border-radius: 20rpx;
-		background: rgba(255, 255, 255, 0.05);
-		border: 1rpx solid rgba(255, 255, 255, 0.09);
-		transition: background 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
-	}
-
-	.option.selected {
-		background: rgba(255, 209, 102, 0.18);
-		border-color: rgba(255, 209, 102, 0.85);
-		transform: scale(1.01);
-	}
-
-	.option-key {
-		width: 46rpx;
-		height: 46rpx;
-		line-height: 46rpx;
-		margin-right: 18rpx;
-		flex-shrink: 0;
-		border-radius: 50%;
-		text-align: center;
-		font-size: 24rpx;
-		color: rgba(255, 255, 255, 0.7);
-		background: rgba(255, 255, 255, 0.1);
-	}
-
-	.option.selected .option-key {
-		color: #2b2150;
-		background: #ffd166;
-		font-weight: 700;
-	}
-
-	.option-text {
-		flex: 1;
-		font-size: 28rpx;
-		line-height: 1.5;
-		color: rgba(255, 255, 255, 0.86);
-	}
-
-	.option.selected .option-text {
-		color: #ffffff;
-	}
-
-	.footer {
-		display: flex;
-		padding: 18rpx 40rpx calc(26rpx + env(safe-area-inset-bottom));
-	}
-
-	.ghost-button {
-		width: 200rpx;
-		height: 96rpx;
-		line-height: 96rpx;
-		margin-right: 20rpx;
-		text-align: center;
-		border-radius: 999rpx;
-		font-size: 28rpx;
-		color: rgba(255, 255, 255, 0.8);
-		background: rgba(255, 255, 255, 0.08);
-		border: 1rpx solid rgba(255, 255, 255, 0.16);
-	}
-
-	.primary-button {
-		flex: 1;
-		height: 96rpx;
-		line-height: 96rpx;
-		text-align: center;
-		border-radius: 999rpx;
-		font-size: 30rpx;
-		font-weight: 600;
-		letter-spacing: 4rpx;
-		color: #2a1d12;
-		background: linear-gradient(135deg, #ffe08a 0%, #ffc23d 100%);
-		box-shadow: 0 14rpx 28rpx rgba(255, 190, 61, 0.25);
-		transition: opacity 0.15s ease;
-	}
-
-	.primary-button.disabled {
-		opacity: 0.45;
-		box-shadow: none;
-	}
 </style>
