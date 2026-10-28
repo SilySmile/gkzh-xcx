@@ -7,23 +7,25 @@
 		<image class="report-card" :src="assets.reportCard" mode="scaleToFill" />
 
 		<scroll-view scroll-y class="card-scroll">
-			<block v-if="result.resultType === 'top2'">
-				<view v-for="(dim, index) in tops" :key="index" class="dim-block">
-					<view class="dim-head">
-						<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
-						<text class="dim-name">{{ dim.name }}</text>
+			<view class="card-inner">
+				<block v-if="result.resultType === 'top2'">
+					<view v-for="(dim, index) in tops" :key="index" class="dim-block">
+						<view class="dim-head">
+							<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
+							<text class="dim-name">{{ dim.name }}</text>
+						</view>
+						<text class="dim-summary">{{ dim.summary }}</text>
+						<text class="dim-career">{{ dim.careerReference }}</text>
 					</view>
-					<text class="dim-summary">{{ dim.summary }}</text>
-					<text class="dim-career">{{ dim.careerReference }}</text>
-				</view>
-			</block>
-			<block v-else>
-				<view class="dim-head open-head">
-					<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
-					<text class="dim-name">多元开放型</text>
-				</view>
-				<text class="open-text">{{ result.openText }}</text>
-			</block>
+				</block>
+				<block v-else>
+					<view class="dim-head open-head">
+						<image class="dim-plate" :src="assets.dimPlate" mode="scaleToFill" />
+						<text class="dim-name">多元开放型</text>
+					</view>
+					<text class="open-text">{{ result.openText }}</text>
+				</block>
+			</view>
 		</scroll-view>
 
 		<view class="save-wrap" :class="{ disabled: saving, pressed: buttonPressed }"
@@ -295,15 +297,23 @@
 	.card-scroll {
 		position: absolute;
 		z-index: 2;
-		left: 8.5%;
-		top: 21.5%;
-		width: 83%;
-		height: 55%;
+		left: 11%;
+		top: 21%;
+		width: 78%;
+		height: 55.5%;
+		box-sizing: border-box;
+	}
+
+	.card-inner {
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
 		box-sizing: border-box;
 	}
 
 	.dim-block {
-		margin-bottom: 30rpx;
+		margin-bottom: 24rpx;
 	}
 
 	.dim-head {
@@ -341,8 +351,8 @@
 	.dim-summary {
 		display: block;
 		color: #33475c;
-		font-size: 25rpx;
-		line-height: 1.75;
+		font-size: 24rpx;
+		line-height: 1.7;
 		text-align: justify;
 		margin-bottom: 8rpx;
 	}
@@ -350,15 +360,15 @@
 	.dim-career {
 		display: block;
 		color: #5a6b7d;
-		font-size: 23rpx;
-		line-height: 1.7;
+		font-size: 22rpx;
+		line-height: 1.65;
 		text-align: justify;
 	}
 
 	.open-text {
 		display: block;
 		color: #33475c;
-		font-size: 25rpx;
+		font-size: 24rpx;
 		line-height: 1.9;
 		text-align: justify;
 	}
