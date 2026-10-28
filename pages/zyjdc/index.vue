@@ -52,7 +52,7 @@
 			<view class="modal">
 				<view class="modal-title">对弈规则</view>
 				<scroll-view scroll-y class="modal-body">
-					<view class="modal-rule">1. 8 种动物等级：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠；老鼠可以吃大象，大象不能吃老鼠。</view>
+					<view class="modal-rule">1. 7×9 棋盘，双方各 8 枚完整动物棋子（象、狮、虎、豹、狼、狐、猫、鼠各 1 枚），等级从高到低；老鼠可以吃大象，大象不能吃老鼠。</view>
 					<view class="modal-rule">2. 每次只能上下左右移动一格；目标为空地可移动，目标为敌方棋子时，攻击方等级不低于对方即可吃掉，同级可吃。</view>
 					<view class="modal-rule">3. 3 分钟内吃光对方即获胜；时间到时比较双方剩余最高等级棋子，等级高者胜；等级相同再比剩余数量，仍相同为平局。</view>
 					<view class="modal-rule">4. 轮到一方时若没有任何合法走法，该方判负。失败或平局可以重新挑战，通关后结果只读。</view>
@@ -98,9 +98,12 @@
 		computed: {
 			cells() {
 				const rows = []
-				for (let r = 0; r < 4; r++) {
-					for (let c = 0; c < 4; c++) {
-						const token = (this.board[r] && this.board[r][c]) || null
+				const board = this.board || []
+				const rowCount = board.length
+				const colCount = rowCount ? board[0].length : 0
+				for (let r = 0; r < rowCount; r++) {
+					for (let c = 0; c < colCount; c++) {
+						const token = (board[r] && board[r][c]) || null
 						const code = token ? token.split(':')[1] : ''
 						const side = token ? token.split(':')[0] : ''
 						const meta = code ? (this.pieceMeta[code] || {}) : {}
@@ -467,8 +470,9 @@
 	.board {
 		display: flex;
 		flex-wrap: wrap;
-		width: 648rpx;
+		width: 622rpx;
 		padding: 10rpx;
+		box-sizing: border-box;
 		border-radius: 24rpx;
 		background: #071426;
 		box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.35), inset 0 0 0 2rpx rgba(243, 201, 107, 0.18);
@@ -476,10 +480,10 @@
 
 	.cell {
 		position: relative;
-		width: 150rpx;
-		height: 150rpx;
+		width: 80rpx;
+		height: 80rpx;
 		margin: 3rpx;
-		border-radius: 14rpx;
+		border-radius: 10rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -513,14 +517,14 @@
 
 	.piece {
 		position: relative;
-		width: 118rpx;
-		height: 118rpx;
+		width: 64rpx;
+		height: 64rpx;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		background: rgba(255, 255, 255, 0.82);
-		border: 5rpx solid #2f7fd0;
+		border: 3rpx solid #2f7fd0;
 		box-shadow: 0 6rpx 14rpx rgba(0, 0, 0, 0.24);
 		transition: transform 0.12s ease, border-color 0.12s ease;
 	}
@@ -536,25 +540,25 @@
 	}
 
 	.piece-img {
-		width: 94rpx;
-		height: 94rpx;
+		width: 54rpx;
+		height: 54rpx;
 	}
 
 	.piece-fallback {
-		font-size: 22rpx;
+		font-size: 18rpx;
 		color: #0a2038;
 		font-weight: 600;
 	}
 
 	.rank {
 		position: absolute;
-		right: -6rpx;
-		bottom: -6rpx;
-		width: 34rpx;
-		height: 34rpx;
-		line-height: 34rpx;
+		right: -4rpx;
+		bottom: -4rpx;
+		width: 22rpx;
+		height: 22rpx;
+		line-height: 22rpx;
 		text-align: center;
-		font-size: 19rpx;
+		font-size: 14rpx;
 		font-weight: 700;
 		color: #0a2038;
 		background: #f3c96b;
@@ -564,19 +568,19 @@
 
 	.target-dot {
 		position: absolute;
-		width: 34rpx;
-		height: 34rpx;
+		width: 22rpx;
+		height: 22rpx;
 		border-radius: 50%;
 		background: rgba(243, 201, 107, 0.85);
-		box-shadow: 0 0 16rpx rgba(243, 201, 107, 0.65);
+		box-shadow: 0 0 12rpx rgba(243, 201, 107, 0.65);
 	}
 
 	.target-dot.capture {
-		width: 54rpx;
-		height: 54rpx;
+		width: 36rpx;
+		height: 36rpx;
 		background: transparent;
-		border: 5rpx solid #ff7b7b;
-		box-shadow: 0 0 16rpx rgba(255, 123, 123, 0.7);
+		border: 4rpx solid #ff7b7b;
+		box-shadow: 0 0 12rpx rgba(255, 123, 123, 0.7);
 	}
 
 	.bottom-panel {

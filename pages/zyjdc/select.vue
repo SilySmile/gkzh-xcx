@@ -5,7 +5,7 @@
 		<scroll-view scroll-y class="content">
 			<view class="intro">
 				<text class="intro-title">你更像哪一种职场动物？</text>
-				<text class="intro-desc">选择不代表固定标签，只代表你此刻更认同的职场姿态。选定后会先看到角色档案，再进入 4×4 对弈。</text>
+				<text class="intro-desc">选择不代表固定标签，只代表你此刻更认同的职场姿态。选定后会先看到角色档案，再进入 7×9 斗兽棋对弈。</text>
 			</view>
 
 			<view v-if="loading" class="state-box">正在加载角色…</view>
