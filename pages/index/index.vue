@@ -94,6 +94,7 @@
 	import { enterRecord, userMessage } from '@/api/zycck';
 	import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj'
 	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
+	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
 
 	// 微信SDK导入 - 仅在H5环境下使用
 
@@ -432,7 +433,7 @@
 			async handleScanResult(result) {
 				// 新活动二维码：直接按 URL 跳转
 				// 游戏二维码以 GKZH_MP: 小程序文本码保存，微信相机不会把它当成网页 URL 打开。
-				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1)) {
+				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1)) {
 					const query = this.parseScanQuery(result)
 					const params = Object.keys(query).map(k => k + '=' + encodeURIComponent(query[k])).join('&')
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
@@ -440,6 +441,7 @@
 					const isZycck = result.indexOf('/pages/zycck/start') > -1 || query.gameType === 'zycck'
 					const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || query.gameType === 'zcyltzj'
 					const isZyjdc = result.indexOf('/pages/zyjdc/start') > -1 || query.gameType === 'zyjdc'
+					const isNlld = result.indexOf('/pages/nlld/start') > -1 || query.gameType === 'nlld'
 					if (isZcyltzj) {
 						// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
 						if (!query.instanceId || !query.gameId) {
@@ -482,6 +484,28 @@
 							})
 						} catch (e) {
 							uni.showToast({ title: zyjdcMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+						}
+						return
+					}
+					if (isNlld) {
+						if (!query.instanceId || !query.gameId) {
+							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+							return
+						}
+						try {
+							const entered = await enterNlld({
+								instanceId: query.instanceId,
+								gameId: query.gameId,
+								gameType: 'nlld',
+								schoolId: uni.getStorageSync('schoolId')
+							})
+							const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+							if (!recordId) throw new Error('记录创建失败')
+							uni.redirectTo({
+								url: `/pages/nlld/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}`
+							})
+						} catch (e) {
+							uni.showToast({ title: nlldMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 						}
 						return
 					}

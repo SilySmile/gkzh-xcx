@@ -50,6 +50,7 @@ import { getReport as getSszctopReport } from '@/api/sszctop.js'
 import { enterRecord, userMessage } from '@/api/zycck.js'
 import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj.js'
 import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc.js'
+import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
 import { reportArchiveUrl } from '@/utils/report-download.js'
@@ -110,7 +111,8 @@ export default {
 				'survey': '问卷调查',
 				'zycck': '未来职业猜猜看',
 				'zcyltzj': '职场压力·骰子局',
-				'zyjdc': '职业角斗场'
+				'zyjdc': '职业角斗场',
+				'nlld': '能量雷达'
 			}
 			return map[type] || type
 		},
@@ -216,6 +218,25 @@ export default {
 					})
 				} catch (e) {
 					uni.showToast({ title: zyjdcMessage(e, '对局结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'nlld') {
+				try {
+					// 能量雷达按活动实例和游戏编号幂等取回本人记录，再打开结果页。
+					const entered = await enterNlld({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'nlld',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/nlld/report?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: nlldMessage(e, '测评结果加载失败，请重试'), icon: 'none' })
 				}
 				return
 			}

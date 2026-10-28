@@ -230,6 +230,7 @@
 	} from '@/api/activity/week'
 	import config from '@/config/api.js'
 	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
+	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
 	import {
 		checkLottery
 	} from '@/api/lottery.js'
@@ -547,7 +548,25 @@
 					}
 					return
 				}
-				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc') {
+				if (task.isFinish && task.type === 'nlld') {
+					try {
+						const entered = await enterNlld({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'nlld',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/nlld/report?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: nlldMessage(e, '测评结果加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld') {
 					try {
 						// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 						await enterWeekGame(task.id, this.instanceId)
@@ -626,6 +645,9 @@
 
 					case 'zyjdc':
 						url = '/pages/zyjdc/start'
+						break
+					case 'nlld':
+						url = '/pages/nlld/start'
 						break
 					default:
 

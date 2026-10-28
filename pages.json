@@ -155,6 +155,9 @@
 		{"path":"pages/zyjdc/role","style":{"navigationBarTitleText":"角色档案","navigationStyle":"custom"}},
 		{"path":"pages/zyjdc/index","style":{"navigationBarTitleText":"职业角斗场","navigationStyle":"custom"}},
 		{"path":"pages/zyjdc/result","style":{"navigationBarTitleText":"对局结果","navigationStyle":"custom"}},
+		{"path":"pages/nlld/start","style":{"navigationBarTitleText":"能量雷达","navigationStyle":"custom"}},
+		{"path":"pages/nlld/index","style":{"navigationBarTitleText":"海岛探索任务","navigationStyle":"custom"}},
+		{"path":"pages/nlld/report","style":{"navigationBarTitleText":"我的职业能量雷达","navigationStyle":"custom"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {
