@@ -200,7 +200,8 @@
 		color: #3b3226;
 		font-size: 25rpx;
 		line-height: 1.9;
-		text-align: center;
+		text-align: justify;
+		text-align-last: left;
 	}
 
 	.start-wrap {
