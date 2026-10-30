@@ -281,8 +281,8 @@
 		margin-bottom: 14rpx;
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		padding: 0 56rpx;
+		justify-content: flex-start;
+		padding: 0 80rpx 0 40rpx;
 		box-sizing: border-box;
 		border-radius: 16rpx;
 	}
@@ -298,9 +298,10 @@
 	.option-text {
 		position: relative;
 		z-index: 1;
+		flex: 1;
 		color: #1f3d5c;
 		font-size: 28rpx;
-		text-align: center;
+		text-align: left;
 		line-height: 1.3;
 	}
 
