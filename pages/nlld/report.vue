@@ -164,35 +164,60 @@
 
 				const left = 80
 				const contentWidth = 590
-				let y = cardTop + 190
+				// 卡片内安全区：上方避开徽章，下方避开海浪装饰。
+				const contentTop = cardTop + 170
+				const contentBottom = cardTop + cardHeight - 110
+				const availableHeight = contentBottom - contentTop
+				const paragraphHeight = (text, fontSize, lineHeight) =>
+					this.wrap(text, fontSize, contentWidth).length * lineHeight
+
+				const blocks = []
 				if (this.result.resultType === 'top2') {
-					for (let index = 0; index < this.tops.length; index++) {
-						const dim = this.tops[index]
+					this.tops.forEach(dim => {
 						const plateWidth = 150
 						const plateHeight = plateWidth * plate.height / plate.width
-						ctx.drawImage(plate.path, left, y, plateWidth, plateHeight)
-						ctx.setFontSize(26)
-						ctx.setFillStyle('#5a3a10')
-						ctx.setTextAlign('center')
-						ctx.fillText(dim.name || '', left + plateWidth / 2, y + plateHeight * 0.63)
-						ctx.setTextAlign('left')
-						y += plateHeight + 18
-						y = this.drawParagraph(ctx, dim.summary, left, y + 22, contentWidth, 22, 32, '#33475c')
-						y = this.drawParagraph(ctx, dim.careerReference, left, y + 10, contentWidth, 20, 28, '#5a6b7d')
-						y += 30
-					}
+						blocks.push({
+							dim,
+							plateWidth,
+							plateHeight,
+							height: plateHeight + 18 + 22
+								+ paragraphHeight(dim.summary, 22, 32) + 10
+								+ paragraphHeight(dim.careerReference, 20, 28) + 30
+						})
+					})
 				} else {
 					const plateWidth = 190
 					const plateHeight = plateWidth * plate.height / plate.width
-					ctx.drawImage(plate.path, left, y, plateWidth, plateHeight)
+					blocks.push({
+						openText: this.result.openText,
+						plateWidth,
+						plateHeight,
+						height: plateHeight + 30 + paragraphHeight(this.result.openText, 22, 34)
+					})
+				}
+
+				// 先算出内容总高度，再在卡片内垂直居中。
+				const totalHeight = blocks.reduce((sum, block) => sum + block.height, 0)
+				let y = contentTop + Math.max(0, (availableHeight - totalHeight) / 2)
+				blocks.forEach(block => {
+					ctx.drawImage(plate.path, left, y, block.plateWidth, block.plateHeight)
 					ctx.setFontSize(26)
 					ctx.setFillStyle('#5a3a10')
 					ctx.setTextAlign('center')
-					ctx.fillText('多元开放型', left + plateWidth / 2, y + plateHeight * 0.63)
+					ctx.fillText(block.dim ? (block.dim.name || '') : '多元开放型',
+						left + block.plateWidth / 2, y + block.plateHeight * 0.63)
 					ctx.setTextAlign('left')
-					y += plateHeight + 30
-					this.drawParagraph(ctx, this.result.openText, left, y, contentWidth, 22, 34, '#33475c')
-				}
+					y += block.plateHeight
+					if (block.dim) {
+						y += 18
+						y = this.drawParagraph(ctx, block.dim.summary, left, y + 22, contentWidth, 22, 32, '#33475c')
+						y = this.drawParagraph(ctx, block.dim.careerReference, left, y + 10, contentWidth, 20, 28, '#5a6b7d')
+						y += 30
+					} else {
+						y += 30
+						y = this.drawParagraph(ctx, block.openText, left, y, contentWidth, 22, 34, '#33475c')
+					}
+				})
 
 				ctx.setFontSize(22)
 				ctx.setFillStyle('rgba(255,255,255,0.92)')
