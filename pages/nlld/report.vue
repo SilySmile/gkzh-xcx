@@ -61,7 +61,8 @@
 			bizType: '',
 			loading: true,
 			saving: false,
-			buttonPressed: false
+			buttonPressed: false,
+			posterTempPath: ''
 		}),
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''
@@ -241,6 +242,26 @@
 					})
 				})
 			},
+			/** 隐私协议不支持直接写入相册时，改为预览图片让用户长按保存。 */
+			previewPoster() {
+				if (!this.posterTempPath) {
+					uni.showToast({ title: '图片生成失败，请重新保存', icon: 'none' })
+					return
+				}
+				uni.showModal({
+					title: '保存截图',
+					content: '当前小程序未声明相册写入权限，已为你打开图片预览，长按图片选择“保存图片”即可保存到相册。',
+					showCancel: false,
+					confirmText: '查看图片',
+					success: () => {
+						uni.previewImage({
+							urls: [this.posterTempPath],
+							current: this.posterTempPath,
+							fail: () => uni.showToast({ title: '图片预览失败，请稍后重试', icon: 'none' })
+						})
+					}
+				})
+			},
 			savePoster() {
 				if (this.saving || !this.result || !this.result.resultType) return
 				this.saving = true
@@ -249,13 +270,16 @@
 				this.ensureAlbumAuth()
 					.then(() => this.drawPoster())
 					.then(() => this.exportPoster())
-					.then(res => new Promise((resolve, reject) => {
-						uni.saveImageToPhotosAlbum({
-							filePath: res.tempFilePath,
-							success: resolve,
-							fail: reject
+					.then(res => {
+						this.posterTempPath = res.tempFilePath
+						return new Promise((resolve, reject) => {
+							uni.saveImageToPhotosAlbum({
+								filePath: res.tempFilePath,
+								success: resolve,
+								fail: reject
+							})
 						})
-					}))
+					})
 					.then(() => {
 						uni.hideLoading()
 						uni.showToast({ title: '已保存到相册', icon: 'success' })
@@ -265,6 +289,11 @@
 						const message = (error && (error.errMsg || error.message)) || ''
 						console.error('[nlld] 保存截图失败', message, error)
 						if (/cancel/i.test(message)) {
+							return
+						}
+						// 隐私协议未声明相册写入时，直接保存会被微信拒绝；改为预览后长按保存。
+						if (/privacy agreement|api scope is not declared|errno.*112/i.test(message)) {
+							this.previewPoster()
 							return
 						}
 						if (/auth deny|authorize|permission|privacy/i.test(message)) {
