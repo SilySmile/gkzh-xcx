@@ -197,55 +197,93 @@
 				ctx.setFillStyle('rgba(255,255,255,0.92)')
 				ctx.setTextAlign('center')
 				ctx.fillText('能量雷达 · 我的职业能量雷达', 375, 1300)
-				ctx.draw()
+				// draw 是异步渲染，必须等回调后再导出，否则拿到空画布。
+				await new Promise((resolve, reject) => {
+					try {
+						ctx.draw(false, () => setTimeout(resolve, 120))
+					} catch (e) {
+						reject(e)
+					}
+				})
+			},
+			/** 导出画布；首次失败时等一帧重试，兼容部分基础库绘制延迟。 */
+			exportPoster() {
+				const exportOnce = () => new Promise((resolve, reject) => {
+					uni.canvasToTempFilePath({
+						canvasId: 'nlldPoster',
+						x: 0,
+						y: 0,
+						width: 750,
+						height: 1334,
+						destWidth: 750,
+						destHeight: 1334,
+						fileType: 'jpg',
+						quality: 0.92,
+						success: resolve,
+						fail: reject
+					}, this)
+				})
+				return exportOnce().catch(() => new Promise(resolve => setTimeout(resolve, 300)).then(exportOnce))
+			},
+			/** 相册权限被明确拒绝时先引导去设置，避免反复保存失败。 */
+			ensureAlbumAuth() {
+				return new Promise((resolve, reject) => {
+					uni.getSetting({
+						success: res => {
+							const setting = res.authSetting || {}
+							if (setting['scope.writePhotosAlbum'] === false) {
+								reject({ errMsg: 'saveImageToPhotosAlbum:fail auth deny' })
+								return
+							}
+							resolve()
+						},
+						fail: () => resolve()
+					})
+				})
 			},
 			savePoster() {
 				if (this.saving || !this.result || !this.result.resultType) return
 				this.saving = true
 				this.buttonPressed = false
 				uni.showLoading({ title: '正在生成…', mask: true })
-				this.drawPoster().then(() => {
-					return new Promise((resolve, reject) => {
-						// draw 是异步渲染，给基础库留出绘制时间再导出。
-						setTimeout(() => {
-							uni.canvasToTempFilePath({
-								canvasId: 'nlldPoster',
-								fileType: 'jpg',
-								quality: 0.9,
-								success: resolve,
-								fail: reject
-							}, this)
-						}, 300)
-					})
-				}).then(res => {
-					return new Promise((resolve, reject) => {
+				this.ensureAlbumAuth()
+					.then(() => this.drawPoster())
+					.then(() => this.exportPoster())
+					.then(res => new Promise((resolve, reject) => {
 						uni.saveImageToPhotosAlbum({
 							filePath: res.tempFilePath,
 							success: resolve,
 							fail: reject
 						})
+					}))
+					.then(() => {
+						uni.hideLoading()
+						uni.showToast({ title: '已保存到相册', icon: 'success' })
 					})
-				}).then(() => {
-					uni.hideLoading()
-					uni.showToast({ title: '已保存到相册', icon: 'success' })
-				}).catch(error => {
-					uni.hideLoading()
-					const message = (error && error.errMsg) || ''
-					if (/auth deny|authorize|permission/i.test(message)) {
-						uni.showModal({
-							title: '需要相册权限',
-							content: '保存截图需要访问相册，请在设置中开启后重试。',
-							confirmText: '去设置',
-							success: res => {
-								if (res.confirm) uni.openSetting()
-							}
-						})
-						return
-					}
-					uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' })
-				}).finally(() => {
-					this.saving = false
-				})
+					.catch(error => {
+						uni.hideLoading()
+						const message = (error && (error.errMsg || error.message)) || ''
+						console.error('[nlld] 保存截图失败', message, error)
+						if (/cancel/i.test(message)) {
+							return
+						}
+						if (/auth deny|authorize|permission|privacy/i.test(message)) {
+							uni.showModal({
+								title: '需要相册权限',
+								content: '保存截图需要访问相册，请在设置中开启后重试。',
+								confirmText: '去设置',
+								success: res => {
+									if (res.confirm) uni.openSetting()
+								}
+							})
+							return
+						}
+						// 保留具体原因，便于现场判断是画布还是相册环节失败。
+						uni.showToast({ title: '保存失败：' + message.replace(/^.*?fail:?/i, '').slice(0, 24), icon: 'none' })
+					})
+					.finally(() => {
+						this.saving = false
+					})
 			}
 		}
 	}
@@ -427,9 +465,12 @@
 
 	.poster-canvas {
 		position: fixed;
-		left: -2000rpx;
+		left: 0;
 		top: 0;
 		width: 750px;
 		height: 1334px;
+		opacity: 0.01;
+		z-index: -1;
+		pointer-events: none;
 	}
 </style>
