@@ -250,10 +250,14 @@
 				}
 				uni.showModal({
 					title: '保存截图',
-					content: '当前小程序未声明相册写入权限，已为你打开图片预览，长按图片选择“保存图片”即可保存到相册。',
-					showCancel: false,
+					content: '当前小程序未声明相册写入权限，已生成海报。点“查看图片”后长按图片选择“保存图片”即可保存到相册。',
+					showCancel: true,
+					cancelText: '取消',
 					confirmText: '查看图片',
-					success: () => {
+					success: res => {
+						if (!res.confirm) {
+							return
+						}
 						uni.previewImage({
 							urls: [this.posterTempPath],
 							current: this.posterTempPath,
@@ -494,12 +498,9 @@
 
 	.poster-canvas {
 		position: fixed;
-		left: 0;
+		left: -2000rpx;
 		top: 0;
 		width: 750px;
 		height: 1334px;
-		opacity: 0.01;
-		z-index: -1;
-		pointer-events: none;
 	}
 </style>
