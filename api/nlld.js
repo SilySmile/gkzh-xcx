@@ -64,3 +64,9 @@ export const answerRound = (recordId, roundNo, optionIds) => call({
 	method: 'POST',
 	data: { roundNo, optionIds }
 }, '关卡提交失败，请稍后重试')
+
+/** 记录首次点击保存截图；重复调用由服务端幂等处理，每场活动游戏只记一次。 */
+export const markPosterSaved = recordId => call({
+	url: `/api/nlld/records/${recordId}/poster`,
+	method: 'POST'
+}, '保存记录上报失败')

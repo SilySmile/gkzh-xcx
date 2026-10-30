@@ -44,7 +44,7 @@
 </template>
 
 <script>
-	import { getRecord, userMessage } from '@/api/nlld'
+	import { getRecord, markPosterSaved, userMessage } from '@/api/nlld'
 	import NlldHeader from '@/components/NlldHeader.vue'
 	import { NLLD_ASSETS } from '@/config/nlld-assets'
 
@@ -62,7 +62,8 @@
 			loading: true,
 			saving: false,
 			buttonPressed: false,
-			posterTempPath: ''
+			posterTempPath: '',
+			posterMarked: false
 		}),
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''
@@ -92,6 +93,7 @@
 					this.record = data
 					this.result = data.result || {}
 					this.bizType = data.bizType || ''
+					this.posterMarked = data.posterSaved === true
 					this.tops = [this.result.top1, this.result.top2].filter(Boolean)
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '测评结果加载失败，请稍后重试'), icon: 'none' })
@@ -267,6 +269,15 @@
 					})
 				})
 			},
+			/** 点击保存截图即计入统计；每场活动游戏服务端只记一次。 */
+			reportPosterSaved() {
+				if (this.posterMarked || !this.recordId) return
+				this.posterMarked = true
+				markPosterSaved(this.recordId).catch(() => {
+					// 上报失败不影响保存动作，下次点击可重试。
+					this.posterMarked = false
+				})
+			},
 			/** 隐私协议不支持直接写入相册时，改为预览图片让用户长按保存。 */
 			previewPoster() {
 				if (!this.posterTempPath) {
@@ -293,6 +304,7 @@
 			},
 			savePoster() {
 				if (this.saving || !this.result || !this.result.resultType) return
+				this.reportPosterSaved()
 				this.saving = true
 				this.buttonPressed = false
 				uni.showLoading({ title: '正在生成…', mask: true })
