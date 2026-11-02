@@ -20,15 +20,15 @@
 				<view class="rules-title">对弈规则</view>
 				<view class="rule-item">
 					<text class="rule-index">1</text>
-					<text class="rule-text">8 种动物按等级对弈：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠，老鼠可以吃大象。</text>
+					<text class="rule-text">8 种动物按等级对弈：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠，老鼠可以吃大象；双方底线中央各有一个兽穴。</text>
 				</view>
 				<view class="rule-item">
 					<text class="rule-index">2</text>
-					<text class="rule-text">7×9 棋盘，双方各 8 枚棋子（象、狮、虎、豹、狼、狐、猫、鼠各 1 枚），只能上下左右走一格；攻击方等级不低于对方即可吃掉，同级也能吃。</text>
+					<text class="rule-text">7×9 棋盘，双方各 8 枚棋子（象、狮、虎、豹、狼、狐、猫、鼠各 1 枚），只能上下左右走一格；攻击方等级不低于对方即可吃掉，同级也能吃；双方都不能进入自己的兽穴。</text>
 				</view>
 				<view class="rule-item">
 					<text class="rule-index">3</text>
-					<text class="rule-text">3 分钟内吃光对方，或时间到时剩余最高等级棋子更大者获胜；等级相同再比剩余棋子数量。胜利获得通关印戳。</text>
+					<text class="rule-text">率先踏入对方兽穴立即获胜；3 分钟内吃光对方也获胜；时间到时剩余最高等级棋子更大者获胜，等级相同再比剩余棋子数量。胜利获得通关印戳。</text>
 				</view>
 				<view class="rule-item">
 					<text class="rule-index">4</text>

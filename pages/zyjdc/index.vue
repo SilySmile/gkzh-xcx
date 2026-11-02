@@ -29,6 +29,7 @@
 		<view class="board-wrap">
 			<view class="board">
 				<view v-for="cell in cells" :key="cell.key" class="cell" :class="cellClass(cell)" @click="tapCell(cell)">
+					<view v-if="cell.den && !cell.token" class="den-mark" :class="'den-' + cell.den">穴</view>
 					<view v-if="cell.token" class="piece" :class="{ selected: isSelected(cell), ai: cell.side === 'ai' }">
 						<image v-if="cell.imageUrl" class="piece-img" :src="imageUrl(cell.imageUrl)" mode="aspectFit" />
 						<view v-else class="piece-fallback">{{ cell.name }}</view>
@@ -44,7 +45,7 @@
 			<view class="legend">
 				<text class="legend-item">老鼠吃大象</text>
 				<text class="legend-item">同级可吃</text>
-				<text class="legend-item">3 分钟</text>
+				<text class="legend-item">踏入兽穴</text>
 			</view>
 		</view>
 
@@ -52,9 +53,9 @@
 			<view class="modal">
 				<view class="modal-title">对弈规则</view>
 				<scroll-view scroll-y class="modal-body">
-					<view class="modal-rule">1. 7×9 棋盘，双方各 8 枚完整动物棋子（象、狮、虎、豹、狼、狐、猫、鼠各 1 枚），等级从高到低；老鼠可以吃大象，大象不能吃老鼠。</view>
-					<view class="modal-rule">2. 每次只能上下左右移动一格；目标为空地可移动，目标为敌方棋子时，攻击方等级不低于对方即可吃掉，同级可吃。</view>
-					<view class="modal-rule">3. 3 分钟内吃光对方即获胜；时间到时比较双方剩余最高等级棋子，等级高者胜；等级相同再比剩余数量，仍相同为平局。</view>
+					<view class="modal-rule">1. 7×9 棋盘，双方各 8 枚完整动物棋子（象、狮、虎、豹、狼、狐、猫、鼠各 1 枚），双方底线中央各有一个“兽穴”；老鼠可以吃大象，大象不能吃老鼠。</view>
+					<view class="modal-rule">2. 每次只能上下左右移动一格；目标为空地可移动，目标为敌方棋子时，攻击方等级不低于对方即可吃掉，同级可吃；双方都不能进入自己的兽穴。</view>
+					<view class="modal-rule">3. 率先踏入对方兽穴立即获胜；3 分钟内吃光对方也获胜；时间到时比较双方剩余最高等级棋子，等级高者胜；等级相同再比剩余数量，仍相同为平局。</view>
 					<view class="modal-rule">4. 轮到一方时若没有任何合法走法，该方判负。失败或平局可以重新挑战，通关后结果只读。</view>
 					<view class="modal-note">对局中查看规则不会暂停计时，请合理分配时间。</view>
 				</scroll-view>
@@ -81,6 +82,7 @@
 			recordId: '',
 			board: [],
 			pieceMeta: {},
+			dens: [],
 			turn: 'player',
 			remainingSeconds: 180,
 			legalMoves: [],
@@ -101,6 +103,11 @@
 				const board = this.board || []
 				const rowCount = board.length
 				const colCount = rowCount ? board[0].length : 0
+				// 服务端返回双方兽穴坐标，棋盘按坐标绘制“穴”字标记。
+				const denMap = {}
+				;(this.dens || []).forEach(item => {
+					denMap[item.row + '-' + item.col] = item.side
+				})
 				for (let r = 0; r < rowCount; r++) {
 					for (let c = 0; c < colCount; c++) {
 						const token = (board[r] && board[r][c]) || null
@@ -114,6 +121,7 @@
 							token,
 							code,
 							side,
+							den: denMap[r + '-' + c] || '',
 							name: meta.roleName || code || '',
 							imageUrl: meta.imageUrl || '',
 							rank: meta.rankLevel || 0
@@ -209,6 +217,7 @@
 					}
 					this.board = data.board || []
 					this.pieceMeta = data.pieceMeta || {}
+					this.dens = data.dens || []
 					this.turn = data.turn || 'player'
 					this.remainingSeconds = Number(data.remainingSeconds || 0)
 					this.legalMoves = data.legalMoves || []
@@ -233,6 +242,7 @@
 			},
 			cellClass(cell) {
 				const classes = [(cell.row + cell.col) % 2 === 0 ? 'light' : 'dark']
+				if (cell.den) classes.push('den-cell', 'den-' + cell.den)
 				if (this.isSelected(cell)) classes.push('selected-cell')
 				if (this.isTarget(cell)) classes.push('target-cell')
 				if (this.lastMove) {
@@ -271,6 +281,7 @@
 					const data = res.data || {}
 					this.board = data.board || this.board
 					this.pieceMeta = data.pieceMeta || this.pieceMeta
+					this.dens = data.dens || this.dens
 					this.turn = data.turn || 'ai'
 					this.remainingSeconds = Number(data.remainingSeconds != null ? data.remainingSeconds : this.remainingSeconds)
 					this.legalMoves = data.legalMoves || []
@@ -497,6 +508,37 @@
 
 	.cell.dark {
 		background: #163f66;
+	}
+
+	.cell.den-cell {
+		background: radial-gradient(circle at 50% 45%, rgba(243, 201, 107, 0.34), rgba(243, 201, 107, 0.08));
+		box-shadow: inset 0 0 0 3rpx rgba(243, 201, 107, 0.82);
+	}
+
+	.cell.den-ai {
+		box-shadow: inset 0 0 0 3rpx rgba(255, 123, 123, 0.86);
+	}
+
+	.cell.den-player {
+		box-shadow: inset 0 0 0 3rpx rgba(143, 211, 255, 0.86);
+	}
+
+	.den-mark {
+		position: absolute;
+		z-index: 1;
+		font-size: 30rpx;
+		font-weight: 700;
+		color: #f3c96b;
+		opacity: 0.92;
+		text-shadow: 0 0 12rpx rgba(243, 201, 107, 0.65);
+	}
+
+	.den-mark.den-ai {
+		color: #ffb4b4;
+	}
+
+	.den-mark.den-player {
+		color: #8fd3ff;
 	}
 
 	.cell.selected-cell {

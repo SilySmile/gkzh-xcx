@@ -112,6 +112,7 @@
 			},
 			resultSub() {
 				const reason = this.record.resultReason
+				if (reason === 'den') return this.isWin ? '你先一步踏入对方兽穴，赢下本局并获得通关印戳。' : '对方先一步踏入你的兽穴，本局失利，可以重新挑战。'
 				if (reason === 'capture_all') return this.isWin ? '你吃光了对方全部棋子，获得通关印戳。' : '你的棋子被对方全部吃掉，可以重新挑战。'
 				if (reason === 'no_move') return this.isWin ? '对方无子可动，你获得胜利。' : '我方无子可动，本局判负。'
 				if (reason === 'timeout') return this.isWin ? '时间到，你剩余棋子的最高等级占优，获得胜利。' : '时间到，按剩余棋子等级与数量结算。'
