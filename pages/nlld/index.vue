@@ -197,7 +197,7 @@
 		position: absolute;
 		z-index: 1;
 		left: 19%;
-		top: 3.6%;
+		top: 6.6%;
 		width: 62%;
 	}
 
@@ -205,7 +205,7 @@
 		position: absolute;
 		z-index: 1;
 		left: 18%;
-		top: 16.8%;
+		top: 19.8%;
 		width: 64%;
 		height: 5.2%;
 		display: flex;
@@ -235,7 +235,7 @@
 		position: absolute;
 		z-index: 1;
 		left: 6%;
-		top: 23.8%;
+		top: 26.8%;
 		width: 88%;
 		height: 54%;
 	}
@@ -335,7 +335,7 @@
 		position: absolute;
 		z-index: 2;
 		left: 0;
-		top: 78.4%;
+		top: 81.4%;
 		width: 100%;
 		display: flex;
 		flex-direction: column;
