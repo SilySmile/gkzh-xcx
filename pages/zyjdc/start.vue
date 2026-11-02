@@ -69,13 +69,12 @@
 			recordId: '',
 			loading: false,
 			buttonPressed: false,
-			roles: [],
-			// 首屏只展示 4 个代表角色，避免小屏拥挤。
-			heroCodes: ['elephant', 'lion', 'tiger', 'fox']
+			roles: []
 		}),
 		computed: {
+			// 展示全部 8 个动物角色；接口按后台配置顺序返回，自动排成两行。
 			heroRoles() {
-				return this.heroCodes.map(code => this.roles.find(item => item.roleCode === code)).filter(Boolean)
+				return this.roles || []
 			}
 		},
 		async onLoad(options) {
@@ -246,7 +245,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		width: 120rpx;
+		width: 140rpx;
 		margin: 0 10rpx 16rpx;
 		padding: 12rpx 0 10rpx;
 		border-radius: 20rpx;
