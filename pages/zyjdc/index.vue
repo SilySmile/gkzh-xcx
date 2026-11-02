@@ -482,26 +482,26 @@
 	.board-wrap {
 		display: flex;
 		justify-content: center;
-		margin-top: 4rpx;
+		margin-top: 10rpx;
 	}
 
 	.board {
 		display: flex;
 		flex-wrap: wrap;
-		width: 534rpx;
-		padding: 8rpx;
+		width: 622rpx;
+		padding: 10rpx;
 		box-sizing: border-box;
-		border-radius: 20rpx;
+		border-radius: 24rpx;
 		background: #071426;
 		box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.35), inset 0 0 0 2rpx rgba(243, 201, 107, 0.18);
 	}
 
 	.cell {
 		position: relative;
-		width: 68rpx;
-		height: 68rpx;
+		width: 80rpx;
+		height: 80rpx;
 		margin: 3rpx;
-		border-radius: 9rpx;
+		border-radius: 10rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -533,7 +533,7 @@
 	.den-mark {
 		position: absolute;
 		z-index: 1;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 		color: #f3c96b;
 		opacity: 0.92;
@@ -566,8 +566,8 @@
 
 	.piece {
 		position: relative;
-		width: 54rpx;
-		height: 54rpx;
+		width: 64rpx;
+		height: 64rpx;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -589,25 +589,25 @@
 	}
 
 	.piece-img {
-		width: 44rpx;
-		height: 44rpx;
+		width: 54rpx;
+		height: 54rpx;
 	}
 
 	.piece-fallback {
-		font-size: 16rpx;
+		font-size: 18rpx;
 		color: #0a2038;
 		font-weight: 600;
 	}
 
 	.rank {
 		position: absolute;
-		right: -3rpx;
-		bottom: -3rpx;
-		width: 20rpx;
-		height: 20rpx;
-		line-height: 20rpx;
+		right: -4rpx;
+		bottom: -4rpx;
+		width: 22rpx;
+		height: 22rpx;
+		line-height: 22rpx;
 		text-align: center;
-		font-size: 13rpx;
+		font-size: 14rpx;
 		font-weight: 700;
 		color: #0a2038;
 		background: #f3c96b;
@@ -617,18 +617,18 @@
 
 	.target-dot {
 		position: absolute;
-		width: 20rpx;
-		height: 20rpx;
+		width: 22rpx;
+		height: 22rpx;
 		border-radius: 50%;
 		background: rgba(243, 201, 107, 0.85);
 		box-shadow: 0 0 12rpx rgba(243, 201, 107, 0.65);
 	}
 
 	.target-dot.capture {
-		width: 32rpx;
-		height: 32rpx;
+		width: 36rpx;
+		height: 36rpx;
 		background: transparent;
-		border: 3rpx solid #ff7b7b;
+		border: 4rpx solid #ff7b7b;
 		box-shadow: 0 0 12rpx rgba(255, 123, 123, 0.7);
 	}
 
