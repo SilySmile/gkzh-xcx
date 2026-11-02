@@ -84,6 +84,7 @@
 			pieceMeta: {},
 			dens: [],
 			turn: 'player',
+			moveCount: 0,
 			remainingSeconds: 180,
 			legalMoves: [],
 			roleName: '',
@@ -219,6 +220,7 @@
 					this.pieceMeta = data.pieceMeta || {}
 					this.dens = data.dens || []
 					this.turn = data.turn || 'player'
+					this.moveCount = Number(data.moveCount || 0)
 					this.remainingSeconds = Number(data.remainingSeconds || 0)
 					this.legalMoves = data.legalMoves || []
 					this.roleName = data.roleName || ''
@@ -276,17 +278,22 @@
 						fromRow: move.fromRow,
 						fromCol: move.fromCol,
 						toRow: move.toRow,
-						toCol: move.toCol
+						toCol: move.toCol,
+						moveCount: this.moveCount
 					})
 					const data = res.data || {}
 					this.board = data.board || this.board
 					this.pieceMeta = data.pieceMeta || this.pieceMeta
 					this.dens = data.dens || this.dens
 					this.turn = data.turn || 'ai'
+					this.moveCount = Number(data.moveCount != null ? data.moveCount : this.moveCount)
 					this.remainingSeconds = Number(data.remainingSeconds != null ? data.remainingSeconds : this.remainingSeconds)
 					this.legalMoves = data.legalMoves || []
 					this.selected = null
 					this.lastMove = data.aiMove || data.playerMove || null
+					if (data.stale) {
+						uni.showToast({ title: '棋局已更新，已同步最新进度', icon: 'none' })
+					}
 					if (data.playerMove && data.playerMove.captured) {
 						this.showCapture(data.playerMove.captured)
 					}
@@ -475,26 +482,26 @@
 	.board-wrap {
 		display: flex;
 		justify-content: center;
-		margin-top: 10rpx;
+		margin-top: 4rpx;
 	}
 
 	.board {
 		display: flex;
 		flex-wrap: wrap;
-		width: 622rpx;
-		padding: 10rpx;
+		width: 534rpx;
+		padding: 8rpx;
 		box-sizing: border-box;
-		border-radius: 24rpx;
+		border-radius: 20rpx;
 		background: #071426;
 		box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, 0.35), inset 0 0 0 2rpx rgba(243, 201, 107, 0.18);
 	}
 
 	.cell {
 		position: relative;
-		width: 80rpx;
-		height: 80rpx;
+		width: 68rpx;
+		height: 68rpx;
 		margin: 3rpx;
-		border-radius: 10rpx;
+		border-radius: 9rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -526,7 +533,7 @@
 	.den-mark {
 		position: absolute;
 		z-index: 1;
-		font-size: 30rpx;
+		font-size: 26rpx;
 		font-weight: 700;
 		color: #f3c96b;
 		opacity: 0.92;
@@ -559,8 +566,8 @@
 
 	.piece {
 		position: relative;
-		width: 64rpx;
-		height: 64rpx;
+		width: 54rpx;
+		height: 54rpx;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -582,25 +589,25 @@
 	}
 
 	.piece-img {
-		width: 54rpx;
-		height: 54rpx;
+		width: 44rpx;
+		height: 44rpx;
 	}
 
 	.piece-fallback {
-		font-size: 18rpx;
+		font-size: 16rpx;
 		color: #0a2038;
 		font-weight: 600;
 	}
 
 	.rank {
 		position: absolute;
-		right: -4rpx;
-		bottom: -4rpx;
-		width: 22rpx;
-		height: 22rpx;
-		line-height: 22rpx;
+		right: -3rpx;
+		bottom: -3rpx;
+		width: 20rpx;
+		height: 20rpx;
+		line-height: 20rpx;
 		text-align: center;
-		font-size: 14rpx;
+		font-size: 13rpx;
 		font-weight: 700;
 		color: #0a2038;
 		background: #f3c96b;
@@ -610,18 +617,18 @@
 
 	.target-dot {
 		position: absolute;
-		width: 22rpx;
-		height: 22rpx;
+		width: 20rpx;
+		height: 20rpx;
 		border-radius: 50%;
 		background: rgba(243, 201, 107, 0.85);
 		box-shadow: 0 0 12rpx rgba(243, 201, 107, 0.65);
 	}
 
 	.target-dot.capture {
-		width: 36rpx;
-		height: 36rpx;
+		width: 32rpx;
+		height: 32rpx;
 		background: transparent;
-		border: 4rpx solid #ff7b7b;
+		border: 3rpx solid #ff7b7b;
 		box-shadow: 0 0 12rpx rgba(255, 123, 123, 0.7);
 	}
 
