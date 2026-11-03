@@ -186,12 +186,13 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 10rpx 40rpx 40rpx;
+		padding: 24rpx 40rpx 40rpx;
 		box-sizing: border-box;
 	}
 
 	.logo-text-wrap {
-		margin-top: 20rpx;
+		/* 作为内容区第一个元素吸收上方剩余空间，与底部按钮的 auto 一起让整页内容垂直居中 */
+		margin-top: auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -213,7 +214,7 @@
 	}
 
 	.logo-art {
-		margin-top: 10rpx;
+		margin-top: auto;
 		width: 620rpx;
 		height: 260rpx;
 	}
@@ -273,6 +274,8 @@
 
 	.start-btn {
 		margin-top: 36rpx;
+		/* 吸收下方剩余空间，与顶部 auto 平分后内容整体居中；空间不足时自动为 0，不裁切内容 */
+		margin-bottom: auto;
 		width: 460rpx;
 		height: 96rpx;
 		border-radius: 48rpx;
