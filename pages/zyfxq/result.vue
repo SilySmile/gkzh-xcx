@@ -92,16 +92,18 @@
 					</view>
 				</view>
 
-				<view class="actions">
-					<view v-if="canRestart" class="action ghost" @click="restart">
-						<text class="action-text">{{ retrying ? '正在重开…' : '重新开始一局' }}</text>
-					</view>
-					<view class="action primary" @click="backToActivity">
-						<text class="action-text light">返回活动</text>
-					</view>
-				</view>
 			</view>
 		</scroll-view>
+
+		<!-- 底部操作栏固定在页面底部，内容在其上方滚动 -->
+		<view class="actions">
+			<view v-if="canRestart" class="action ghost" @click="restart">
+				<text class="action-text">{{ retrying ? '正在重开…' : '重新开始一局' }}</text>
+			</view>
+			<view class="action primary" @click="backToActivity">
+				<text class="action-text light">返回活动</text>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -251,7 +253,7 @@
 	}
 
 	.inner {
-		padding: 16rpx 30rpx 260rpx;
+		padding: 16rpx 30rpx 40rpx;
 		box-sizing: border-box;
 	}
 
@@ -496,16 +498,23 @@
 	}
 
 	.actions {
-		margin-top: 26rpx;
+		/* 固定在页面底部：不在滚动区内，内容滚动时按钮始终可见 */
+		display: flex;
+		gap: 20rpx;
+		padding: 20rpx 30rpx;
+		padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+		padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+		background: rgba(6, 63, 124, 0.92);
+		flex-shrink: 0;
 	}
 
 	.action {
+		flex: 1;
 		height: 88rpx;
 		border-radius: 44rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-bottom: 20rpx;
 	}
 
 	.action.ghost {
