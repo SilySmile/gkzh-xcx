@@ -122,9 +122,9 @@
 
 			<view class="task-wrapper">
 
-				<!-- 左栏 -->
+				<!-- 左栏：无内容时不渲染，避免只有一个区域时卡片只占左半边 -->
 
-				<view class="task-column">
+				<view v-if="leftGroups.length" class="task-column">
 
 					<view v-for="group in leftGroups" :key="group.title">
 
@@ -158,9 +158,9 @@
 
 
 
-				<!-- 右栏 -->
+				<!-- 右栏：无内容时不渲染，单个区域时左栏自动占满整行并居中 -->
 
-				<view class="task-column">
+				<view v-if="rightGroups.length" class="task-column">
 
 					<view v-for="group in rightGroups" :key="group.title">
 
@@ -200,7 +200,8 @@
 
 
 
-			<view style="height:40rpx"></view>
+			<!-- 底部留白：保证最后一张卡片能滚动到固定版权栏上方，不被遮挡 -->
+			<view class="scroll-bottom-space"></view>
 
 		</scroll-view>
 		<!-- ========== 6. 底部版权栏 ========== -->
@@ -1275,6 +1276,8 @@
 
 		display: flex;
 
+		justify-content: center;
+
 		margin: 0 20rpx;
 
 		gap: 16rpx;
@@ -1432,17 +1435,31 @@
 
 	.footer-bar {
 
-		margin: 28rpx 20rpx 0;
+		/* 固定版权栏改为整屏宽并带不透明背景，避免下方卡片从两侧空隙或文字后面透出 */
+		margin: 0;
 
 		padding: 24rpx 0;
 
 		border-top: 1rpx solid #e8ecf0;
+		background: #ffffff;
+		box-sizing: border-box;
 		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
 		z-index: 100;
 		padding-bottom: constant(safe-area-inset-bottom);
+		padding-bottom: env(safe-area-inset-bottom);
+
+	}
+
+	/* 固定版权栏高度约 140rpx（含安全区），预留 220rpx 避免最后一张卡片被遮挡。 */
+	.scroll-bottom-space {
+
+		height: 220rpx;
+
+		padding-bottom: constant(safe-area-inset-bottom);
+
 		padding-bottom: env(safe-area-inset-bottom);
 
 	}
