@@ -1,17 +1,12 @@
 <template>
 	<view class="page">
-		<image class="page-bg" :src="assets.bgResult" mode="aspectFill" />
+		<image class="page-bg" :src="record.result === 'lose' ? assets.bgResultLose : assets.bgResultWin" mode="aspectFill" />
 		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="backToActivity">‹</view>
 		</view>
 
 		<scroll-view scroll-y class="scroll">
 			<view class="inner">
-				<image class="result-logo" :src="assets.resultLogo" mode="aspectFit" />
-				<view class="result-pill">
-					<image class="pill-art" :src="record.result === 'win' ? assets.pillWin : assets.pillLose" mode="scaleToFill" />
-					<text class="pill-text">{{ pillText }}</text>
-				</view>
 				<text class="result-sub">{{ resultSub }}</text>
 
 				<!-- 本局数据 -->
@@ -131,11 +126,6 @@
 		computed: {
 			canRestart() {
 				return this.record.status === 'finished' && this.record.result !== 'win'
-			},
-			pillText() {
-				if (this.record.result === 'win') return '恭喜你完成了本次挑战'
-				if (this.record.result === 'lose') return '时间到，本局未通关'
-				return '本局进行中'
 			},
 			resultSub() {
 				if (this.record.result === 'win') {
@@ -290,7 +280,8 @@
 	}
 
 	.inner {
-		padding: 16rpx 30rpx 40rpx;
+		/* 顶部留出设计稿里「游戏结束」logo 与药丸条的高度，内容从药丸下方开始 */
+		padding: 440rpx 30rpx 40rpx;
 		box-sizing: border-box;
 	}
 
@@ -313,42 +304,9 @@
 		color: #2b6f9e;
 	}
 
-	.result-logo {
-		display: block;
-		margin: 6rpx auto 0;
-		width: 560rpx;
-		height: 190rpx;
-	}
-
-	.result-pill {
-		position: relative;
-		margin: 18rpx auto 0;
-		width: 600rpx;
-		height: 84rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.pill-art {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-	}
-
-	.pill-text {
-		position: relative;
-		font-size: 28rpx;
-		font-weight: 600;
-		color: #ffffff;
-		letter-spacing: 1rpx;
-	}
-
 	.result-sub {
 		display: block;
-		margin: 14rpx 10rpx 20rpx;
+		margin: 0 10rpx 20rpx;
 		font-size: 23rpx;
 		line-height: 1.6;
 		color: #12507f;
