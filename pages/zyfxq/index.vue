@@ -688,8 +688,10 @@
 		position: absolute;
 		left: 4rpx;
 		top: 4rpx;
-		width: calc(100% - 8rpx);
-		height: calc(100% - 8rpx);
+		right: 4rpx;
+		bottom: 4rpx;
+		width: auto;
+		height: auto;
 		border-radius: 14rpx;
 	}
 
