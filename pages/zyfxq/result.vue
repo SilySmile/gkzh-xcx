@@ -298,7 +298,12 @@
 	}
 
 	.inner {
-		padding: 0 30rpx 260rpx;
+		/* 内容不足一屏时垂直居中，避免整体贴上方；内容超过一屏时自动恢复顶部排列并可滚动。 */
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 0 30rpx 120rpx;
 		box-sizing: border-box;
 	}
 
