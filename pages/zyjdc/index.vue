@@ -573,7 +573,7 @@
 		align-items: center;
 		justify-content: center;
 		background: rgba(255, 255, 255, 0.82);
-		border: 3rpx solid #2f7fd0;
+		border: 5rpx solid #2f7fd0;
 		box-shadow: 0 6rpx 14rpx rgba(0, 0, 0, 0.24);
 		transition: transform 0.12s ease, border-color 0.12s ease;
 	}
