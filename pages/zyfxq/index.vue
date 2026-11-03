@@ -16,9 +16,11 @@
 				<text class="player-text">当前玩家</text>
 			</view>
 			<view class="step">
-				<image class="step-art" :src="assets.badgeStep" mode="aspectFit" />
-				<text class="step-label">步数</text>
-				<text class="step-value">{{ diceValue > 0 ? diceValue : '-' }}</text>
+				<image class="step-art" :src="assets.badgeStep" mode="scaleToFill" />
+				<view class="step-inner">
+					<text class="step-label">步数</text>
+					<text class="step-value">{{ diceValue > 0 ? diceValue : '-' }}</text>
+				</view>
 			</view>
 		</view>
 
@@ -27,14 +29,18 @@
 
 			<view class="cell-slot" :style="slotStyle(startSlot)">
 				<image class="start-mask" :src="assets.cellStart" mode="scaleToFill" />
-				<view v-if="position === 0" class="token"><text class="token-icon">✈</text></view>
+				<view v-if="position === 0" class="token">
+					<image class="token-art" :src="assets.pawnToken" mode="aspectFit" />
+				</view>
 			</view>
 
 			<view v-for="cell in cells" :key="cell.cellNo" class="cell-slot" :style="slotStyle(cell)">
 				<view :class="cellClass(cell)" :style="'background-color:' + cell.cellColor">
 					<view class="cell-badge"><text class="cell-no">{{ cell.cellNo }}</text></view>
 					<text v-if="cell.cellLabel" class="cell-label">{{ cell.cellLabel }}</text>
-					<view v-if="position === cell.cellNo" class="token"><text class="token-icon">✈</text></view>
+					<view v-if="position === cell.cellNo" class="token">
+						<image class="token-art" :src="assets.pawnToken" mode="aspectFit" />
+					</view>
 				</view>
 			</view>
 
@@ -583,13 +589,8 @@
 
 	.step {
 		position: relative;
-		width: 250rpx;
-		height: 150rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding-left: 30rpx;
-		box-sizing: border-box;
+		width: 280rpx;
+		height: 156rpx;
 	}
 
 	.step-art {
@@ -600,19 +601,27 @@
 		height: 100%;
 	}
 
+	/* 文字只放在奶油色卡片范围内，右侧留给金色射线 */
+	.step-inner {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 210rpx;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
 	.step-label {
-		position: relative;
-		margin-top: 10rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 700;
 		color: #b4691a;
 	}
 
 	.step-value {
-		position: relative;
-		margin-left: 8rpx;
-		margin-top: 4rpx;
-		font-size: 58rpx;
+		margin-left: 6rpx;
+		font-size: 50rpx;
 		font-weight: 800;
 		color: #f06d1a;
 		text-shadow: 0 2rpx 0 #ffffff;
@@ -697,24 +706,16 @@
 
 	.token {
 		position: absolute;
-		right: -6rpx;
-		bottom: -6rpx;
-		width: 44rpx;
-		height: 44rpx;
-		border-radius: 50%;
-		background: #ffffff;
-		border: 4rpx solid #1677ff;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 4rpx 8rpx rgba(0, 20, 50, 0.4);
+		right: -10rpx;
+		bottom: -12rpx;
+		width: 60rpx;
+		height: 80rpx;
 		z-index: 2;
 	}
 
-	.token-icon {
-		font-size: 24rpx;
-		color: #1677ff;
-		line-height: 1;
+	.token-art {
+		width: 100%;
+		height: 100%;
 	}
 
 	.sticker-go {
@@ -788,15 +789,16 @@
 		width: 148rpx;
 		height: 148rpx;
 		border-radius: 26rpx;
-		background: linear-gradient(160deg, #ffffff 0%, #f6f9fd 55%, #e6eef8 100%);
-		border: 2rpx solid #dfe9f4;
-		box-shadow: 0 10rpx 0 #c3d5e6, 0 18rpx 24rpx rgba(0, 40, 90, 0.28);
+		background: radial-gradient(circle at 30% 24%, #ffffff 0%, #f4f8fd 45%, #dbe7f3 100%);
+		border: 2rpx solid #e2ecf6;
+		box-shadow: 0 12rpx 0 #bfd3e4, 0 22rpx 28rpx rgba(0, 40, 90, 0.28);
 		padding: 16rpx;
 		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
 		align-content: space-between;
+		transform: rotate(-6deg);
 	}
 
 	.dice.rolling {
