@@ -70,21 +70,23 @@
 
 		<view v-if="questionVisible" class="mask">
 			<view class="dialog">
-				<view class="dialog-head">
-					<text class="dialog-type">{{ question.questionTypeName }}</text>
-					<text :class="questionTimerClass">限时 {{ questionRemain > 0 ? questionRemain : 0 }} 秒</text>
-				</view>
-				<text class="dialog-title">{{ question.title }}</text>
-				<view class="options">
-					<view v-for="(opt, index) in question.options" :key="opt.label" :class="optionClass(index, opt)"
-						@click="choose(opt)">
-						<text class="opt-label">{{ opt.label }}</text>
-						<text class="opt-text">{{ opt.content }}</text>
+				<view class="dialog-inner">
+					<view class="dialog-head">
+						<text class="dialog-type">{{ question.questionTypeName }}</text>
+						<text :class="questionTimerClass">限时 {{ questionRemain > 0 ? questionRemain : 0 }} 秒</text>
 					</view>
-				</view>
-				<view v-if="feedback.show" :class="feedbackClass">
-					<text class="feedback-title">{{ feedbackTitle }}</text>
-					<text class="feedback-answer">正确答案：{{ feedback.correctLabel }}. {{ feedback.correctContent }}</text>
+					<text class="dialog-title">{{ question.title }}</text>
+					<view class="options">
+						<view v-for="(opt, index) in question.options" :key="opt.label" :class="optionClass(index, opt)"
+							@click="choose(opt)">
+							<text class="opt-label">{{ opt.label }}</text>
+							<text class="opt-text">{{ opt.content }}</text>
+						</view>
+					</view>
+					<view v-if="feedback.show" :class="feedbackClass">
+						<text class="feedback-title">{{ feedbackTitle }}</text>
+						<text class="feedback-answer">正确答案：{{ feedback.correctLabel }}. {{ feedback.correctContent }}</text>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -879,11 +881,20 @@
 	}
 
 	.dialog {
+		/* 蓝色粗边框 + 浅色内板，还原设计稿里的答题弹窗框 */
 		width: 100%;
-		max-height: 88vh;
-		padding: 30rpx 28rpx 34rpx;
-		border-radius: 28rpx;
-		background: #f7fbff;
+		padding: 10rpx;
+		border-radius: 34rpx;
+		background: linear-gradient(180deg, #79c6f2 0%, #4ea9e2 100%);
+		box-shadow: 0 16rpx 34rpx rgba(3, 30, 60, 0.34);
+		box-sizing: border-box;
+	}
+
+	.dialog-inner {
+		padding: 26rpx 24rpx 24rpx;
+		border-radius: 26rpx;
+		background: #f1f5fa;
+		border: 3rpx solid #ffffff;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
