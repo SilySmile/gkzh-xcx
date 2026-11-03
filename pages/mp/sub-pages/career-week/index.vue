@@ -122,9 +122,9 @@
 
 			<view class="task-wrapper">
 
-				<!-- 左栏：无内容时不渲染，避免只有一个区域时卡片只占左半边 -->
+				<!-- 左栏 -->
 
-				<view v-if="leftGroups.length" class="task-column">
+				<view class="task-column">
 
 					<view v-for="group in leftGroups" :key="group.title">
 
@@ -158,9 +158,9 @@
 
 
 
-				<!-- 右栏：无内容时不渲染，单个区域时左栏自动占满整行并居中 -->
+				<!-- 右栏 -->
 
-				<view v-if="rightGroups.length" class="task-column">
+				<view class="task-column">
 
 					<view v-for="group in rightGroups" :key="group.title">
 
@@ -879,12 +879,24 @@
 
 		background: #f7f7f7;
 
-		min-height: 100vh;
+		height: 100vh;
 
 		display: flex;
 
 		flex-direction: column;
-		min-height: 100vh;
+		overflow: hidden;
+
+	}
+
+	/* 中间滚动区：固定在导航栏与底部版权栏之间，内容只在中间区域内滚动，
+	   不会跑到版权栏后面，也不会把整页顶出屏幕。 */
+	.scroll-body {
+
+		flex: 1;
+
+		height: 0;
+
+		min-height: 0;
 
 	}
 
@@ -1276,8 +1288,6 @@
 
 		display: flex;
 
-		justify-content: center;
-
 		margin: 0 20rpx;
 
 		gap: 16rpx;
@@ -1435,8 +1445,8 @@
 
 	.footer-bar {
 
-		/* 固定版权栏改为整屏宽并带不透明背景，避免下方卡片从两侧空隙或文字后面透出 */
-		margin: 0;
+		/* 保留原有外边距；仅补不透明底色，避免下方卡片从版权文字后面透出 */
+		margin: 28rpx 20rpx 0;
 
 		padding: 24rpx 0;
 
