@@ -1,12 +1,15 @@
 <template>
 	<view class="page">
-		<image class="page-bg" :src="record.result === 'lose' ? assets.bgResultLose : assets.bgResultWin" mode="aspectFill" />
+		<image class="page-bg" :src="assets.bgResultSky" mode="aspectFill" />
 		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="backToActivity">‹</view>
 		</view>
 
 		<scroll-view scroll-y class="scroll">
 			<view class="inner">
+				<!-- 「游戏结束」头图随内容一起滚动，滚上去后露出天空背景 -->
+				<image class="head"
+					:src="record.result === 'lose' ? assets.headLose : assets.headWin" mode="widthFix" />
 				<text class="result-sub">{{ resultSub }}</text>
 
 				<!-- 本局数据 -->
@@ -280,9 +283,16 @@
 	}
 
 	.inner {
-		/* 顶部留出设计稿里「游戏结束」logo 与药丸条的高度，内容从药丸下方开始 */
-		padding: 440rpx 30rpx 40rpx;
+		padding: 0 30rpx 40rpx;
 		box-sizing: border-box;
+	}
+
+	/* 头图铺满整宽（抵消 .inner 的左右内边距），高度按图片比例自适应 */
+	.head {
+		display: block;
+		width: 750rpx;
+		margin-left: -30rpx;
+		margin-bottom: 6rpx;
 	}
 
 	/* 合并后的答题明细分区标题，用于区分“本局数据”与“逐题明细” */
