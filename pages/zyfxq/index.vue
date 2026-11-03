@@ -487,9 +487,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		/* 与棋盘一起作为整体在剩余空间内垂直居中（上、下各留一半），
-		   屏幕过矮时 auto 外边距自动为 0，不会把内容顶出屏幕。 */
-		margin-top: auto;
 	}
 
 	.timer {
@@ -536,8 +533,6 @@
 		z-index: 2;
 		width: 750rpx;
 		height: 875rpx;
-		/* 与顶部计时栏一起整体居中：剩余空间由上方 auto 与下方 auto 平分。 */
-		margin-bottom: auto;
 	}
 
 	.cell-slot {

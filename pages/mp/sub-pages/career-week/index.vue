@@ -200,8 +200,7 @@
 
 
 
-			<!-- 底部留白：保证最后一张卡片能滚动到固定版权栏上方，不被遮挡 -->
-			<view class="scroll-bottom-space"></view>
+			<view style="height:40rpx"></view>
 
 		</scroll-view>
 		<!-- ========== 6. 底部版权栏 ========== -->
@@ -879,24 +878,12 @@
 
 		background: #f7f7f7;
 
-		height: 100vh;
+		min-height: 100vh;
 
 		display: flex;
 
 		flex-direction: column;
-		overflow: hidden;
-
-	}
-
-	/* 中间滚动区：固定在导航栏与底部版权栏之间，内容只在中间区域内滚动，
-	   不会跑到版权栏后面，也不会把整页顶出屏幕。 */
-	.scroll-body {
-
-		flex: 1;
-
-		height: 0;
-
-		min-height: 0;
+		min-height: 100vh;
 
 	}
 
@@ -1445,31 +1432,17 @@
 
 	.footer-bar {
 
-		/* 保留原有外边距；仅补不透明底色，避免下方卡片从版权文字后面透出 */
 		margin: 28rpx 20rpx 0;
 
 		padding: 24rpx 0;
 
 		border-top: 1rpx solid #e8ecf0;
-		background: #ffffff;
-		box-sizing: border-box;
 		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
 		z-index: 100;
 		padding-bottom: constant(safe-area-inset-bottom);
-		padding-bottom: env(safe-area-inset-bottom);
-
-	}
-
-	/* 固定版权栏高度约 140rpx（含安全区），预留 220rpx 避免最后一张卡片被遮挡。 */
-	.scroll-bottom-space {
-
-		height: 220rpx;
-
-		padding-bottom: constant(safe-area-inset-bottom);
-
 		padding-bottom: env(safe-area-inset-bottom);
 
 	}

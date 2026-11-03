@@ -186,41 +186,40 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 60rpx 40rpx 40rpx;
+		padding: 10rpx 40rpx 40rpx;
 		box-sizing: border-box;
 	}
 
 	.logo-text-wrap {
-		/* 作为内容区第一个元素吸收上方剩余空间，与底部按钮的 auto 一起让整页内容垂直居中 */
-		margin-top: auto;
+		margin-top: 20rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
 	.logo-text {
-		font-size: 64rpx;
+		font-size: 76rpx;
 		font-weight: 800;
-		letter-spacing: 6rpx;
+		letter-spacing: 8rpx;
 		color: #fff6c9;
 		text-shadow: 0 8rpx 0 #f0a21c, 0 12rpx 20rpx rgba(0, 40, 90, 0.5);
 	}
 
 	.logo-sub {
-		margin-top: 12rpx;
-		font-size: 22rpx;
+		margin-top: 18rpx;
+		font-size: 24rpx;
 		letter-spacing: 2rpx;
 		color: #dff0ff;
 	}
 
 	.logo-art {
-		margin-top: auto;
+		margin-top: 10rpx;
 		width: 620rpx;
 		height: 260rpx;
 	}
 
 	.rule-card {
-		margin-top: 22rpx;
+		margin-top: 34rpx;
 		width: 100%;
 		border-radius: 28rpx;
 		padding: 8rpx;
@@ -235,9 +234,9 @@
 	}
 
 	.rule-title {
-		padding: 6rpx 34rpx;
+		padding: 8rpx 40rpx;
 		border-radius: 30rpx;
-		font-size: 28rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 		color: #fff7d6;
 		background: rgba(255, 168, 26, 0.9);
@@ -245,16 +244,16 @@
 	}
 
 	.rule-body {
-		margin-top: 16rpx;
-		padding: 18rpx 24rpx;
+		margin-top: 22rpx;
+		padding: 26rpx 28rpx;
 		border-radius: 24rpx;
 		background: rgba(6, 46, 96, 0.42);
 	}
 
 	.rule-line {
 		display: block;
-		font-size: 24rpx;
-		line-height: 1.65;
+		font-size: 25rpx;
+		line-height: 1.85;
 		color: #eaf6ff;
 		text-align: justify;
 	}
@@ -273,9 +272,7 @@
 	}
 
 	.start-btn {
-		margin-top: 28rpx;
-		/* 吸收下方剩余空间，与顶部 auto 平分后内容整体居中；空间不足时自动为 0，不裁切内容 */
-		margin-bottom: auto;
+		margin-top: 36rpx;
 		width: 460rpx;
 		height: 96rpx;
 		border-radius: 48rpx;
