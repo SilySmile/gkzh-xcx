@@ -1,8 +1,8 @@
 /**
- * 职业飞行棋远程素材（2026-11-03 版本目录，内容哈希 8b3b816ff1fa）。
+ * 职业飞行棋远程素材（2026-11-03 版本目录，内容哈希 59ef04260ca0）。
  * 素材统一放服务器按内容哈希分目录，更新素材后重新上传并替换下面的版本号即可。
  */
-const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/8b3b816ff1fa'
+const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/59ef04260ca0'
 
 export const ZYFXQ_ASSETS = {
 	// 开始页

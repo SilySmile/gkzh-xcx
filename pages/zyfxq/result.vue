@@ -292,7 +292,8 @@
 		display: block;
 		width: 750rpx;
 		margin-left: -30rpx;
-		margin-bottom: 6rpx;
+		margin-top: 6rpx;
+		margin-bottom: 10rpx;
 	}
 
 	/* 合并后的答题明细分区标题，用于区分“本局数据”与“逐题明细” */
