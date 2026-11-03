@@ -196,7 +196,8 @@
 
 <style scoped>
 	.page {
-		min-height: 100vh;
+		height: 100vh;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		background: linear-gradient(160deg, #081a30 0%, #0c2b4a 52%, #123f63 100%);
@@ -204,6 +205,8 @@
 
 	.scroll {
 		flex: 1;
+		height: 0;
+		min-height: 0;
 		padding: 0 28rpx;
 		box-sizing: border-box;
 	}
@@ -373,7 +376,7 @@
 	}
 
 	.footer-space {
-		height: 220rpx;
+		height: 360rpx;
 	}
 
 	.footer {

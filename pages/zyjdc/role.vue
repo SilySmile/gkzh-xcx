@@ -36,6 +36,9 @@
 					<view class="section-title"><text class="bar"></text>职场能力</view>
 					<text class="section-text">{{ role.careerAbility || '暂无内容' }}</text>
 				</view>
+
+				<!-- 固定底栏占位：保证最后一段内容可以滚动到按钮上方。 -->
+				<view class="footer-space"></view>
 			</template>
 		</scroll-view>
 
@@ -132,7 +135,8 @@
 
 <style scoped>
 	.page {
-		min-height: 100vh;
+		height: 100vh;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		background: linear-gradient(160deg, #081a30 0%, #0c2b4a 52%, #123f63 100%);
@@ -140,8 +144,14 @@
 
 	.content {
 		flex: 1;
-		padding: 0 28rpx 200rpx;
+		height: 0;
+		min-height: 0;
+		padding: 0 28rpx;
 		box-sizing: border-box;
+	}
+
+	.footer-space {
+		height: 280rpx;
 	}
 
 	.state-box {

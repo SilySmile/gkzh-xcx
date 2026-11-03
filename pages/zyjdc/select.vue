@@ -4,7 +4,7 @@
 
 		<scroll-view scroll-y class="content">
 			<view class="intro">
-				<text class="intro-title">你更像哪一种职场动物？</text>
+				<text class="intro-title">你更像哪一种职场角色？</text>
 				<text class="intro-desc">选择不代表固定标签，只代表你此刻更认同的职场姿态。选定后会先看到角色档案，再进入 7×9 斗兽棋对弈。</text>
 			</view>
 
@@ -25,6 +25,9 @@
 					<view v-if="selectedId === role.roleId" class="check-mark">✓</view>
 				</view>
 			</view>
+
+			<!-- 固定底栏占位：保证最后一行角色卡可以滚动到按钮上方。 -->
+			<view class="footer-space"></view>
 		</scroll-view>
 
 		<view class="footer">
@@ -141,7 +144,8 @@
 
 <style scoped>
 	.page {
-		min-height: 100vh;
+		height: 100vh;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		background: linear-gradient(160deg, #081a30 0%, #0c2b4a 52%, #123f63 100%);
@@ -149,8 +153,14 @@
 
 	.content {
 		flex: 1;
-		padding: 0 28rpx 180rpx;
+		height: 0;
+		min-height: 0;
+		padding: 0 28rpx;
 		box-sizing: border-box;
+	}
+
+	.footer-space {
+		height: 240rpx;
 	}
 
 	.intro {
