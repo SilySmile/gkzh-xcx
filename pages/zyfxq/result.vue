@@ -1,15 +1,17 @@
 <template>
 	<view class="page">
-		<view class="page-header">
-			<zyfxq-header title="本局结果" @back="backToActivity" />
+		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
+			<view class="back" @click="backToActivity">‹</view>
 		</view>
 
 		<scroll-view scroll-y class="scroll">
 			<view class="inner">
-				<view :class="bannerClass">
-					<text class="banner-title">{{ resultTitle }}</text>
-					<text class="banner-sub">{{ resultSub }}</text>
+				<image class="result-logo" :src="assets.resultLogo" mode="aspectFit" />
+				<view class="result-pill">
+					<image class="pill-art" :src="record.result === 'win' ? assets.pillWin : assets.pillLose" mode="scaleToFill" />
+					<text class="pill-text">{{ pillText }}</text>
 				</view>
+				<text class="result-sub">{{ resultSub }}</text>
 
 				<!-- 本局数据 -->
 				<view class="metric-grid">
@@ -110,11 +112,11 @@
 <script>
 	import { getRecord, restartRecord, userMessage } from '@/api/zyfxq'
 	import { getWeekFlow } from '@/api/activity/week'
-	import ZyfxqHeader from '@/components/ZyfxqHeader.vue'
+	import { ZYFXQ_ASSETS } from '@/config/zyfxq-assets'
 
 	export default {
-		components: { ZyfxqHeader },
 		data: () => ({
+			assets: ZYFXQ_ASSETS,
 			instanceId: '',
 			gameId: '',
 			recordId: '',
@@ -122,17 +124,15 @@
 			answers: [],
 			loading: false,
 			retrying: false,
-			backing: false
+			backing: false,
+			statusBarHeight: 30
 		}),
 		computed: {
 			canRestart() {
 				return this.record.status === 'finished' && this.record.result !== 'win'
 			},
-			bannerClass() {
-				return this.record.result === 'win' ? 'banner win' : 'banner lose'
-			},
-			resultTitle() {
-				if (this.record.result === 'win') return '抵达终点，通关成功'
+			pillText() {
+				if (this.record.result === 'win') return '恭喜你完成了本次挑战'
 				if (this.record.result === 'lose') return '时间到，本局未通关'
 				return '本局进行中'
 			},
@@ -150,6 +150,14 @@
 				if (ms == null) return '-'
 				const seconds = Math.round(ms / 100) / 10
 				return seconds + ' 秒'
+			}
+		},
+		mounted() {
+			try {
+				const info = uni.getSystemInfoSync()
+				this.statusBarHeight = (info.statusBarHeight || 20) + 8
+			} catch (e) {
+				this.statusBarHeight = 30
 			}
 		},
 		async onLoad(options) {
@@ -237,13 +245,28 @@
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
-		background: #0b62c4;
-		background-image: radial-gradient(circle at 50% 10%, #67cdff 0%, #2b8fe0 30%, #0f63c6 64%, #063f7c 100%);
+		background: #4ab3ee;
+		background-image: linear-gradient(180deg, #7ed3ff 0%, #4cb4ef 45%, #59bdf3 100%);
 	}
 
-	.page-header {
+	.topbar {
 		position: relative;
 		z-index: 3;
+		width: 100%;
+		box-sizing: border-box;
+		padding-left: 20rpx;
+		padding-bottom: 4rpx;
+	}
+
+	.back {
+		width: 64rpx;
+		height: 64rpx;
+		line-height: 56rpx;
+		border-radius: 50%;
+		text-align: center;
+		font-size: 50rpx;
+		color: #ffffff;
+		background: rgba(255, 255, 255, 0.32);
 	}
 
 	.scroll {
@@ -268,49 +291,54 @@
 	.section-head-title {
 		font-size: 28rpx;
 		font-weight: 700;
-		color: #ffffff;
+		color: #0f4c81;
 	}
 
 	.section-head-sub {
 		font-size: 22rpx;
-		color: #d9ecff;
+		color: #2b6f9e;
 	}
 
-	.banner {
-		padding: 28rpx 26rpx;
-		border-radius: 24rpx;
-		margin-bottom: 20rpx;
-	}
-
-	.banner.win {
-		background: linear-gradient(135deg, rgba(255, 214, 102, 0.95), rgba(255, 168, 26, 0.92));
-	}
-
-	.banner.lose {
-		background: linear-gradient(135deg, rgba(90, 130, 170, 0.9), rgba(52, 86, 124, 0.9));
-	}
-
-	.banner-title {
+	.result-logo {
 		display: block;
-		font-size: 36rpx;
-		font-weight: 700;
-		color: #4a2a00;
+		margin: 6rpx auto 0;
+		width: 560rpx;
+		height: 190rpx;
 	}
 
-	.banner.lose .banner-title {
+	.result-pill {
+		position: relative;
+		margin: 18rpx auto 0;
+		width: 600rpx;
+		height: 84rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.pill-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.pill-text {
+		position: relative;
+		font-size: 28rpx;
+		font-weight: 600;
 		color: #ffffff;
+		letter-spacing: 1rpx;
 	}
 
-	.banner-sub {
+	.result-sub {
 		display: block;
-		margin-top: 10rpx;
-		font-size: 24rpx;
+		margin: 14rpx 10rpx 20rpx;
+		font-size: 23rpx;
 		line-height: 1.6;
-		color: #6b4000;
-	}
-
-	.banner.lose .banner-sub {
-		color: #e6f0fa;
+		color: #12507f;
+		text-align: center;
 	}
 
 	.metric-grid {
@@ -381,13 +409,13 @@
 		margin-top: 18rpx;
 		padding: 20rpx 22rpx;
 		border-radius: 20rpx;
-		background: rgba(4, 40, 84, 0.35);
+		background: rgba(255, 255, 255, 0.78);
 	}
 
 	.tip-text {
 		font-size: 22rpx;
 		line-height: 1.6;
-		color: #d9ecff;
+		color: #12507f;
 		text-align: justify;
 	}
 
@@ -504,7 +532,8 @@
 		padding: 20rpx 30rpx;
 		padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
 		padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-		background: rgba(6, 63, 124, 0.92);
+		background: rgba(255, 255, 255, 0.94);
+		border-top: 1rpx solid rgba(15, 76, 129, 0.12);
 		flex-shrink: 0;
 	}
 
@@ -518,8 +547,8 @@
 	}
 
 	.action.ghost {
-		background: rgba(255, 255, 255, 0.2);
-		border: 2rpx solid rgba(255, 255, 255, 0.6);
+		background: #eaf5ff;
+		border: 2rpx solid #7ec4ea;
 	}
 
 	.action.primary {
@@ -530,7 +559,7 @@
 	.action-text {
 		font-size: 30rpx;
 		font-weight: 600;
-		color: #ffffff;
+		color: #0f4c81;
 	}
 
 	.action-text.light {

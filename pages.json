@@ -158,9 +158,9 @@
 		{"path":"pages/nlld/start","style":{"navigationBarTitleText":"能量雷达","navigationStyle":"custom"}},
 		{"path":"pages/nlld/index","style":{"navigationBarTitleText":"海岛探索任务","navigationStyle":"custom"}},
 		{"path":"pages/nlld/report","style":{"navigationBarTitleText":"我的职业能量雷达","navigationStyle":"custom"}},
-		{"path":"pages/zyfxq/start","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#0b62c4","backgroundColorTop":"#6fd2ff","backgroundColorBottom":"#06417f"}},
-		{"path":"pages/zyfxq/index","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#0b62c4","backgroundColorTop":"#67cdff","backgroundColorBottom":"#063f7c"}},
-		{"path":"pages/zyfxq/result","style":{"navigationBarTitleText":"本局结果","navigationStyle":"custom","backgroundColor":"#0b62c4","backgroundColorTop":"#67cdff","backgroundColorBottom":"#063f7c"}},
+		{"path":"pages/zyfxq/start","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
+		{"path":"pages/zyfxq/index","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
+		{"path":"pages/zyfxq/result","style":{"navigationBarTitleText":"本局结果","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {

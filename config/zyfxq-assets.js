@@ -1,19 +1,29 @@
 /**
- * 职业飞行棋素材地址。
- *
- * 当前版本棋盘、骰子、按钮均用 CSS 还原设计稿，不依赖图片，因此这里默认为空。
- * 素材上传到服务器后，把地址填到对应字段即可自动替换，页面会按“有地址用图片、无地址用 CSS”渲染：
- *   bg         整页背景（750×1624 或同比例）
- *   logo       标题 logo「职业飞行棋」
- *   rollButton 「摇骰子」按钮底图
- *   dice       1-6 点骰子图，数组下标 0 对应 1 点
- * 素材目录建议：https://zhiye.sxgkzh.cn/imgs/zyfxq/<内容哈希>/
+ * 职业飞行棋远程素材（2026-11-03 版本目录，内容哈希 4fc924aeb6b5）。
+ * 素材统一放服务器按内容哈希分目录，更新素材后重新上传并替换下面的版本号即可。
  */
-const BASE = ''
+const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/4fc924aeb6b5'
 
 export const ZYFXQ_ASSETS = {
-	bg: '',
-	logo: '',
-	rollButton: '',
-	dice: []
+	// 开始页
+	bgStart: `${BASE}/start-bg.jpg`,
+	logo: `${BASE}/logo.png`,
+	ribbon: `${BASE}/ribbon.png`,
+	btnStart: `${BASE}/btn-start.png`,
+	// 对局页
+	boardBg: `${BASE}/board-bg.jpg`,
+	boardLogo: `${BASE}/board-logo.png`,
+	rulesTitle: `${BASE}/rules-title.png`,
+	pillTimer: `${BASE}/pill-timer.png`,
+	pillPlayer: `${BASE}/pill-player.png`,
+	badgeStep: `${BASE}/badge-step.png`,
+	iconClock: `${BASE}/icon-clock.png`,
+	iconPawn: `${BASE}/icon-pawn.png`,
+	cellStart: `${BASE}/cell-start.png`,
+	stickerGo: `${BASE}/sticker-go.png`,
+	decoParty: `${BASE}/deco-party.png`,
+	// 结果页
+	resultLogo: `${BASE}/result-logo.png`,
+	pillWin: `${BASE}/pill-win.png`,
+	pillLose: `${BASE}/pill-lose.png`
 }

@@ -1,29 +1,33 @@
 <template>
 	<view class="page">
-		<image v-if="assets.bg" class="page-bg" :src="assets.bg" mode="scaleToFill" />
-		<view class="page-header">
-			<zyfxq-header title="职业飞行棋" @back="back" />
+		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
+			<view class="back" @click="back">‹</view>
+			<view class="timer">
+				<image class="pill" :src="assets.pillTimer" mode="scaleToFill" />
+				<image class="timer-icon" :src="assets.iconClock" mode="aspectFit" />
+				<text :class="timerTextClass">{{ remainText }}</text>
+			</view>
 		</view>
 
-		<view class="topbar">
-			<view class="timer" :class="timerClass">
-				<text class="timer-label">剩余时间</text>
-				<text class="timer-value">{{ remainText }}</text>
+		<view class="status-row">
+			<view class="player">
+				<image class="pill" :src="assets.pillPlayer" mode="scaleToFill" />
+				<image class="player-icon" :src="assets.iconPawn" mode="aspectFit" />
+				<text class="player-text">当前玩家</text>
 			</view>
-			<view class="stat">
-				<text class="stat-item">掷骰 {{ rollCount }} 次</text>
-				<text class="stat-item">前进 {{ stepTotal }} 步</text>
-				<text class="stat-item">第 {{ position }} 格</text>
+			<view class="step">
+				<image class="step-art" :src="assets.badgeStep" mode="aspectFit" />
+				<text class="step-label">步数</text>
+				<text class="step-value">{{ diceValue > 0 ? diceValue : '-' }}</text>
 			</view>
 		</view>
 
 		<view class="board">
+			<image class="board-art" :src="assets.boardBg" mode="scaleToFill" />
+
 			<view class="cell-slot" :style="slotStyle(startSlot)">
-				<view class="cell start-cell">
-					<text class="start-label">起点</text>
-					<text class="start-go">GO</text>
-					<view v-if="position === 0" class="token"><text class="token-icon">✈</text></view>
-				</view>
+				<image class="start-mask" :src="assets.cellStart" mode="scaleToFill" />
+				<view v-if="position === 0" class="token"><text class="token-icon">✈</text></view>
 			</view>
 
 			<view v-for="cell in cells" :key="cell.cellNo" class="cell-slot" :style="slotStyle(cell)">
@@ -34,18 +38,28 @@
 				</view>
 			</view>
 
+			<image class="sticker-go" :src="assets.stickerGo" mode="aspectFit" />
+			<image class="deco-party" :src="assets.decoParty" mode="aspectFit" />
+
 			<view class="center">
-				<text class="center-title">掷出骰子，向终点前进</text>
-				<view class="dice" :class="diceClass" @click="roll">
-					<view v-for="slot in pipSlots" :key="slot" class="pip-slot">
-						<view :class="'pip ' + (pipOn(slot) ? 'pip-on' : '')"></view>
-					</view>
+				<image class="center-logo" :src="assets.boardLogo" mode="aspectFit" />
+				<image class="center-title" :src="assets.rulesTitle" mode="aspectFit" />
+				<view class="center-rule">
+					<text class="center-rule-text">摇骰前进，落在答题格弹出题目；答对继续摇骰，答错或超时后退 {{ backSteps }} 格；3 分钟内抵达终点即通关。</text>
 				</view>
-				<view class="roll-btn" :class="rollButtonClass" @click="roll">
-					<text class="roll-text">{{ rollButtonText }}</text>
-				</view>
-				<text class="center-hint">答对继续摇骰 · 答错后退 {{ backSteps }} 格</text>
 			</view>
+		</view>
+
+		<view class="play">
+			<view class="dice" :class="diceClass" @click="roll">
+				<view v-for="slot in pipSlots" :key="slot" class="pip-slot">
+					<view :class="'pip ' + (pipOn(slot) ? 'pip-on' : '')"></view>
+				</view>
+			</view>
+			<view class="roll-btn" :class="rollButtonClass" @click="roll">
+				<text class="roll-text">{{ rollButtonText }}</text>
+			</view>
+			<text class="info-line">掷骰 {{ rollCount }} 次 · 前进 {{ stepTotal }} 步 · 第 {{ position }} 格</text>
 		</view>
 
 		<view v-if="questionVisible" class="mask">
@@ -56,12 +70,8 @@
 				</view>
 				<text class="dialog-title">{{ question.title }}</text>
 				<view class="options">
-					<view
-						v-for="(opt, index) in question.options"
-						:key="opt.label"
-						:class="optionClass(index, opt)"
-						@click="choose(opt)"
-					>
+					<view v-for="(opt, index) in question.options" :key="opt.label" :class="optionClass(index, opt)"
+						@click="choose(opt)">
 						<text class="opt-label">{{ opt.label }}</text>
 						<text class="opt-text">{{ opt.content }}</text>
 					</view>
@@ -77,7 +87,6 @@
 
 <script>
 	import { getRecord, rollDice, submitAnswer, startRecord, userMessage } from '@/api/zyfxq'
-	import ZyfxqHeader from '@/components/ZyfxqHeader.vue'
 	import { ZYFXQ_ASSETS } from '@/config/zyfxq-assets'
 
 	/** 骰子 9 个点位（1-3 上排、4-6 中排、7-9 下排），按点数点亮。 */
@@ -91,7 +100,6 @@
 	}
 
 	export default {
-		components: { ZyfxqHeader },
 		data: () => ({
 			assets: ZYFXQ_ASSETS,
 			instanceId: '',
@@ -106,6 +114,7 @@
 			backSteps: 2,
 			totalSeconds: 180,
 			remaining: 180,
+			diceValue: 0,
 			diceFace: 1,
 			pipSlots: [1, 2, 3, 4, 5, 6, 7, 8, 9],
 			busy: false,
@@ -121,6 +130,7 @@
 			timerId: null,
 			questionTimerId: null,
 			rollTimerId: null,
+			statusBarHeight: 30,
 			leaving: false
 		}),
 		computed: {
@@ -130,11 +140,8 @@
 				const second = String(total % 60).padStart(2, '0')
 				return `${minute}:${second}`
 			},
-			timerClass() {
-				return this.remaining <= 30 ? 'timer urgent' : 'timer'
-			},
-			timerText() {
-				return this.remainText
+			timerTextClass() {
+				return this.remaining <= 30 ? 'timer-text urgent' : 'timer-text'
 			},
 			diceClass() {
 				return this.rolling ? 'dice rolling' : 'dice'
@@ -157,6 +164,14 @@
 				if (this.feedback.correct) return '回答正确，继续摇骰子'
 				const back = this.backSteps
 				return this.feedback.timeout ? `答题超时，后退 ${back} 格` : `回答错误，后退 ${back} 格`
+			}
+		},
+		mounted() {
+			try {
+				const info = uni.getSystemInfoSync()
+				this.statusBarHeight = (info.statusBarHeight || 20) + 8
+			} catch (e) {
+				this.statusBarHeight = 30
 			}
 		},
 		async onLoad(options) {
@@ -208,7 +223,10 @@
 				this.backSteps = Number(data.backSteps) || 2
 				this.totalSeconds = Number(data.totalSeconds) || 180
 				this.remaining = Number(data.remainingSeconds) || 0
-				if (data.diceValue) this.diceFace = Number(data.diceValue)
+				if (data.diceValue) {
+					this.diceValue = Number(data.diceValue)
+					this.diceFace = this.diceValue
+				}
 				if (data.status === 'finished') {
 					this.finished = true
 					this.clearTimers()
@@ -294,7 +312,10 @@
 					const data = res.data || {}
 					const result = data.rollResult || {}
 					this.stopRollAnimation()
-					if (result.dice) this.diceFace = Number(result.dice)
+					if (result.dice) {
+						this.diceValue = Number(result.dice)
+						this.diceFace = this.diceValue
+					}
 					if (data.status === 'finished' || result.reachedEnd) {
 						this.position = Number(data.position) || 19
 						this.rollCount = Number(data.rollCount) || this.rollCount + 1
@@ -458,81 +479,159 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		background: #0b62c4;
-		background-image: radial-gradient(circle at 50% 26%, #67cdff 0%, #2b8fe0 32%, #0f63c6 66%, #063f7c 100%);
-		overflow: hidden;
-	}
-
-	.page-bg {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		z-index: 0;
-	}
-
-	.page-header {
-		position: relative;
-		z-index: 4;
-		width: 100%;
+		background: #4ab3ee;
+		background-image: linear-gradient(180deg, #7ed3ff 0%, #4cb4ef 45%, #59bdf3 100%);
 	}
 
 	.topbar {
 		position: relative;
 		z-index: 3;
 		width: 100%;
-		padding: 4rpx 30rpx 12rpx;
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: center;
+		padding-bottom: 8rpx;
+	}
+
+	.back {
+		position: absolute;
+		left: 20rpx;
+		bottom: 22rpx;
+		width: 60rpx;
+		height: 60rpx;
+		line-height: 52rpx;
+		border-radius: 50%;
+		text-align: center;
+		font-size: 46rpx;
+		color: #ffffff;
+		background: rgba(255, 255, 255, 0.32);
 	}
 
 	.timer {
+		position: relative;
+		width: 450rpx;
+		height: 88rpx;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		padding: 6rpx 26rpx;
-		border-radius: 20rpx;
-		background: rgba(4, 40, 84, 0.45);
-		border: 2rpx solid rgba(255, 255, 255, 0.3);
+		justify-content: center;
 	}
 
-	.timer.urgent {
-		background: rgba(160, 30, 30, 0.55);
-		border-color: rgba(255, 210, 120, 0.7);
+	.pill {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 	}
 
-	.timer-label {
-		font-size: 20rpx;
-		color: #cfe7ff;
+	.timer-icon {
+		position: relative;
+		width: 52rpx;
+		height: 60rpx;
+		margin-right: 14rpx;
 	}
 
-	.timer-value {
-		font-size: 38rpx;
+	.timer-text {
+		position: relative;
+		font-size: 46rpx;
 		font-weight: 700;
-		color: #ffffff;
 		letter-spacing: 2rpx;
+		color: #ffffff;
+		text-shadow: 0 2rpx 6rpx rgba(0, 60, 120, 0.35);
 	}
 
-	.stat {
+	.timer-text.urgent {
+		color: #fff0b3;
+	}
+
+	.status-row {
+		position: relative;
+		z-index: 3;
+		width: 100%;
+		padding: 0 26rpx;
+		box-sizing: border-box;
 		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
+		align-items: flex-start;
+		justify-content: space-between;
+		margin-top: 10rpx;
 	}
 
-	.stat-item {
-		font-size: 22rpx;
-		line-height: 1.6;
-		color: #d9ecff;
+	.player {
+		position: relative;
+		width: 300rpx;
+		height: 96rpx;
+		display: flex;
+		align-items: center;
+		padding-left: 18rpx;
+		box-sizing: border-box;
+	}
+
+	.player-icon {
+		position: relative;
+		width: 46rpx;
+		height: 58rpx;
+		margin-right: 10rpx;
+	}
+
+	.player-text {
+		position: relative;
+		font-size: 28rpx;
+		font-weight: 700;
+		color: #1d4f7c;
+	}
+
+	.step {
+		position: relative;
+		width: 250rpx;
+		height: 150rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding-left: 30rpx;
+		box-sizing: border-box;
+	}
+
+	.step-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.step-label {
+		position: relative;
+		margin-top: 10rpx;
+		font-size: 26rpx;
+		font-weight: 700;
+		color: #b4691a;
+	}
+
+	.step-value {
+		position: relative;
+		margin-left: 8rpx;
+		margin-top: 4rpx;
+		font-size: 58rpx;
+		font-weight: 800;
+		color: #f06d1a;
+		text-shadow: 0 2rpx 0 #ffffff;
 	}
 
 	.board {
 		position: relative;
-		z-index: 2;
 		width: 750rpx;
 		height: 875rpx;
+		margin-top: 8rpx;
+		overflow: hidden;
+	}
+
+	.board-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 	}
 
 	.cell-slot {
@@ -546,18 +645,18 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 14rpx;
-		border: 3rpx solid rgba(255, 255, 255, 0.85);
+		border: 3rpx solid rgba(255, 255, 255, 0.9);
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4rpx 10rpx rgba(2, 26, 60, 0.35);
+		box-shadow: 0 4rpx 10rpx rgba(2, 40, 80, 0.25);
 	}
 
 	.cell.active {
 		border-color: #ffe066;
-		box-shadow: 0 0 0 6rpx rgba(255, 224, 102, 0.45), 0 0 20rpx rgba(255, 224, 102, 0.7);
+		box-shadow: 0 0 0 6rpx rgba(255, 224, 102, 0.5), 0 0 20rpx rgba(255, 224, 102, 0.8);
 	}
 
 	.cell-badge {
@@ -585,21 +684,13 @@
 		text-align-last: center;
 	}
 
-	.start-cell {
-		background: #f8b62e;
-		justify-content: center;
-	}
-
-	.start-label {
-		font-size: 24rpx;
-		font-weight: 700;
-		color: #ffffff;
-	}
-
-	.start-go {
-		font-size: 20rpx;
-		font-weight: 700;
-		color: #fff3c4;
+	.start-mask {
+		position: absolute;
+		left: 4rpx;
+		top: 4rpx;
+		width: calc(100% - 8rpx);
+		height: calc(100% - 8rpx);
+		border-radius: 14rpx;
 	}
 
 	.token {
@@ -615,12 +706,30 @@
 		align-items: center;
 		justify-content: center;
 		box-shadow: 0 4rpx 8rpx rgba(0, 20, 50, 0.4);
+		z-index: 2;
 	}
 
 	.token-icon {
 		font-size: 24rpx;
 		color: #1677ff;
 		line-height: 1;
+	}
+
+	.sticker-go {
+		position: absolute;
+		left: -6rpx;
+		top: 47%;
+		width: 96rpx;
+		height: 55rpx;
+		transform: rotate(-8deg);
+	}
+
+	.deco-party {
+		position: absolute;
+		right: -4rpx;
+		top: 34%;
+		width: 90rpx;
+		height: 100rpx;
 	}
 
 	.center {
@@ -635,20 +744,51 @@
 		justify-content: center;
 	}
 
+	.center-logo {
+		width: 380rpx;
+		height: 305rpx;
+	}
+
 	.center-title {
-		font-size: 24rpx;
-		color: #e8f5ff;
-		letter-spacing: 2rpx;
-		margin-bottom: 10rpx;
+		width: 190rpx;
+		height: 52rpx;
+		margin-top: 2rpx;
+	}
+
+	.center-rule {
+		width: 430rpx;
+		margin-top: 8rpx;
+		padding: 12rpx 14rpx;
+		border-radius: 14rpx;
+		border: 2rpx solid rgba(255, 255, 255, 0.75);
+		background: rgba(9, 78, 140, 0.32);
+		box-sizing: border-box;
+	}
+
+	.center-rule-text {
+		font-size: 19rpx;
+		line-height: 1.5;
+		color: #f4fbff;
+		text-align: justify;
+	}
+
+	.play {
+		position: relative;
+		z-index: 2;
+		margin-top: 10rpx;
+		margin-bottom: 40rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 
 	.dice {
-		width: 150rpx;
-		height: 150rpx;
+		width: 148rpx;
+		height: 148rpx;
 		border-radius: 26rpx;
-		background: #ffffff;
-		border: 4rpx solid #d8e6f5;
-		box-shadow: 0 10rpx 0 #b9cde0, 0 16rpx 22rpx rgba(0, 30, 70, 0.35);
+		background: linear-gradient(160deg, #ffffff 0%, #f6f9fd 55%, #e6eef8 100%);
+		border: 2rpx solid #dfe9f4;
+		box-shadow: 0 10rpx 0 #c3d5e6, 0 18rpx 24rpx rgba(0, 40, 90, 0.28);
 		padding: 16rpx;
 		box-sizing: border-box;
 		display: flex;
@@ -683,19 +823,19 @@
 	}
 
 	.pip-on {
-		background: radial-gradient(circle at 35% 30%, #6a6a6a 0%, #2a2a2a 70%);
+		background: radial-gradient(circle at 35% 30%, #5f5f5f 0%, #232323 72%);
 	}
 
 	.roll-btn {
 		margin-top: 16rpx;
 		width: 300rpx;
-		height: 80rpx;
-		border-radius: 40rpx;
+		height: 76rpx;
+		border-radius: 38rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		background: linear-gradient(180deg, #ffd76a 0%, #ff9f1a 55%, #f2800a 100%);
-		box-shadow: 0 8rpx 0 #c96a06, 0 12rpx 18rpx rgba(0, 30, 70, 0.32);
+		box-shadow: 0 6rpx 0 #c96a06;
 	}
 
 	.roll-btn.disabled {
@@ -703,16 +843,17 @@
 	}
 
 	.roll-text {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
-		letter-spacing: 4rpx;
+		letter-spacing: 3rpx;
 		color: #6b3500;
 	}
 
-	.center-hint {
-		margin-top: 14rpx;
-		font-size: 20rpx;
-		color: #d5ebff;
+	.info-line {
+		margin-top: 12rpx;
+		font-size: 21rpx;
+		color: rgba(255, 255, 255, 0.92);
+		text-shadow: 0 1rpx 4rpx rgba(0, 50, 100, 0.4);
 	}
 
 	.mask {
