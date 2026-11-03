@@ -4,15 +4,6 @@
 			<zyfxq-header title="本局结果" @back="backToActivity" />
 		</view>
 
-		<view class="tabs">
-			<view :class="tabClass(0)" @click="switchTab(0)">
-				<text class="tab-text">第一页 · 本局数据</text>
-			</view>
-			<view :class="tabClass(1)" @click="switchTab(1)">
-				<text class="tab-text">第二页 · 答题明细</text>
-			</view>
-		</view>
-
 		<scroll-view scroll-y class="scroll">
 			<view class="inner">
 				<view :class="bannerClass">
@@ -20,84 +11,86 @@
 					<text class="banner-sub">{{ resultSub }}</text>
 				</view>
 
-				<template v-if="activeTab === 0">
-					<view class="metric-grid">
-						<view class="metric-card">
-							<text class="metric-label">本局总时长</text>
-							<text class="metric-value">{{ durationText }}</text>
-						</view>
-						<view class="metric-card">
-							<text class="metric-label">掷骰总次数</text>
-							<text class="metric-value">{{ record.rollCount || 0 }}<text class="metric-unit">次</text></text>
-						</view>
-						<view class="metric-card">
-							<text class="metric-label">累计行进总步数</text>
-							<text class="metric-value">{{ record.stepTotal || 0 }}<text class="metric-unit">步</text></text>
-						</view>
-						<view class="metric-card">
-							<text class="metric-label">抵达格号</text>
-							<text class="metric-value">{{ record.position || 0 }}<text class="metric-unit">/ 19</text></text>
-						</view>
+				<!-- 本局数据 -->
+				<view class="metric-grid">
+					<view class="metric-card">
+						<text class="metric-label">本局总时长</text>
+						<text class="metric-value">{{ durationText }}</text>
 					</view>
+					<view class="metric-card">
+						<text class="metric-label">掷骰总次数</text>
+						<text class="metric-value">{{ record.rollCount || 0 }}<text class="metric-unit">次</text></text>
+					</view>
+					<view class="metric-card">
+						<text class="metric-label">累计行进总步数</text>
+						<text class="metric-value">{{ record.stepTotal || 0 }}<text class="metric-unit">步</text></text>
+					</view>
+					<view class="metric-card">
+						<text class="metric-label">抵达格号</text>
+						<text class="metric-value">{{ record.position || 0 }}<text class="metric-unit">/ 19</text></text>
+					</view>
+				</view>
 
-					<view class="info-card">
-						<view class="info-row">
-							<text class="info-label">作答题数</text>
-							<text class="info-value">{{ record.answerCount || 0 }} 题</text>
-						</view>
-						<view class="info-row">
-							<text class="info-label">答对题数</text>
-							<text class="info-value">{{ record.correctCount || 0 }} 题</text>
-						</view>
-						<view class="info-row">
-							<text class="info-label">超时题数</text>
-							<text class="info-value">{{ record.timeoutCount || 0 }} 题</text>
-						</view>
-						<view class="info-row">
-							<text class="info-label">第几局</text>
-							<text class="info-value">第 {{ record.attemptNo || 1 }} 局</text>
-						</view>
-						<view class="info-row">
-							<text class="info-label">本局开始</text>
-							<text class="info-value">{{ formatTime(record.startTime) }}</text>
-						</view>
-						<view class="info-row last">
-							<text class="info-label">本局结束</text>
-							<text class="info-value">{{ formatTime(record.endTime) }}</text>
-						</view>
+				<view class="info-card">
+					<view class="info-row">
+						<text class="info-label">作答题数</text>
+						<text class="info-value">{{ record.answerCount || 0 }} 题</text>
 					</view>
+					<view class="info-row">
+						<text class="info-label">答对题数</text>
+						<text class="info-value">{{ record.correctCount || 0 }} 题</text>
+					</view>
+					<view class="info-row">
+						<text class="info-label">超时题数</text>
+						<text class="info-value">{{ record.timeoutCount || 0 }} 题</text>
+					</view>
+					<view class="info-row">
+						<text class="info-label">第几局</text>
+						<text class="info-value">第 {{ record.attemptNo || 1 }} 局</text>
+					</view>
+					<view class="info-row">
+						<text class="info-label">本局开始</text>
+						<text class="info-value">{{ formatTime(record.startTime) }}</text>
+					</view>
+					<view class="info-row last">
+						<text class="info-label">本局结束</text>
+						<text class="info-value">{{ formatTime(record.endTime) }}</text>
+					</view>
+				</view>
 
-					<view class="tip-card">
-						<text class="tip-text">答对题目原地继续摇骰，答错或超时后退 2 格；3 分钟内抵达第 19 格即通关。</text>
-					</view>
-				</template>
+				<view class="tip-card">
+					<text class="tip-text">答对题目原地继续摇骰，答错或超时后退 2 格；3 分钟内抵达第 19 格即通关。</text>
+				</view>
 
-				<template v-else>
-					<view v-if="!answers.length" class="empty-card">
-						<text class="empty-text">本局还没有触发过题目，下次落点停在答题格就会弹出题目。</text>
+				<!-- 答题明细：原第二页内容，已合并到同一页展示 -->
+				<view class="section-head">
+					<text class="section-head-title">答题明细</text>
+					<text class="section-head-sub">{{ answers.length }} 题</text>
+				</view>
+				<view v-if="!answers.length" class="empty-card">
+					<text class="empty-text">本局还没有触发过题目，下次落点停在答题格就会弹出题目。</text>
+				</view>
+				<view v-for="item in answers" :key="item.serialNo" class="answer-card">
+					<view class="answer-head">
+						<text class="answer-cell">第 {{ item.cellNo }} 格</text>
+						<text class="answer-type">{{ item.questionTypeName }}</text>
+						<text :class="answerResultClass(item)">{{ item.result }}</text>
 					</view>
-					<view v-for="item in answers" :key="item.serialNo" class="answer-card">
-						<view class="answer-head">
-							<text class="answer-cell">第 {{ item.cellNo }} 格</text>
-							<text class="answer-type">{{ item.questionTypeName }}</text>
-							<text :class="answerResultClass(item)">{{ item.result }}</text>
-						</view>
-						<text class="answer-title">{{ item.title }}</text>
-						<view class="answer-meta">
-							<text class="meta-item">题目限时 {{ item.limitSeconds }} 秒</text>
-							<text class="meta-item">实际答题 {{ costText(item.costMs) }}</text>
-							<text :class="item.timeout ? 'meta-item warn' : 'meta-item'">是否超时：{{ item.timeout ? '是' : '否' }}</text>
-						</view>
-						<view class="answer-line">
-							<text class="line-label">我的选择</text>
-							<text class="line-value">{{ item.optionContent ? item.optionLabel + '. ' + item.optionContent : '超时未作答' }}</text>
-						</view>
-						<view class="answer-line">
-							<text class="line-label">正确答案</text>
-							<text class="line-value correct">{{ item.correctLabel }}. {{ item.correctContent }}</text>
-						</view>
+					<text class="answer-title">{{ item.title }}</text>
+					<view class="answer-meta">
+						<text class="meta-item">题目限时 {{ item.limitSeconds }} 秒</text>
+						<text class="meta-item">实际答题 {{ costText(item.costMs) }}</text>
+						<text :class="item.timeout ? 'meta-item warn' : 'meta-item'">是否超时：{{ item.timeout ? '是' : '否' }}</text>
 					</view>
-				</template>
+					<view class="answer-line">
+						<text class="line-label">我的选择</text>
+						<text class="line-value">{{ item.optionContent ? item.optionLabel + '. ' + item.optionContent : '超时未作答' }}</text>
+					</view>
+					<view class="answer-line">
+						<text class="line-label">正确答案</text>
+						<text class="line-value correct">{{ item.correctLabel }}. {{ item.correctContent }}</text>
+					</view>
+				</view>
 
 				<view class="actions">
 					<view v-if="canRestart" class="action ghost" @click="restart">
@@ -125,7 +118,6 @@
 			recordId: '',
 			record: {},
 			answers: [],
-			activeTab: 0,
 			loading: false,
 			retrying: false,
 			backing: false
@@ -202,12 +194,6 @@
 					this.retrying = false
 				}
 			},
-			switchTab(index) {
-				this.activeTab = index
-			},
-			tabClass(index) {
-				return this.activeTab === index ? 'tab active' : 'tab'
-			},
 			answerResultClass(item) {
 				if (item.correct) return 'answer-result ok'
 				return item.timeout ? 'answer-result warn' : 'answer-result bad'
@@ -258,39 +244,6 @@
 		z-index: 3;
 	}
 
-	.tabs {
-		position: relative;
-		z-index: 2;
-		display: flex;
-		margin: 6rpx 30rpx 16rpx;
-		padding: 6rpx;
-		border-radius: 22rpx;
-		background: rgba(4, 40, 84, 0.4);
-	}
-
-	.tab {
-		flex: 1;
-		height: 68rpx;
-		border-radius: 18rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.tab.active {
-		background: rgba(255, 255, 255, 0.92);
-	}
-
-	.tab-text {
-		font-size: 24rpx;
-		color: #d9ecff;
-	}
-
-	.tab.active .tab-text {
-		color: #0f63c6;
-		font-weight: 600;
-	}
-
 	.scroll {
 		flex: 1;
 		height: 0;
@@ -298,8 +251,27 @@
 	}
 
 	.inner {
-		padding: 0 30rpx 260rpx;
+		padding: 16rpx 30rpx 260rpx;
 		box-sizing: border-box;
+	}
+
+	/* 合并后的答题明细分区标题，用于区分“本局数据”与“逐题明细” */
+	.section-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin: 26rpx 0 14rpx;
+	}
+
+	.section-head-title {
+		font-size: 28rpx;
+		font-weight: 700;
+		color: #ffffff;
+	}
+
+	.section-head-sub {
+		font-size: 22rpx;
+		color: #d9ecff;
 	}
 
 	.banner {
