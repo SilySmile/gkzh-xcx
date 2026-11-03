@@ -516,8 +516,8 @@
 
 	.timer {
 		position: relative;
-		width: 450rpx;
-		height: 88rpx;
+		width: 400rpx;
+		height: 86rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -540,7 +540,7 @@
 
 	.timer-text {
 		position: relative;
-		font-size: 46rpx;
+		font-size: 42rpx;
 		font-weight: 700;
 		letter-spacing: 2rpx;
 		color: #ffffff;
@@ -645,7 +645,7 @@
 
 	.cell-slot {
 		position: absolute;
-		padding: 4rpx;
+		padding: 9rpx;
 		box-sizing: border-box;
 	}
 
@@ -704,13 +704,16 @@
 		border-radius: 14rpx;
 	}
 
+	/* 当前玩家棋子：在格子正中，尺寸不超过格子内圈 */
 	.token {
 		position: absolute;
-		right: -10rpx;
-		bottom: -12rpx;
-		width: 60rpx;
-		height: 80rpx;
-		z-index: 2;
+		left: 50%;
+		top: 50%;
+		width: 64rpx;
+		height: 86rpx;
+		margin-left: -32rpx;
+		margin-top: -43rpx;
+		z-index: 3;
 	}
 
 	.token-art {
@@ -786,9 +789,9 @@
 	}
 
 	.dice {
-		width: 148rpx;
-		height: 148rpx;
-		border-radius: 26rpx;
+		width: 176rpx;
+		height: 176rpx;
+		border-radius: 30rpx;
 		background: radial-gradient(circle at 30% 24%, #ffffff 0%, #f4f8fd 45%, #dbe7f3 100%);
 		border: 2rpx solid #e2ecf6;
 		box-shadow: 0 12rpx 0 #bfd3e4, 0 22rpx 28rpx rgba(0, 40, 90, 0.28);
@@ -820,8 +823,8 @@
 	}
 
 	.pip {
-		width: 24rpx;
-		height: 24rpx;
+		width: 28rpx;
+		height: 28rpx;
 		border-radius: 50%;
 		background: transparent;
 	}
