@@ -62,10 +62,7 @@
 					<view :class="'pip ' + (pipOn(slot) ? 'pip-on' : '')"></view>
 				</view>
 			</view>
-			<view class="roll-btn" :class="rollButtonClass" @click="roll">
-				<text class="roll-text">{{ rollButtonText }}</text>
-			</view>
-			<text class="info-line">掷骰 {{ rollCount }} 次 · 前进 {{ stepTotal }} 步 · 第 {{ position }} 格</text>
+			<text class="roll-hint">{{ rollHint }}</text>
 		</view>
 
 		<view v-if="questionVisible" class="mask">
@@ -154,13 +151,11 @@
 			diceClass() {
 				return this.rolling ? 'dice rolling' : 'dice'
 			},
-			rollButtonClass() {
-				return this.busy || this.questionVisible ? 'roll-btn disabled' : 'roll-btn'
-			},
-			rollButtonText() {
+			rollHint() {
 				if (this.rolling) return '骰子转动中…'
 				if (this.questionVisible) return '请先完成答题'
-				return '摇骰子'
+				if (this.busy) return '请稍候…'
+				return '点击骰子摇一摇'
 			},
 			questionTimerClass() {
 				return this.questionRemain <= 5 ? 'dialog-timer urgent' : 'dialog-timer'
@@ -783,21 +778,22 @@
 	.play {
 		position: relative;
 		z-index: 2;
-		margin-top: 10rpx;
-		margin-bottom: 40rpx;
+		margin-top: 16rpx;
+		margin-bottom: 60rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
+	/* 骰子本体即投掷按钮，尺寸按效果图放大 */
 	.dice {
-		width: 176rpx;
-		height: 176rpx;
-		border-radius: 30rpx;
+		width: 230rpx;
+		height: 230rpx;
+		border-radius: 40rpx;
 		background: radial-gradient(circle at 30% 24%, #ffffff 0%, #f4f8fd 45%, #dbe7f3 100%);
 		border: 2rpx solid #e2ecf6;
-		box-shadow: 0 12rpx 0 #bfd3e4, 0 22rpx 28rpx rgba(0, 40, 90, 0.28);
-		padding: 16rpx;
+		box-shadow: 0 14rpx 0 #bfd3e4, 0 26rpx 34rpx rgba(0, 40, 90, 0.3);
+		padding: 22rpx;
 		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
@@ -825,8 +821,8 @@
 	}
 
 	.pip {
-		width: 28rpx;
-		height: 28rpx;
+		width: 36rpx;
+		height: 36rpx;
 		border-radius: 50%;
 		background: transparent;
 	}
@@ -835,34 +831,11 @@
 		background: radial-gradient(circle at 35% 30%, #5f5f5f 0%, #232323 72%);
 	}
 
-	.roll-btn {
-		margin-top: 16rpx;
-		width: 300rpx;
-		height: 76rpx;
-		border-radius: 38rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: linear-gradient(180deg, #ffd76a 0%, #ff9f1a 55%, #f2800a 100%);
-		box-shadow: 0 6rpx 0 #c96a06;
-	}
-
-	.roll-btn.disabled {
-		opacity: 0.7;
-	}
-
-	.roll-text {
-		font-size: 30rpx;
-		font-weight: 700;
-		letter-spacing: 3rpx;
-		color: #6b3500;
-	}
-
-	.info-line {
-		margin-top: 12rpx;
-		font-size: 21rpx;
-		color: rgba(255, 255, 255, 0.92);
-		text-shadow: 0 1rpx 4rpx rgba(0, 50, 100, 0.4);
+	.roll-hint {
+		margin-top: 18rpx;
+		font-size: 24rpx;
+		color: rgba(255, 255, 255, 0.95);
+		text-shadow: 0 1rpx 4rpx rgba(0, 50, 100, 0.45);
 	}
 
 	.mask {
