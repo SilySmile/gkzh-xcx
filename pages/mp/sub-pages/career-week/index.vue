@@ -231,6 +231,7 @@
 	import config from '@/config/api.js'
 	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
 	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
+	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
 	import {
 		checkLottery
 	} from '@/api/lottery.js'
@@ -566,7 +567,25 @@
 					}
 					return
 				}
-				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld') {
+				if (task.isFinish && task.type === 'zyfxq') {
+					try {
+						const entered = await enterZyfxq({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'zyfxq',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/zyfxq/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zyfxqMessage(e, '本局结果加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld' && task.type !== 'zyfxq') {
 					try {
 						// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 						await enterWeekGame(task.id, this.instanceId)
@@ -648,6 +667,10 @@
 						break
 					case 'nlld':
 						url = '/pages/nlld/start'
+						break
+
+					case 'zyfxq':
+						url = '/pages/zyfxq/start'
 						break
 					default:
 

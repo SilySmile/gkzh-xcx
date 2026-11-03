@@ -177,6 +177,11 @@ export default {
 							this.playGame(game)
 							return
 						}
+						// 职业飞行棋同样由自己的 /records/enter 写入参与记录。
+						if (game.gameType === 'zyfxq') {
+							this.playGame(game)
+							return
+						}
 						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(e => {
 							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
@@ -203,6 +208,7 @@ export default {
 				case 'zcyltzj': url = '/pages/zcyltzj/start'; break
 				case 'zyjdc': url = '/pages/zyjdc/start'; break
 				case 'nlld': url = '/pages/nlld/start'; break
+				case 'zyfxq': url = '/pages/zyfxq/start'; break
 				default: url = ''
 			}
 			if (!url) {
