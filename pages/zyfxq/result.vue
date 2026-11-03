@@ -1,5 +1,6 @@
 <template>
 	<view class="page">
+		<image class="page-bg" :src="assets.bgResult" mode="aspectFill" />
 		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="back" @click="backToActivity">‹</view>
 		</view>
@@ -242,11 +243,22 @@
 
 <style scoped>
 	.page {
+		position: relative;
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
 		background: #4ab3ee;
-		background-image: linear-gradient(180deg, #7ed3ff 0%, #4cb4ef 45%, #59bdf3 100%);
+		background-image: linear-gradient(180deg, #8bdcff 0%, #4cb4ef 45%, #59bdf3 100%);
+	}
+
+	/* 结果页背景图（浅蓝天空 + 云朵），铺满整页 */
+	.page-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
 	}
 
 	.topbar {
@@ -270,6 +282,8 @@
 	}
 
 	.scroll {
+		position: relative;
+		z-index: 1;
 		flex: 1;
 		height: 0;
 		min-height: 0;
@@ -526,14 +540,15 @@
 	}
 
 	.actions {
-		/* 固定在页面底部：不在滚动区内，内容滚动时按钮始终可见 */
+		/* 固定在页面底部、背景透明：按钮直接浮在天空背景上，避免整条白底显得突兀 */
+		position: relative;
+		z-index: 1;
 		display: flex;
 		gap: 20rpx;
 		padding: 20rpx 30rpx;
 		padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
 		padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-		background: rgba(255, 255, 255, 0.94);
-		border-top: 1rpx solid rgba(15, 76, 129, 0.12);
+		background: transparent;
 		flex-shrink: 0;
 	}
 
