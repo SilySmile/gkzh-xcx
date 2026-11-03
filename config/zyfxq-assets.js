@@ -1,8 +1,8 @@
-/**
- * 职业飞行棋远程素材（2026-11-03 版本目录，内容哈希 59ef04260ca0）。
+﻿/**
+ * 职业飞行棋远程素材（2026-11-03 版本目录，内容哈希 a5940ffd7852）。
  * 素材统一放服务器按内容哈希分目录，更新素材后重新上传并替换下面的版本号即可。
  */
-const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/59ef04260ca0'
+const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/a5940ffd7852'
 
 export const ZYFXQ_ASSETS = {
 	// 开始页
@@ -22,10 +22,8 @@ export const ZYFXQ_ASSETS = {
 	cellStart: `${BASE}/cell-start.png`,
 	stickerGo: `${BASE}/sticker-go.png`,
 	decoParty: `${BASE}/deco-party.png`,
-	// 结果页：天空背景 + 随内容滚动的「游戏结束」头图（通过/未通过两版）
+	// 结果页：纯天空背景 + 单独叠放的「游戏结束」logo 与药丸条
 	bgResultSky: `${BASE}/result-sky.jpg`,
-	headWin: `${BASE}/result-head-win.png`,
-	headLose: `${BASE}/result-head-lose.png`,
 	resultLogo: `${BASE}/result-logo.png`,
 	pillWin: `${BASE}/pill-win.png`,
 	pillLose: `${BASE}/pill-lose.png`

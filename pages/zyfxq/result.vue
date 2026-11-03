@@ -7,9 +7,12 @@
 
 		<scroll-view scroll-y class="scroll">
 			<view class="inner">
-				<!-- 「游戏结束」头图随内容一起滚动，滚上去后露出天空背景 -->
-				<image class="head"
-					:src="record.result === 'lose' ? assets.headLose : assets.headWin" mode="widthFix" />
+				<!-- 「游戏结束」标志与药丸条用单独素材叠在天空背景上，随内容一起滚动 -->
+				<image class="head-logo" :src="assets.resultLogo" mode="aspectFit" />
+				<view class="result-pill">
+					<image class="pill-art" :src="record.result === 'lose' ? assets.pillLose : assets.pillWin" mode="scaleToFill" />
+					<text class="pill-text">{{ pillText }}</text>
+				</view>
 				<text class="result-sub">{{ resultSub }}</text>
 
 				<!-- 本局数据 -->
@@ -129,6 +132,12 @@
 		computed: {
 			canRestart() {
 				return this.record.status === 'finished' && this.record.result !== 'win'
+			},
+			/** 药丸文案与设计稿一致：通过为绿底、未通过为红底。 */
+			pillText() {
+				if (this.record.result === 'win') return '恭喜你完成了本次挑战'
+				if (this.record.result === 'lose') return '很遗憾，本局未通过'
+				return '本局进行中'
 			},
 			resultSub() {
 				if (this.record.result === 'win') {
@@ -288,12 +297,37 @@
 	}
 
 	/* 头图铺满整宽（抵消 .inner 的左右内边距），高度按图片比例自适应 */
-	.head {
+	.head-logo {
 		display: block;
-		width: 750rpx;
-		margin-left: -30rpx;
-		margin-top: 6rpx;
-		margin-bottom: 10rpx;
+		width: 560rpx;
+		height: 189rpx;
+		margin: 10rpx auto 0;
+	}
+
+	.result-pill {
+		position: relative;
+		margin: 14rpx auto 0;
+		width: 600rpx;
+		height: 84rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.pill-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.pill-text {
+		position: relative;
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #ffffff;
+		letter-spacing: 1rpx;
 	}
 
 	/* 合并后的答题明细分区标题，用于区分“本局数据”与“逐题明细” */
