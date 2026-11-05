@@ -20,7 +20,8 @@
 				<view class="rules-title">对弈规则</view>
 				<view class="rule-item">
 					<text class="rule-index">1</text>
-					<text class="rule-text">8 种动物按等级对弈：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠，老鼠可以吃大象；双方底线中央各有一个兽穴。</text>
+					<!-- <text class="rule-text">8 种动物按等级对弈：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠，老鼠可以吃大象；双方底线中央各有一个兽穴。</text> -->
+					<text class="rule-text">8 种动物按等级对弈：大象 &gt; 狮子 &gt; 老虎 &gt; 豹子 &gt; 狼 &gt; 狐 &gt; 猫 &gt; 老鼠 &gt; 大象；双方底线中央各有一个兽穴。</text>
 				</view>
 				<view class="rule-item">
 					<text class="rule-index">2</text>
@@ -32,7 +33,7 @@
 				</view>
 				<view class="rule-item">
 					<text class="rule-index">4</text>
-					<text class="rule-text">失败或平局可以无限次重新挑战，每次都会重置棋盘和 3 分钟计时；通关后结果只读。</text>
+					<text class="rule-text">失败或平局可以无限次重新挑战，每次都会重置棋盘和 3 分钟计时；通关后结果只可预览。</text>
 				</view>
 			</view>
 

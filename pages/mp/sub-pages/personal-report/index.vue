@@ -40,6 +40,15 @@
 		<view class="footer-bar">
 			<button class="download-all-btn" @click="downloadAllPdf">下载全部报告PDF</button>
 		</view>
+		<view v-if="reportDownloadUrl" class="link-mask" @click.self="reportDownloadUrl = ''">
+			<view class="link-dialog">
+				<text class="link-title">报告下载链接</text>
+				<text class="link-hint">链接已复制，可粘贴到浏览器下载</text>
+				<text class="download-link" selectable>{{ reportDownloadUrl }}</text>
+				<button class="copy-link-btn" @click="copyReportLink">复制链接</button>
+				<text class="close-link" @click="reportDownloadUrl = ''">关闭</text>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -62,7 +71,8 @@ export default {
 			loading: true,
 			activityId: null,
 			sections: [],
-			backing: false
+			backing: false,
+			reportDownloadUrl: ''
 		}
 	},
 	onLoad(options) {
@@ -268,22 +278,22 @@ export default {
 			uni.showLoading({ title: '生成全部游戏报告' })
 			createAllReportCache(this.activityId).then(res => {
 				if (!res || Number(res.code) !== 200) {
-					throw new Error('报告压缩包生成失败，请重试')
+					throw new Error((res && res.msg) || '报告压缩包生成失败，请重试')
 				}
-				const reportUrl = reportArchiveUrl(config.BASE_URL, res.data)
-				uni.setClipboardData({
-					data: reportUrl,
-					success: () => uni.showModal({
-						title: '全部游戏报告已生成',
-						content: '压缩包下载链接已复制，请粘贴到浏览器下载，有效期为24小时。',
-						showCancel: false,
-						confirmText: '知道了'
-					})
-				})
+				this.reportDownloadUrl = reportArchiveUrl(config.BASE_URL, res.data)
+				this.copyReportLink()
 			}).catch(error => uni.showToast({
-				title: error.message || '报告压缩包生成失败，请重试',
+				title: error.message || '报告下载失败，请重试',
 				icon: 'none'
 			})).finally(() => uni.hideLoading())
+		},
+		copyReportLink() {
+			if (!this.reportDownloadUrl) return
+			uni.setClipboardData({
+				data: this.reportDownloadUrl,
+				success: () => uni.showToast({ title: '下载链接已复制', icon: 'success' }),
+				fail: () => uni.showToast({ title: '复制失败，请长按链接复制', icon: 'none' })
+			})
 		}
 	}
 }
@@ -365,5 +375,65 @@ export default {
     border-radius: 50rpx;
     font-size: 32rpx;
     font-weight: 600;
+}
+.link-mask {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40rpx;
+	box-sizing: border-box;
+	z-index: 99;
+}
+.link-dialog {
+	width: 100%;
+	background: #fff;
+	border-radius: 16rpx;
+	padding: 36rpx 30rpx 24rpx;
+	box-sizing: border-box;
+	text-align: center;
+}
+.link-title {
+	display: block;
+	font-size: 34rpx;
+	font-weight: 700;
+	color: #26364a;
+}
+.link-hint {
+	display: block;
+	margin: 18rpx 0;
+	font-size: 26rpx;
+	color: #697789;
+}
+.download-link {
+	display: block;
+	max-height: 220rpx;
+	overflow-y: auto;
+	padding: 18rpx;
+	border: 1px solid #d9e0e8;
+	border-radius: 8rpx;
+	background: #f7f9fb;
+	text-align: left;
+	word-break: break-all;
+	font-size: 24rpx;
+	line-height: 1.5;
+	color: #3569a8;
+}
+.copy-link-btn {
+	margin-top: 24rpx;
+	background: #2868b2;
+	color: #fff;
+	font-size: 30rpx;
+}
+.close-link {
+	display: block;
+	padding: 20rpx 0 4rpx;
+	font-size: 26rpx;
+	color: #697789;
 }
 </style>

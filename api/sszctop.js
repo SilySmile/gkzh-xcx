@@ -10,5 +10,4 @@ export const updateOrder=(code,data)=>request({url:'/api/sszctop/rooms/'+code+'/
 export const confirmRoom=(code,data)=>request({url:'/api/sszctop/rooms/'+code+'/confirm',method:'post',data})
 export const leaveRoom=code=>request({url:'/api/sszctop/rooms/'+code+'/leave',method:'post'})
 export const socketTicket=code=>request({url:'/api/sszctop/rooms/'+code+'/socket-ticket',method:'post'})
-export const roomQr=code=>request({url:'/api/sszctop/rooms/'+code+'/qrcode',method:'get'})
 export const getReport=gameId=>request({url:'/api/sszctop/report/'+gameId,method:'get'})

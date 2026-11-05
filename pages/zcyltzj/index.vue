@@ -315,6 +315,7 @@
 <style scoped>
 
 .page { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #fff8e8; }
+.page text { text-align: center; }
 .game-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; }
 .brand-logo { position: absolute; z-index: 1; left: 2.85%; top: 9.45%; width: 92%; height: 16.55%; }
 .grid { position: absolute; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -324,10 +325,10 @@
 .cell-content { position: absolute; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 18rpx 16rpx; }
 .cell-no { font-family: 'Times New Roman', serif; font-size: 46rpx; font-weight: 700; line-height: 1; color: #d69a32; }
 .cell-name { margin-top: 12rpx; font-size: 20rpx; line-height: 1.3; color: #fff; text-align: center; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.rule-cell .cell-content { justify-content: flex-start; padding: 24rpx 22rpx 14rpx; }
+.rule-cell .cell-content { justify-content: center; padding: 24rpx 22rpx 14rpx; }
 .rule-badge { flex-shrink: 0; padding: 0 14rpx; border-radius: 999rpx; font-size: 19rpx; line-height: 1.2; color: #efa933; background: rgba(255, 224, 135, .8); border: 1rpx solid #ffb13c; }
-.rule-text { width: 100%; margin-top: 14rpx; font-size: 19rpx; line-height: 1.2; color: #fff; text-align: left; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
-.rule-right .rule-text { margin-top: auto; margin-bottom: 18rpx; }
+.rule-text { width: 100%; margin-top: 14rpx; font-size: 19rpx; line-height: 1.2; color: #fff; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+.rule-right .rule-text { margin-top: 14rpx; margin-bottom: 0; }
 .cell.on .cell-no { color: #fff7bc; }
 .cell.on .cell-bg { filter: drop-shadow(0 0 8rpx #ffc64b); }
 .dice-hit { position: absolute; z-index: 2; left: 38.63%; top: 77.08%; width: 25.95%; height: 11.9%; }

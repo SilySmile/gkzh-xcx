@@ -112,6 +112,7 @@
 <style scoped>
 
 .page { position: relative; height: 100vh; min-height: 1440rpx; width: 100%; background: #fff4d8; color: #8e541c; }
+.page text { text-align: justify; }
 .page-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .page-header { position: absolute; z-index: 3; left: 0; top: 0; width: 100%; }
 .gold-action { position: absolute; z-index: 2; left: 5.2%; width: 91.5%; top: 89.5%; height: 6%; display: flex; align-items: center; justify-content: center; color: #8b4e14; font-size: 30rpx; font-weight: 600; }
@@ -124,7 +125,7 @@
 .intro-logo { position: absolute; left: 1.8%; top: 14%; width: 96.4%; height: 17%; }
 .intro-panel { position: absolute; left: 4.5%; top: 31.3%; width: 91%; height: 48.3%; padding: 26rpx; box-sizing: border-box; border: 2rpx solid rgba(255,255,255,.9); border-radius: 66rpx; background: linear-gradient(135deg,rgba(223,223,233,.78),rgba(255,244,218,.75)); box-shadow: inset 0 0 22rpx #fff9d9, 0 0 12rpx rgba(255,255,255,.9); }
 .intro-scroll { height: 100%; width: 100%; overflow-y: auto; border: 2rpx solid #fff9d0; border-radius: 48rpx; box-sizing: border-box; }
-.intro-copy { padding: 26rpx 32rpx; font-family: 'Songti SC','SimSun',serif; font-size: 23rpx; line-height: 1.3; }
+.intro-copy { min-height: 100%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: 26rpx 32rpx; font-family: 'Songti SC','SimSun',serif; font-size: 23rpx; line-height: 1.3; }
 .intro-heading { display: block; font-size: 24rpx; font-weight: 700; margin-bottom: 24rpx; }
 .intro-paragraph { display: block; white-space: pre-wrap; margin-bottom: 24rpx; }
 .intro-paragraph.last { margin-bottom: 0; }

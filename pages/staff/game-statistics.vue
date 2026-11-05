@@ -37,7 +37,7 @@
 		<view v-if="viewMode === 'chart'" class="chart-card">
 			<view class="chart-head">
 				<view class="chart-title">{{ chartTitle }}</view>
-				<text v-if="chartDimension === 'scanDate' && !startDate && !endDate" class="chart-tip">选择上方开始/结束日期，可查看每天（含 0 人）趋势</text>
+				<!-- <text v-if="chartDimension === 'scanDate' && !startDate && !endDate" class="chart-tip">选择上方开始/结束日期，可查看每天（含 0 人）趋势</text> -->
 				<view class="dimension-tabs">
 					<text v-for="item in chartDimensions" :key="item.value"
 						:class="chartDimension === item.value ? 'active' : ''"
@@ -98,15 +98,22 @@
 			genderIndex: 0,
 			startDate: '',
 			endDate: todayText(),
+			// chartDimensions: [{
+			// 	name: '日期',
+			// 	value: 'scanDate'
+			// }, {
+			// 	name: '院系',
+			// 	value: 'collegeName'
+			// }, {
+			// 	name: '专业',
+			// 	value: 'majorName'
+			// }],
 			chartDimensions: [{
 				name: '日期',
 				value: 'scanDate'
 			}, {
 				name: '院系',
 				value: 'collegeName'
-			}, {
-				name: '专业',
-				value: 'majorName'
 			}],
 			genderOptions: [{
 				name: '全部性别',

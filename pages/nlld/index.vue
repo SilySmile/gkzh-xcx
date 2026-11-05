@@ -199,6 +199,7 @@
 		left: 19%;
 		top: 6.6%;
 		width: 62%;
+		margin-top: 50rpx;
 	}
 
 	.ribbon {

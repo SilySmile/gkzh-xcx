@@ -1,25 +1,28 @@
 <template>
 	<view class="page">
-		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
-			<view class="back" @click="back">‹</view>
-			<view class="timer">
-				<image class="pill" :src="assets.pillTimer" mode="scaleToFill" />
-				<image class="timer-icon" :src="assets.iconClock" mode="aspectFit" />
-				<text :class="timerTextClass">{{ remainText }}</text>
+		<image class="page-sky" src="/static/zyfxq/board/sky.jpg" mode="scaleToFill" />
+		<view class="scene-header">
+			<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
+				<view class="back" :style="{ top: statusBarHeight + 'px' }" @click="back">‹</view>
+				<view class="timer">
+					<image class="pill" :src="assets.pillTimer" mode="scaleToFill" />
+					<image class="timer-icon" :src="assets.iconClock" mode="aspectFit" />
+					<text :class="timerTextClass">{{ remainText }}</text>
+				</view>
 			</view>
-		</view>
 
-		<view class="status-row">
-			<view class="player">
-				<image class="pill" :src="assets.pillPlayer" mode="scaleToFill" />
-				<image class="player-icon" :src="assets.iconPawn" mode="aspectFit" />
-				<text class="player-text">当前玩家</text>
-			</view>
-			<view class="step">
-				<image class="step-art" :src="assets.badgeStep" mode="scaleToFill" />
-				<view class="step-inner">
-					<text class="step-label">步数</text>
-					<text class="step-value">{{ diceValue > 0 ? diceValue : '-' }}</text>
+			<view class="status-row">
+				<view class="player">
+					<image class="pill" src="/static/zyfxq/board/player-card.png" mode="scaleToFill" />
+					<image class="player-icon" :src="assets.iconPawn" mode="aspectFit" />
+					<text class="player-text">当前玩家</text>
+				</view>
+				<view class="step">
+					<image class="step-art" :src="assets.badgeStep" mode="scaleToFill" />
+					<view class="step-inner">
+						<text class="step-label">步数</text>
+						<text class="step-value">{{ diceValue > 0 ? diceValue : '-' }}</text>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -36,8 +39,11 @@
 
 			<view v-for="cell in cells" :key="cell.cellNo" class="cell-slot" :style="slotStyle(cell)">
 				<view :class="cellClass(cell)" :style="'background-color:' + cell.cellColor">
-					<view class="cell-badge"><text class="cell-no">{{ cell.cellNo }}</text></view>
-					<text v-if="cell.cellLabel" class="cell-label">{{ cell.cellLabel }}</text>
+					<image v-if="cellArtwork(cell)" class="cell-art" :src="cellArtwork(cell)" mode="scaleToFill" />
+					<view v-else class="cell-content">
+						<view class="cell-badge"><text class="cell-no">{{ cell.cellNo }}</text></view>
+						<text v-if="cell.cellLabel" class="cell-label">{{ cell.cellLabel }}</text>
+					</view>
 					<view v-if="position === cell.cellNo" class="token">
 						<image class="token-art" :src="assets.pawnToken" mode="aspectFit" />
 					</view>
@@ -46,38 +52,45 @@
 
 			<image class="sticker-go" :src="assets.stickerGo" mode="aspectFit" />
 			<image class="deco-party" :src="assets.decoParty" mode="aspectFit" />
+			<image class="deco-toy" src="/static/zyfxq/board/toy.png" mode="aspectFit" />
+			<image class="start-arrow" src="/static/zyfxq/board/arrow.png" mode="aspectFit" />
 
 			<view class="center">
 				<image class="center-logo" :src="assets.boardLogo" mode="aspectFit" />
-				<image class="center-title" :src="assets.rulesTitle" mode="aspectFit" />
 				<view class="center-rule">
-					<text class="center-rule-text">摇骰前进，落在答题格弹出题目；答对继续摇骰，答错或超时后退 {{ backSteps }} 格；3 分钟内抵达终点即通关。</text>
+					<image class="center-title" :src="assets.rulesTitle" mode="aspectFit" />
+					<!-- <text class="center-rule-text">摇骰前进，落在答题格弹出题目；答对继续摇骰，答错或超时后退 {{ backSteps }} 格；3 分钟内抵达终点即通关。</text> -->
+					<text class="center-rule-text">游戏开始，掷骰决定前进步数，棋子按点数移动；抵达格子需完成指定任务，未完成任务则需后退两格，3分钟内抵达终点即可通关。</text>
 				</view>
 			</view>
 		</view>
 
 		<view class="play">
-			<view class="dice" :class="diceClass" @click="roll">
-				<view v-for="slot in pipSlots" :key="slot" class="pip-slot">
-					<view :class="'pip ' + (pipOn(slot) ? 'pip-on' : '')"></view>
+			<view class="dice-hit" @click="roll">
+				<view :class="diceClass">
+					<view class="dice-face dice-front">
+						<view v-for="slot in pipSlots" :key="slot" class="pip-slot">
+							<view :class="'pip ' + (pipOn(slot) ? 'pip-on' : '')"></view>
+						</view>
+					</view>
 				</view>
 			</view>
-			<text class="roll-hint">{{ rollHint }}</text>
+			<text class="roll-result">{{ rolling ? '骰子投掷中…' : (diceValue > 0 ? `本次掷出 ${diceValue} 点` : rollHint) }}</text>
 		</view>
 
 		<view v-if="questionVisible" class="mask">
 			<view class="dialog">
+				<image class="dialog-art" src="/static/zyfxq/board/question-frame.png" mode="scaleToFill" />
 				<view class="dialog-inner">
 					<view class="dialog-head">
 						<text class="dialog-type">{{ question.questionTypeName }}</text>
 						<text :class="questionTimerClass">限时 {{ questionRemain > 0 ? questionRemain : 0 }} 秒</text>
 					</view>
-					<text class="dialog-title">{{ question.title }}</text>
+					<view class="question-card"><text class="dialog-title">{{ question.title }}</text></view>
 					<view class="options">
 						<view v-for="(opt, index) in question.options" :key="opt.label" :class="optionClass(index, opt)"
 							@click="choose(opt)">
-							<text class="opt-label">{{ opt.label }}</text>
-							<text class="opt-text">{{ opt.content }}</text>
+							<text class="opt-text">{{ opt.label }}、{{ opt.content }}</text>
 						</view>
 					</view>
 					<view v-if="feedback.show" :class="feedbackClass">
@@ -135,6 +148,8 @@
 			timerId: null,
 			questionTimerId: null,
 			rollTimerId: null,
+			rollSettleTimerId: null,
+			resultHoldTimerId: null,
 			statusBarHeight: 30,
 			leaving: false
 		}),
@@ -152,10 +167,9 @@
 				return this.rolling ? 'dice rolling' : 'dice'
 			},
 			rollHint() {
-				if (this.rolling) return '骰子转动中…'
 				if (this.questionVisible) return '请先完成答题'
 				if (this.busy) return '请稍候…'
-				return '点击骰子摇一摇'
+				return '点击骰子掷出点数'
 			},
 			questionTimerClass() {
 				return this.questionRemain <= 5 ? 'dialog-timer urgent' : 'dialog-timer'
@@ -279,7 +293,16 @@
 			slotStyle(cell) {
 				const row = Number(cell && cell.row) || 0
 				const col = Number(cell && cell.col) || 0
-				return `left:${(col * 100) / 6}%;top:${(row * 100) / 7}%;width:${100 / 6}%;height:${100 / 7}%;`
+				const size = cell === this.startSlot || Number(cell.cellNo) === 19 ? 122 : 98
+				return `left:${35 + col * 109}rpx;top:${27 + row * 109}rpx;width:${size}rpx;height:${size}rpx;`
+			},
+			/** 默认格子使用设计素材；后台修改配色或文案后继续展示实际配置。 */
+			cellArtwork(cell) {
+				const colors = ['FD9452', 'A174D1', '4CC89A', 'F7B11E', 'F84D2D', 'FD9452', 'A174D1', '4CC89A', 'F7B11E', 'FD9452', 'F84D2D', 'F7B11E', 'FD9452', 'A174D1', '4CC89A', 'F7B11E', 'F84D2D', 'FD9452', 'F8B62D']
+				const no = Number(cell.cellNo)
+				const label = [3, 9, 15].includes(no) ? '情景任务卡' : ([6, 10, 12, 16, 18].includes(no) ? '职业问答' : (no === 19 ? '终点' : ''))
+				return String(cell.cellColor).toUpperCase() === '#' + colors[no - 1] && (cell.cellLabel || '') === label
+					? `/static/zyfxq/board/cell-${no}.png` : ''
 			},
 			cellClass(cell) {
 				// 小程序不支持对象形式的 :class，这里统一返回空格分隔的类名字符串。
@@ -307,34 +330,39 @@
 				if (this.busy || this.rolling || this.questionVisible || this.finished || this.submitting) return
 				this.busy = true
 				this.rolling = true
+				const rollStartedAt = Date.now()
 				// 转动动画与网络请求并行；最终点数以服务端返回为准。
 				this.rollTimerId = setInterval(() => {
 					this.diceFace = 1 + Math.floor(Math.random() * 6)
-				}, 80)
+				}, 180)
 				rollDice(this.recordId).then(res => {
 					const data = res.data || {}
 					const result = data.rollResult || {}
-					this.stopRollAnimation()
-					if (result.dice) {
-						this.diceValue = Number(result.dice)
-						this.diceFace = this.diceValue
+					const settle = () => {
+						this.rollSettleTimerId = null
+						this.stopRollAnimation()
+						if (result.dice) {
+							this.diceValue = Number(result.dice)
+							this.diceFace = this.diceValue
+						}
+						if (data.status === 'finished' || result.reachedEnd) {
+							this.position = Number(data.position) || 19
+							this.rollCount = Number(data.rollCount) || this.rollCount + 1
+							this.stepTotal = Number(data.stepTotal) || this.stepTotal
+							this.finished = true
+							this.clearTimers()
+							uni.showToast({ title: '抵达终点，通关成功', icon: 'none' })
+							this.resultHoldTimerId = setTimeout(() => this.goResult('win'), 1000)
+							return
+						}
+						this.resultHoldTimerId = setTimeout(() => {
+							this.resultHoldTimerId = null
+							this.syncState(data, false)
+							if (data.currentQuestion) this.openQuestion(data.currentQuestion)
+							else this.busy = false
+						}, 1000)
 					}
-					if (data.status === 'finished' || result.reachedEnd) {
-						this.position = Number(data.position) || 19
-						this.rollCount = Number(data.rollCount) || this.rollCount + 1
-						this.stepTotal = Number(data.stepTotal) || this.stepTotal
-						this.finished = true
-						this.clearTimers()
-						uni.showToast({ title: '抵达终点，通关成功', icon: 'none' })
-						setTimeout(() => this.goResult('win'), 1000)
-						return
-					}
-					this.syncState(data, false)
-					if (data.currentQuestion) {
-						setTimeout(() => this.openQuestion(data.currentQuestion), 320)
-					} else {
-						this.busy = false
-					}
+					this.rollSettleTimerId = setTimeout(settle, Math.max(0, 1200 - (Date.now() - rollStartedAt)))
 				}).catch(e => {
 					this.stopRollAnimation()
 					this.busy = false
@@ -345,6 +373,10 @@
 				if (this.rollTimerId) {
 					clearInterval(this.rollTimerId)
 					this.rollTimerId = null
+				}
+				if (this.rollSettleTimerId) {
+					clearTimeout(this.rollSettleTimerId)
+					this.rollSettleTimerId = null
 				}
 				this.rolling = false
 			},
@@ -465,6 +497,10 @@
 				this.clearMainTimer()
 				this.clearQuestionTimer()
 				this.stopRollAnimation()
+				if (this.resultHoldTimerId) {
+					clearTimeout(this.resultHoldTimerId)
+					this.resultHoldTimerId = null
+				}
 				if (this.feedbackTimer) {
 					clearTimeout(this.feedbackTimer)
 					this.feedbackTimer = null
@@ -483,7 +519,21 @@
 		flex-direction: column;
 		align-items: center;
 		background: #4ab3ee;
-		background-image: linear-gradient(180deg, #7ed3ff 0%, #4cb4ef 45%, #59bdf3 100%);
+	}
+
+	.page-sky {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.scene-header {
+		position: relative;
+		width: 750rpx;
+		height: 444rpx;
+		flex-shrink: 0;
 	}
 
 	.topbar {
@@ -492,29 +542,27 @@
 		width: 100%;
 		box-sizing: border-box;
 		display: flex;
-		align-items: center;
 		justify-content: center;
-		padding-bottom: 8rpx;
 	}
 
 	.back {
 		position: absolute;
-		left: 20rpx;
-		bottom: 22rpx;
-		width: 60rpx;
-		height: 60rpx;
-		line-height: 52rpx;
+		left: 24rpx;
+		width: 56rpx;
+		height: 56rpx;
+		line-height: 48rpx;
 		border-radius: 50%;
 		text-align: center;
 		font-size: 46rpx;
-		color: #ffffff;
-		background: rgba(255, 255, 255, 0.32);
+		color: #fff;
+		background: rgba(255, 255, 255, .28);
 	}
 
 	.timer {
 		position: relative;
-		width: 400rpx;
-		height: 86rpx;
+		width: 378rpx;
+		height: 74rpx;
+		margin-top: 48rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -531,17 +579,17 @@
 	.timer-icon {
 		position: relative;
 		width: 52rpx;
-		height: 60rpx;
-		margin-right: 14rpx;
+		height: 62rpx;
+		margin-right: 38rpx;
 	}
 
 	.timer-text {
 		position: relative;
-		font-size: 42rpx;
+		font-size: 56rpx;
 		font-weight: 700;
 		letter-spacing: 2rpx;
-		color: #ffffff;
-		text-shadow: 0 2rpx 6rpx rgba(0, 60, 120, 0.35);
+		line-height: 1;
+		color: #fff;
 	}
 
 	.timer-text.urgent {
@@ -550,44 +598,44 @@
 
 	.status-row {
 		position: relative;
-		z-index: 3;
-		width: 100%;
-		padding: 0 26rpx;
-		box-sizing: border-box;
+		z-index: 2;
+		margin: 60rpx 23rpx 0 29rpx;
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		margin-top: 10rpx;
 	}
 
 	.player {
 		position: relative;
-		width: 300rpx;
-		height: 96rpx;
+		width: 210rpx;
+		height: 110rpx;
 		display: flex;
 		align-items: center;
-		padding-left: 18rpx;
+		padding: 0 12rpx;
 		box-sizing: border-box;
 	}
 
 	.player-icon {
 		position: relative;
-		width: 46rpx;
-		height: 58rpx;
+		width: 48rpx;
+		height: 64rpx;
 		margin-right: 10rpx;
+		flex-shrink: 0;
 	}
 
 	.player-text {
 		position: relative;
 		font-size: 28rpx;
 		font-weight: 700;
-		color: #1d4f7c;
+		color: #064570;
+		white-space: nowrap;
 	}
 
 	.step {
 		position: relative;
-		width: 280rpx;
-		height: 156rpx;
+		width: 258rpx;
+		height: 169rpx;
+		margin-top: -60rpx;
 	}
 
 	.step-art {
@@ -598,38 +646,36 @@
 		height: 100%;
 	}
 
-	/* 文字只放在奶油色卡片范围内，右侧留给金色射线 */
 	.step-inner {
 		position: absolute;
 		left: 0;
-		top: 0;
+		bottom: 0;
 		width: 210rpx;
-		height: 100%;
+		height: 110rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
 	.step-label {
-		font-size: 24rpx;
+		font-size: 31rpx;
 		font-weight: 700;
-		color: #b4691a;
+		color: #a75a14;
 	}
 
 	.step-value {
 		margin-left: 6rpx;
-		font-size: 50rpx;
+		font-size: 80rpx;
+		line-height: 1;
 		font-weight: 800;
-		color: #f06d1a;
-		text-shadow: 0 2rpx 0 #ffffff;
+		color: #f68b20;
 	}
 
 	.board {
 		position: relative;
 		width: 750rpx;
-		height: 875rpx;
-		margin-top: 8rpx;
-		overflow: hidden;
+		height: 810rpx;
+		flex-shrink: 0;
 	}
 
 	.board-art {
@@ -642,7 +688,6 @@
 
 	.cell-slot {
 		position: absolute;
-		padding: 9rpx;
 		box-sizing: border-box;
 	}
 
@@ -650,66 +695,73 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
-		border-radius: 14rpx;
-		border: 3rpx solid rgba(255, 255, 255, 0.9);
+		box-sizing: border-box;
+	}
+
+	.cell-art,
+	.cell-content {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.cell-content {
+		border: 2rpx solid #fff;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4rpx 10rpx rgba(2, 40, 80, 0.25);
 	}
 
 	.cell.active {
-		border-color: #ffe066;
-		box-shadow: 0 0 0 6rpx rgba(255, 224, 102, 0.5), 0 0 20rpx rgba(255, 224, 102, 0.8);
+		box-shadow: 0 0 0 3rpx #ffe066, 0 0 16rpx rgba(255, 224, 102, .6);
 	}
 
 	.cell-badge {
-		width: 46rpx;
-		height: 46rpx;
+		width: 32rpx;
+		height: 32rpx;
 		border-radius: 50%;
-		background: #ffffff;
+		background: #fff;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
 	.cell-no {
-		font-size: 26rpx;
+		font-size: 29rpx;
+		line-height: 32rpx;
 		font-weight: 700;
-		color: #e8621f;
+		color: #ef803d;
 	}
 
 	.cell-label {
-		margin-top: 4rpx;
-		font-size: 17rpx;
+		margin-top: 9rpx;
+		font-size: 18rpx;
 		line-height: 1.2;
-		color: #ffffff;
+		color: #fff;
 		text-align: center;
-		text-align-last: center;
+		font-weight: 700;
 	}
 
 	.start-mask {
 		position: absolute;
-		left: 4rpx;
-		top: 4rpx;
-		right: 4rpx;
-		bottom: 4rpx;
-		width: auto;
-		height: auto;
-		border-radius: 14rpx;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 	}
 
-	/* 当前玩家棋子：在格子正中，尺寸不超过格子内圈 */
 	.token {
 		position: absolute;
 		left: 50%;
 		top: 50%;
-		width: 64rpx;
-		height: 86rpx;
-		margin-left: -32rpx;
-		margin-top: -43rpx;
+		width: 58rpx;
+		height: 78rpx;
+		margin-left: -29rpx;
+		margin-top: -39rpx;
 		z-index: 3;
 	}
 
@@ -720,96 +772,141 @@
 
 	.sticker-go {
 		position: absolute;
-		left: -6rpx;
-		top: 47%;
-		width: 96rpx;
-		height: 55rpx;
-		transform: rotate(-8deg);
+		left: 4rpx;
+		top: 365rpx;
+		width: 82rpx;
+		height: 48rpx;
 	}
 
 	.deco-party {
 		position: absolute;
-		right: -4rpx;
-		top: 34%;
-		width: 90rpx;
-		height: 100rpx;
+		right: 5rpx;
+		top: 320rpx;
+		width: 78rpx;
+		height: 88rpx;
+	}
+
+	.deco-toy {
+		position: absolute;
+		left: 400rpx;
+		top: 4rpx;
+		width: 66rpx;
+		height: 55rpx;
+	}
+
+	.start-arrow {
+		position: absolute;
+		left: 487rpx;
+		top: 650rpx;
+		width: 91rpx;
+		height: 75rpx;
 	}
 
 	.center {
 		position: absolute;
-		left: 16.6667%;
-		top: 14.2857%;
-		width: 66.6666%;
-		height: 71.4285%;
+		left: 157rpx;
+		top: 178rpx;
+		width: 430rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
 	}
 
 	.center-logo {
-		width: 380rpx;
-		height: 305rpx;
-	}
-
-	.center-title {
-		width: 190rpx;
-		height: 52rpx;
-		margin-top: 2rpx;
+		width: 375rpx;
+		height: 300rpx;
 	}
 
 	.center-rule {
+		position: relative;
 		width: 430rpx;
-		margin-top: 8rpx;
-		padding: 12rpx 14rpx;
-		border-radius: 14rpx;
-		border: 2rpx solid rgba(255, 255, 255, 0.75);
-		background: rgba(9, 78, 140, 0.32);
+		margin-top: 78rpx;
+		padding: 12rpx 5rpx 10rpx;
+		border: 1rpx solid #fff;
 		box-sizing: border-box;
 	}
 
+	.center-title {
+		position: absolute;
+		left: 50%;
+		top: -66rpx;
+		width: 206rpx;
+		height: 57rpx;
+		margin-left: -103rpx;
+	}
+
 	.center-rule-text {
+		display: block;
 		font-size: 19rpx;
-		line-height: 1.5;
-		color: #f4fbff;
-		text-align: justify;
+		line-height: 1.65;
+		letter-spacing: 1rpx;
+		color: #fff;
+		font-weight: 600;
+		text-align: center;
 	}
 
 	.play {
 		position: relative;
-		z-index: 2;
-		margin-top: 16rpx;
-		margin-bottom: 60rpx;
+		flex: 1;
+		min-height: 368rpx;
+		width: 100%;
+		box-sizing: border-box;
+		padding-top: 50rpx;
+		padding-bottom: calc(28rpx + env(safe-area-inset-bottom));
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
-	/* 骰子本体即投掷按钮，尺寸按效果图放大 */
+	.dice-hit {
+		width: 290rpx;
+		height: 220rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
 	.dice {
-		width: 230rpx;
-		height: 230rpx;
-		border-radius: 40rpx;
-		background: radial-gradient(circle at 30% 24%, #ffffff 0%, #f4f8fd 45%, #dbe7f3 100%);
-		border: 2rpx solid #e2ecf6;
-		box-shadow: 0 14rpx 0 #bfd3e4, 0 26rpx 34rpx rgba(0, 40, 90, 0.3);
-		padding: 22rpx;
+		position: relative;
+		width: 190rpx;
+		height: 190rpx;
+	}
+
+	.dice-face {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 190rpx;
+		height: 190rpx;
+		border-radius: 30rpx;
+		padding: 20rpx;
+		border: 2rpx solid #e3bca8;
 		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
 		align-content: space-between;
-		transform: rotate(-6deg);
+	}
+
+	.dice-front {
+		background: #fffaf5;
+		box-shadow: 0 12rpx 0 #d99472, 0 18rpx 24rpx rgba(30, 64, 88, .24), inset 0 0 0 4rpx #fff;
 	}
 
 	.dice.rolling {
-		animation: dice-shake 0.28s linear infinite;
+		animation: dice-shake .55s ease-in-out infinite;
 	}
 
 	@keyframes dice-shake {
-		0% { transform: translateY(0) rotate(-6deg); }
-		50% { transform: translateY(-10rpx) rotate(6deg); }
-		100% { transform: translateY(0) rotate(-6deg); }
+
+		0%,
+		100% {
+			transform: translateY(0) rotate(-5deg) scale(1);
+		}
+
+		50% {
+			transform: translateY(-12rpx) rotate(5deg) scale(1.04);
+		}
 	}
 
 	.pip-slot {
@@ -828,14 +925,22 @@
 	}
 
 	.pip-on {
-		background: radial-gradient(circle at 35% 30%, #5f5f5f 0%, #232323 72%);
+		background: radial-gradient(circle at 35% 30%, #3d2419, #684936 75%);
+		box-shadow: inset 1rpx 2rpx 3rpx #21160f, 0 1rpx 1rpx #fff;
 	}
 
-	.roll-hint {
-		margin-top: 18rpx;
-		font-size: 24rpx;
-		color: rgba(255, 255, 255, 0.95);
-		text-shadow: 0 1rpx 4rpx rgba(0, 50, 100, 0.45);
+	.pip-red {
+		background: radial-gradient(circle at 35% 30%, #ff6688, #d70f40 75%);
+		box-shadow: inset 1rpx 2rpx 3rpx #b61035, 0 1rpx 1rpx #fff;
+	}
+
+	.roll-result {
+		min-height: 48rpx;
+		margin-top: 12rpx;
+		font-size: 32rpx;
+		font-weight: 700;
+		color: #064570;
+		text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, .9);
 	}
 
 	.mask {
@@ -845,30 +950,35 @@
 		right: 0;
 		bottom: 0;
 		z-index: 30;
-		background: rgba(3, 24, 52, 0.72);
+		background: rgba(0, 0, 0, .48);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 40rpx;
+		padding: 24rpx 35rpx;
 		box-sizing: border-box;
 	}
 
 	.dialog {
-		/* 蓝色粗边框 + 浅色内板，还原设计稿里的答题弹窗框 */
-		width: 100%;
-		padding: 10rpx;
-		border-radius: 34rpx;
-		background: linear-gradient(180deg, #79c6f2 0%, #4ea9e2 100%);
-		box-shadow: 0 16rpx 34rpx rgba(3, 30, 60, 0.34);
+		position: relative;
+		width: 680rpx;
+		max-height: calc(100vh - 48rpx);
 		box-sizing: border-box;
 	}
 
+	.dialog-art {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
 	.dialog-inner {
-		padding: 26rpx 24rpx 24rpx;
-		border-radius: 26rpx;
-		background: #f1f5fa;
-		border: 3rpx solid #ffffff;
+		position: relative;
+		padding: 66rpx 55rpx 74rpx;
+		max-height: calc(100vh - 48rpx);
 		box-sizing: border-box;
+		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 	}
@@ -877,94 +987,98 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		margin-bottom: 16rpx;
 	}
 
-	.dialog-type {
-		padding: 6rpx 20rpx;
-		border-radius: 18rpx;
-		font-size: 22rpx;
-		font-weight: 600;
-		color: #ffffff;
-		background: #2b8fe0;
-	}
-
+	.dialog-type,
 	.dialog-timer {
-		font-size: 24rpx;
+		font-size: 22rpx;
+		line-height: 30rpx;
 		font-weight: 600;
-		color: #2b8fe0;
+		color: #387da3;
 	}
 
 	.dialog-timer.urgent {
-		color: #e8402c;
+		color: #db4327;
+	}
+
+	.question-card {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 120rpx;
+		padding: 22rpx 24rpx;
+		border: 2rpx solid #ffb333;
+		border-radius: 22rpx;
+		background: #ffedd1;
+		box-sizing: border-box;
 	}
 
 	.dialog-title {
-		margin-top: 22rpx;
-		font-size: 30rpx;
+		font-size: 32rpx;
 		line-height: 1.6;
-		font-weight: 600;
-		color: #17324f;
-		text-align: justify;
+		font-weight: 700;
+		color: #593100;
+		text-align: center;
+		overflow-wrap: break-word;
 	}
 
 	.options {
-		margin-top: 22rpx;
+		margin-top: 26rpx;
+		padding: 0 14rpx;
 	}
 
 	.option {
 		display: flex;
 		align-items: center;
-		margin-bottom: 16rpx;
-		padding: 20rpx 22rpx;
-		border-radius: 18rpx;
-		border: 2rpx solid #cfe3f7;
-		background: #ffffff;
+		justify-content: center;
+		min-height: 100rpx;
+		margin-top: 16rpx;
+		padding: 18rpx 24rpx;
+		border-radius: 42rpx;
+		border: 2rpx solid transparent;
+		background: #fff5e5;
+		box-shadow: 0 3rpx 0 #f8dbac;
+		box-sizing: border-box;
+	}
+
+	.option:first-child {
+		margin-top: 0;
 	}
 
 	.option.selected {
-		border-color: #2b8fe0;
-		background: #eaf5ff;
+		border-color: #eaa72b;
+		background: #ffedc6;
 	}
 
 	.option.right {
 		border-color: #38b06a;
 		background: #e9fbef;
+		box-shadow: 0 3rpx 0 #a5dfba;
 	}
 
 	.option.wrong {
 		border-color: #e8402c;
 		background: #fdecea;
+		box-shadow: 0 3rpx 0 #f3b9b1;
 	}
 
 	.option.locked {
-		opacity: 0.95;
-	}
-
-	.opt-label {
-		width: 48rpx;
-		height: 48rpx;
-		line-height: 48rpx;
-		border-radius: 50%;
-		text-align: center;
-		font-size: 24rpx;
-		font-weight: 700;
-		color: #ffffff;
-		background: #2b8fe0;
-		margin-right: 18rpx;
-		flex-shrink: 0;
+		opacity: .95;
 	}
 
 	.opt-text {
 		flex: 1;
-		font-size: 26rpx;
-		line-height: 1.55;
-		color: #24425f;
-		text-align: justify;
+		font-size: 27rpx;
+		line-height: 1.5;
+		color: #593100;
+		text-align: center;
+		overflow-wrap: break-word;
 	}
 
 	.feedback {
-		margin-top: 18rpx;
-		padding: 18rpx 22rpx;
+		margin-top: 22rpx;
+		padding: 16rpx 20rpx;
 		border-radius: 18rpx;
 	}
 
@@ -978,7 +1092,7 @@
 
 	.feedback-title {
 		display: block;
-		font-size: 26rpx;
+		font-size: 25rpx;
 		font-weight: 600;
 		color: #17324f;
 	}

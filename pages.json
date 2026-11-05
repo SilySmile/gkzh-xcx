@@ -134,7 +134,7 @@
 				},
 		{
 					"path": "pages/sszctop/report",
-					"style": {"navigationBarTitleText": "谁是职场TOP报告"}
+					"style": {"navigationBarTitleText": "谁是职场TOP报告", "navigationStyle": "custom"}
 				},
 		{"path":"pages/zycck/start","style":{"navigationBarTitleText":"未来职业猜猜看","navigationStyle":"custom"}},
 		{"path":"pages/zycck/question","style":{"navigationBarTitleText":"职业竞猜","navigationStyle":"custom"}},

@@ -69,6 +69,8 @@
 		font-size: 30rpx;
 		letter-spacing: 4rpx;
 		color: rgba(255, 255, 255, 0.9);
+		text-align: center;
+		text-align-last: center;
 	}
 
 	.header.theme-dark {
