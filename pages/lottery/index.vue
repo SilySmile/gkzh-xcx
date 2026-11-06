@@ -13,33 +13,41 @@
         />
         <view class="lottery-container">
 			<view v-if="myRecord" class="my-lottery-info" @click="showMyRecord">
-				已抽 {{ drawCount }}/{{ maxDrawCount }}：{{ myRecord.prizeTitle || '已参与' }}
+				<text class="entry-gift">🎁</text>
+				<view class="entry-copy">
+					<text class="entry-title">中奖记录</text>
+					<text class="entry-sub">已抽 {{ drawCount }}/{{ maxDrawCount }}</text>
+				</view>
+				<text class="entry-arrow">›</text>
             </view>
 
-			<view v-if="recordVisible" class="record-mask" @click="recordVisible = false">
+			<view v-if="recordVisible" class="record-mask" @click="closeRecords">
 				<view class="record-dialog" @click.stop>
-					<view class="record-title">我的中奖记录</view>
+					<view class="record-title">我的中奖记录（{{ myRecords.length }}）</view>
+					<view v-if="!myRecords.length" class="record-empty">暂无中奖记录</view>
 					<view v-for="(record, idx) in myRecords" :key="idx" class="record-line">
-						<view class="record-main" :class="{ 'record-disabled': isNoPrize(record) }" @tap="showPrizeQr(record)">
+						<view class="record-main" :class="{ 'record-disabled': isNoPrize(record) }" @tap="openRecordQr(record)">
 						<view class="record-count">第{{ idx + 1 }}次</view>
 						<view class="record-prize">{{ record.prizeTitle || '未记录' }}</view>
-						<view class="record-time">{{ record.drawTime || record.createTime }}</view>
+						<view class="record-time">{{ formatRecordTime(record.createTime || record.drawTime) }}</view>
 						</view>
 						<view v-if="isNoPrize(record)" class="record-status">谢谢参与</view>
+						<view v-else-if="!needsRedemption(record)" class="record-status">无需核销</view>
 						<view v-else-if="isRedeemed(record)" class="record-status redeemed">已核销</view>
-						<text v-else class="record-qr-tip" @tap.stop="showPrizeQr(record)">点击展示核销码</text>
+						<text v-else class="record-qr-tip" @tap.stop="openRecordQr(record)">点击展示核销码</text>
 					</view>
-					<button class="record-close" @click="recordVisible = false">关闭</button>
+					<button class="record-close" @click="closeRecords">关闭</button>
 				</view>
 			</view>
 
-			<view v-if="prizeQrVisible" class="record-mask" @click="prizeQrVisible = false">
+			<view v-if="prizeQrVisible" class="record-mask" @click="closePrizeQr">
 				<view class="qr-dialog" @click.stop>
 					<view class="record-title">奖品核销码</view>
+					<text v-if="qrPrizeTitle" class="qr-prize-title">{{ qrPrizeTitle }}</text>
 					<image v-if="prizeQrImage" :src="prizeQrImage" mode="widthFix" class="prize-qr" />
 					<text class="record-time">请将此二维码出示给工作人员</text>
 					<text class="redemption-code">文本核销码：{{ qrCode }}</text>
-					<button class="record-close" @click="prizeQrVisible = false">关闭</button>
+					<button class="record-close" @click="closePrizeQr">关闭</button>
 				</view>
 			</view>
 
@@ -54,10 +62,12 @@
                 <button class="retry-btn" @click="loadPrizes">重试</button>
             </view>
 
-            <!-- 抽奖转盘 -->
-            <view v-else-if="!recordVisible">
-                <canvas canvas-id="lotteryWheel" class="lottery-canvas"
+            <!-- 中奖记录打开前把转盘截图作为背景，原生 canvas 同时隐藏，避免画布盖住弹层 -->
+            <view v-else>
+                <canvas v-show="!recordVisible" canvas-id="lotteryWheel" class="lottery-canvas"
                         width="300" height="300"></canvas>
+                <image v-if="recordVisible && wheelSnapshot" :src="wheelSnapshot" mode="aspectFit"
+                       class="lottery-canvas wheel-snapshot" />
                 <button class="lottery-btn" @click="startLottery"
                         :disabled="spinning || !lotteryEnabled">
                     {{ spinning ? '抽奖中...' : '开始抽奖' }}
@@ -84,6 +94,8 @@ export default {
             activeIndex: 0,
             timer: null,
             loadedPrizeImages: [], // 预加载后的本地图片路径
+            preloadingImages: false,
+            loadedImagesKey: '',
             activityId: null, // 活动ID,
             gameId: null,
             lotteryId: null,
@@ -92,10 +104,13 @@ export default {
             maxDrawCount: 1,
             drawCount: 0,
 			recordVisible: false,
+			wheelSnapshot: '',
 			prizeQrVisible: false,
 			prizeQrImage: '',
 			qrRecordId: '',
 			qrCode: '',
+			qrPrizeTitle: '',
+			resultRefreshPending: false,
 			winningPrize: null,
             lotteryEnabled: false,
             minFinishCount: 0,
@@ -114,23 +129,6 @@ export default {
 			this.checkLotteryAccess()
 		},
 
-    onReady() {
-        // 页面准备就绪后，如果奖品已加载则开始预加载图片
-        if (this.prizes.length > 0) {
-            this.preloadImages();
-        }
-    },
-    watch: {
-        recordVisible(val) {
-            if (!val) {
-                this.$nextTick(() => {
-                    if (this.prizes.length > 0) {
-                        this.drawWheel(this.activeIndex)
-                    }
-                })
-            }
-        }
-    },
     methods: {
 		async checkLotteryAccess() {
 			try {
@@ -175,13 +173,14 @@ export default {
                 console.log('奖品列表:', response);
                 if (response.code === 200) {
                     this.prizes = response.data || [];
+                    this.loadedPrizeImages = [];
+                    this.loadedImagesKey = '';
                     if (this.prizes.length === 0) {
                         this.error = '暂无奖品数据';
                     } else {
-                        // 奖品加载成功后预加载图片
-                        this.preloadImages();
-                        // 打印奖品信息用于调试
-                        console.log('奖品列表:', this.prizes);
+                        // 先把转盘画出来，图片在后台异步补画，避免首屏一直空白等待。
+                        this.loading = false;
+                        this.$nextTick(() => this.preloadImages());
                     }
                 } else {
                     this.error = '获取奖品失败';
@@ -194,10 +193,23 @@ export default {
         },
 
         preloadImages() {
-            if (this.prizes.length === 0) return;
+            if (this.prizes.length === 0 || this.preloadingImages) return;
+            const key = this.prizes.map(prize => prize.imageUrl || '').join('|');
+            // 先用文字和扇形立即绘制，图片下载完成后再补画一次，首屏不再等全部图片。
+            this.drawWheel(this.activeIndex);
+            if (key && key === this.loadedImagesKey) return;
+            if (!this.prizes.some(prize => prize.imageUrl)) {
+                this.loadedImagesKey = key;
+                return;
+            }
 
+            this.preloadingImages = true;
             const promises = this.prizes.map(prize => {
                 return new Promise(resolve => {
+                    if (!prize.imageUrl) {
+                        resolve('');
+                        return;
+                    }
                     uni.getImageInfo({
                         src: prize.imageUrl,
                         success: res => resolve(res.path),
@@ -208,7 +220,10 @@ export default {
 
             Promise.all(promises).then(paths => {
                 this.loadedPrizeImages = paths;
-                this.drawWheel();
+                this.loadedImagesKey = key;
+                this.drawWheel(this.activeIndex);
+            }).finally(() => {
+                this.preloadingImages = false;
             });
         },
 
@@ -243,7 +258,7 @@ export default {
             // 奖品图片和文字
             for (let i = 0; i < prizeCount; i++) {
                 // 先绘制图片（如果有有效路径）
-                const imgPath = this.loadedPrizeImages[i] || this.prizes[i].imageUrl;
+                const imgPath = this.loadedPrizeImages[i];
                 if (imgPath && typeof imgPath === 'string' && imgPath.trim() !== '') {
                     ctx.save();
                     ctx.translate(center, center);
@@ -295,13 +310,33 @@ export default {
         },
 
 
-		showMyRecord() {
-			getMyLotteryList(this.lotteryId, this.activityId).then(res => {
-				if (res.code === 200) {
-					this.myRecords = res.data || []
-					this.recordVisible = true
+		async showMyRecord() {
+			const res = await getMyLotteryList(this.lotteryId, this.activityId)
+			if (!res || res.code !== 200) return
+			this.myRecords = res.data || []
+			// 先截取当前转盘作为背景，再打开弹层；旧版原生 canvas 不能压在弹层下面。
+			this.wheelSnapshot = await this.captureWheelSnapshot()
+			this.recordVisible = true
+		},
+
+		captureWheelSnapshot() {
+			return new Promise(resolve => {
+				if (typeof uni.canvasToTempFilePath !== 'function') {
+					resolve('')
+					return
 				}
+				uni.canvasToTempFilePath({
+					canvasId: 'lotteryWheel',
+					success: result => resolve(result.tempFilePath || ''),
+					fail: () => resolve('')
+				}, this)
 			})
+		},
+
+		closeRecords() {
+			this.recordVisible = false
+			// 关闭后恢复原 canvas；截图只用于弹层打开期间的背景展示。
+			this.$nextTick(() => { this.wheelSnapshot = '' })
 		},
 
         async startLottery() {
@@ -314,7 +349,8 @@ export default {
                 // 调用后端抽奖接口
                 const response = await drawPrizeByLotteryId(this.lotteryId, this.activityId);
                 if (response.code === 200) {
-                    await completeActivityWeekGame(this.gameId, { result: response.data }).catch(() => {})
+                    // 活动进度同步不阻塞转盘动画，避免接口慢时点了抽奖迟迟不转。
+                    completeActivityWeekGame(this.gameId, { result: response.data }).catch(() => {})
                     this.winningPrize = response.data;
                     // 找到中奖奖品在列表中的索引
                     const winIndex = this.prizes.findIndex(prize => prize.prizeId === this.winningPrize.prizeId);
@@ -409,34 +445,95 @@ export default {
         },
 
 		showLotteryResult() {
-            if (this.winningPrize && this.winningPrize.title != '谢谢参与') {
-                const message = `恭喜你获得：${this.winningPrize.title}`;
-                uni.showModal({
-                    title: '抽奖结果',
-                    content: message,
-                    showCancel: false,
-                    confirmText: '确定',
-                    success: () => {
-                        this.refreshAfterDraw()
-                    }
-                });
-            } else {
-                uni.showModal({
-                    title: '抽奖结果',
-                    content: '很遗憾，没有中奖',
-                    showCancel: false,
-                    confirmText: '确定',
-                    success: () => {
-                        this.refreshAfterDraw()
-                    }
-                });
-            }
+			const prize = this.winningPrize || {}
+			// 谢谢参与只提示结果，不进入核销流程。
+			if (this.isNoPrize({ prizeTitle: prize.title, prizeType: prize.prizeType })) {
+				uni.showModal({
+					title: '抽奖结果',
+					content: '很遗憾，没有中奖',
+					showCancel: false,
+					confirmText: '确定',
+					success: () => this.refreshAfterDraw()
+				})
+				return
+			}
+			// 无需核销的奖品只弹出名称。
+			if (String(prize.needRedemption) === '0') {
+				uni.showModal({
+					title: '抽奖结果',
+					content: `恭喜你获得：${prize.title}`,
+					showCancel: false,
+					confirmText: '知道了',
+					success: () => this.refreshAfterDraw()
+				})
+				return
+			}
+			// 需核销的奖品直接打开核销码弹层；关闭后再刷新抽奖次数和记录。
+			if (prize.recordId) {
+				this.resultRefreshPending = true
+				this.showPrizeQr({
+					recordId: prize.recordId,
+					redemptionCode: prize.redemptionCode,
+					prizeTitle: prize.title,
+					prizeType: prize.prizeType,
+					needRedemption: prize.needRedemption
+				})
+				return
+			}
+			// 兼容没有返回记录编号的旧服务端。
+			uni.showModal({
+				title: '抽奖结果',
+				content: `恭喜你获得：${prize.title}`,
+				showCancel: false,
+				confirmText: '确定',
+				success: () => this.refreshAfterDraw()
+			})
+		},
+		formatRecordTime(value) {
+			if (!value) return ''
+			const date = new Date(String(value).replace(/-/g, '/'))
+			if (isNaN(date.getTime())) return String(value)
+			const p = n => String(n).padStart(2, '0')
+			return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}`
+		},
+		needsRedemption(record) {
+			if (!record || this.isNoPrize(record)) return false
+			const value = record.needRedemption === undefined || record.needRedemption === null
+				? '1'
+				: String(record.needRedemption)
+			return value !== '0'
+		},
+		openRecordQr(record) {
+			if (!record || this.isNoPrize(record)) return
+			if (this.isRedeemed(record)) {
+				uni.showToast({ title: '该奖品已核销', icon: 'none' })
+				return
+			}
+			if (!this.needsRedemption(record)) {
+				uni.showModal({
+					title: '奖品信息',
+					content: `${record.prizeTitle || '奖品'}（无需核销）`,
+					showCancel: false,
+					confirmText: '知道了'
+				})
+				return
+			}
+			this.showPrizeQr(record)
 		},
 		showPrizeQr(record) {
 			record = record || {}
 			if (this.isNoPrize(record)) return
 			if (this.isRedeemed(record)) {
 				uni.showToast({ title: '该奖品已核销', icon: 'none' })
+				return
+			}
+			if (!this.needsRedemption(record)) {
+				uni.showModal({
+					title: '奖品信息',
+					content: `${record.prizeTitle || '奖品'}（无需核销）`,
+					showCancel: false,
+					confirmText: '知道了'
+				})
 				return
 			}
 			const token = uni.getStorageSync('token')
@@ -447,7 +544,16 @@ export default {
 			this.prizeQrImage = this.getPrizeQrPublicUrl(recordId)
 			this.qrRecordId = recordId
 			this.qrCode = record.redemptionCode || ('GKZH-' + recordId)
+			this.qrPrizeTitle = record.prizeTitle || record.title || ''
 			this.prizeQrVisible = true
+		},
+		closePrizeQr() {
+			this.prizeQrVisible = false
+			// 抽奖后打开的核销码，关闭时再刷新，避免弹层打开期间转盘/次数提前变化。
+			if (this.resultRefreshPending) {
+				this.resultRefreshPending = false
+				this.refreshAfterDraw()
+			}
 		},
 		getPrizeQrPublicUrl(recordId) {
 			// 线上 Nginx 将该路径代理到服务端动态二维码接口，避免被静态图片规则拦截。
@@ -488,7 +594,7 @@ export default {
                     this.myRecord = res.data
                 }
             })
-            this.loadPrizes()
+            // 抽奖只更新次数和中奖记录，不再重新拉取奖品/图片，避免转盘闪一下重建。
         },
         back() {
             redirectToActivityWeek()
@@ -514,12 +620,37 @@ export default {
     position: absolute;
     top: 12rpx;
     right: 20rpx;
+    display: flex;
+    align-items: center;
+    padding: 12rpx 20rpx 12rpx 16rpx;
     background: rgba(0, 0, 0, 0.55);
-    color: #ffffff;
-    padding: 10rpx 18rpx;
-    border-radius: 30rpx;
-    font-size: 24rpx;
+    border-radius: 999rpx;
     z-index: 5;
+}
+.entry-gift {
+    font-size: 28rpx;
+    margin-right: 10rpx;
+}
+.entry-copy {
+    display: flex;
+    flex-direction: column;
+}
+.entry-title {
+    color: #ffffff;
+    font-size: 24rpx;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.entry-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 19rpx;
+    line-height: 1.3;
+    margin-top: 2rpx;
+}
+.entry-arrow {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 30rpx;
+    margin-left: 10rpx;
 }
 .record-mask {
     position: fixed;
@@ -534,10 +665,13 @@ export default {
     justify-content: center;
 }
 .record-dialog {
-    width: 600rpx;
+    width: 640rpx;
+    max-height: 72vh;
     background: #ffffff;
     border-radius: 24rpx;
     padding: 36rpx;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 .record-title {
     font-size: 34rpx;
@@ -563,7 +697,9 @@ export default {
 .record-qr-tip { color: #2f80ed; font-size: 20rpx; white-space: nowrap; margin-left: 12rpx; }
 .record-status { color: #909399; font-size: 22rpx; white-space: nowrap; margin-left: 12rpx; }
 .record-status.redeemed { color: #19be6b; font-weight: 600; }
+.record-empty { text-align: center; color: #9cadc0; font-size: 24rpx; padding: 30rpx 0; }
 .qr-dialog { width: 620rpx; background: #fff; border-radius: 24rpx; padding: 36rpx; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 18rpx; }
+.qr-prize-title { font-size: 30rpx; font-weight: 700; color: #1a2c4a; text-align: center; }
 .prize-qr { width: 460rpx; height: 460rpx; }
 .redemption-code { font-size: 30rpx; color: #1a2c4a; font-weight: 700; letter-spacing: 2rpx; }
 .record-count {
@@ -629,6 +765,11 @@ export default {
     border-radius: 50%;
     box-shadow: 0 4rpx 24rpx #eee;
     margin-bottom: 40rpx;
+}
+
+/* 中奖记录打开期间用截图替代原生 canvas 作为背景，尺寸与位置保持一致 */
+.wheel-snapshot {
+    display: block;
 }
 
 .lottery-btn {

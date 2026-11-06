@@ -21,6 +21,15 @@
           "navigationStyle": "custom"
         }
       },
+      {
+        "path": "pages/mp/guest/index",
+        "style": {
+          "navigationBarTitleText": "平台介绍",
+          "navigationBarBackgroundColor": "#eaf3fc",
+          "navigationBarTextStyle": "black",
+          "backgroundColor": "#eaf3fc"
+        }
+      },
         {
             "path": "pages/index/index",
             "style": {
@@ -125,8 +134,36 @@
 				},
 		{
 					"path": "pages/sszctop/report",
-					"style": {"navigationBarTitleText": "谁是职场TOP报告"}
+					"style": {"navigationBarTitleText": "谁是职场TOP报告", "navigationStyle": "custom"}
 				},
+		{"path":"pages/zycck/start","style":{"navigationBarTitleText":"未来职业猜猜看","navigationStyle":"custom"}},
+		{"path":"pages/zycck/question","style":{"navigationBarTitleText":"职业竞猜","navigationStyle":"custom"}},
+		{"path":"pages/zycck/feedback","style":{"navigationBarTitleText":"答题反馈","navigationStyle":"custom"}},
+		{"path":"pages/zycck/summary","style":{"navigationBarTitleText":"阶段总结","navigationStyle":"custom"}},
+		{"path":"pages/zycck/categories","style":{"navigationBarTitleText":"职业探索墙","navigationStyle":"custom"}},
+		{"path":"pages/zycck/careers","style":{"navigationBarTitleText":"职业列表","navigationStyle":"custom"}},
+		{"path":"pages/zycck/career-detail","style":{"navigationBarTitleText":"职业详情","navigationStyle":"custom"}},
+		{"path":"pages/zycck/exploration-list","style":{"navigationBarTitleText":"探索清单","navigationStyle":"custom"}},
+		{"path":"pages/zycck/report","style":{"navigationBarTitleText":"探索报告","navigationStyle":"custom"}},
+		{"path":"pages/zycck/activity-feedback","style":{"navigationBarTitleText":"活动反馈","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/start","style":{"navigationBarTitleText":"职场压力·骰子局","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/index","style":{"navigationBarTitleText":"掷骰子","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/question","style":{"navigationBarTitleText":"场景答题","navigationStyle":"custom"}},
+		{"path":"pages/zcyltzj/result","style":{"navigationBarTitleText":"压力结果","navigationStyle":"custom"}},
+		{"path":"pages/zyjdc/start","style":{"navigationBarTitleText":"职业角斗场","navigationStyle":"custom"}},
+		{"path":"pages/zyjdc/select","style":{"navigationBarTitleText":"选择动物角色","navigationStyle":"custom"}},
+		{"path":"pages/zyjdc/role","style":{"navigationBarTitleText":"角色档案","navigationStyle":"custom"}},
+		{"path":"pages/zyjdc/index","style":{"navigationBarTitleText":"职业角斗场","navigationStyle":"custom"}},
+		{"path":"pages/zyjdc/result","style":{"navigationBarTitleText":"对局结果","navigationStyle":"custom"}},
+		{"path":"pages/nlld/start","style":{"navigationBarTitleText":"能量雷达","navigationStyle":"custom"}},
+		{"path":"pages/nlld/index","style":{"navigationBarTitleText":"海岛探索任务","navigationStyle":"custom"}},
+		{"path":"pages/nlld/report","style":{"navigationBarTitleText":"我的职业能量雷达","navigationStyle":"custom"}},
+		{"path":"pages/zyfxq/start","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
+		{"path":"pages/zyfxq/index","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
+		{"path":"pages/zyfxq/result","style":{"navigationBarTitleText":"本局结果","navigationStyle":"custom","backgroundColor":"#58b4ee","backgroundColorTop":"#58b4ee","backgroundColorBottom":"#6ec2f2"}},
+		{"path":"pages/jlcz/start","style":{"navigationBarTitleText":"简历称重","navigationStyle":"custom","backgroundColor":"#F7F1E6","backgroundColorTop":"#F7F1E6","backgroundColorBottom":"#EFE2CE"}},
+		{"path":"pages/jlcz/index","style":{"navigationBarTitleText":"称一称简历","navigationStyle":"custom","backgroundColor":"#F7F1E6","backgroundColorTop":"#F7F1E6","backgroundColorBottom":"#EFE2CE"}},
+		{"path":"pages/jlcz/result","style":{"navigationBarTitleText":"称重结果","navigationStyle":"custom","backgroundColor":"#F7F1E6","backgroundColorTop":"#F7F1E6","backgroundColorBottom":"#EFE2CE"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {

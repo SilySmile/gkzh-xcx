@@ -48,7 +48,8 @@ export default {
 			gameId: null,
 			schoolId: null,
 			bizType: null,
-			currentTitle: ''
+			currentTitle: '',
+			backing: false
 		}
 	},
 	onLoad(options) {
@@ -60,7 +61,6 @@ export default {
 
 		if (this.instanceId) {
 			uni.setStorageSync('activityId', this.instanceId)
-			this.loadFlow()
 		} else if (this.bizType) {
 			this.loadActiveWeek()
 		} else {
@@ -71,9 +71,27 @@ export default {
 			this.enterGame()
 		}
 	},
+	// 返回活动列表时读取服务端最新进度，反馈提交成功后才展示完成状态。
+	onShow() { if (this.instanceId) this.loadFlow() },
 	methods: {
 		back() {
-			uni.navigateBack()
+			if (this.backing) return
+			this.backing = true
+			const fallback = () => uni.reLaunch({
+				url: '/pages/mp/home/index',
+				complete: () => { this.backing = false }
+			})
+			const pages = getCurrentPages()
+			if (pages.length > 1) {
+				uni.navigateBack({
+					delta: 1,
+					complete: () => { this.backing = false },
+					fail: () => { this.backing = false; fallback() }
+				})
+			} else {
+				this.backing = false
+				fallback()
+			}
 		},
 		loadActiveWeek() {
 			getActiveWeek(this.bizType).then(res => {
@@ -141,8 +159,36 @@ export default {
 							uni.navigateTo({ url: '/pages/xycc/start?activityId=' + this.instanceId + '&gameId=' + this.gameId })
 							return
 						}
-						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(() => {
-							uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						if (game.gameType === 'zycck') {
+							this.playGame(game)
+							return
+						}
+						// 骰子局由本游戏自己的 /records/enter 写入参与记录，不能再调用通用进入接口，避免重复参与数据。
+						if (game.gameType === 'zcyltzj') {
+							this.playGame(game)
+							return
+						}
+						// 职业角斗场由本游戏自己的 /records/enter 写入参与记录，不能再调用通用进入接口。
+						if (game.gameType === 'zyjdc') {
+							this.playGame(game)
+							return
+						}
+						if (game.gameType === 'nlld') {
+							this.playGame(game)
+							return
+						}
+						// 职业飞行棋同样由自己的 /records/enter 写入参与记录。
+						if (game.gameType === 'zyfxq') {
+							this.playGame(game)
+							return
+						}
+						// 简历称重同样由自己的 /records/enter 写入参与记录。
+						if (game.gameType === 'jlcz') {
+							this.playGame(game)
+							return
+						}
+						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(e => {
+							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
 					})
 				}
@@ -163,6 +209,12 @@ export default {
 				case 'zytj': url = '/pages/zytj/index'; break
 				case 'sszctop': url = '/pages/sszctop/index'; break
 				case 'zyxxz': url = '/pages/zyxxz/channel'; break
+				case 'zycck': url = '/pages/zycck/start'; break
+				case 'zcyltzj': url = '/pages/zcyltzj/start'; break
+				case 'zyjdc': url = '/pages/zyjdc/start'; break
+				case 'nlld': url = '/pages/nlld/start'; break
+				case 'zyfxq': url = '/pages/zyfxq/start'; break
+				case 'jlcz': url = '/pages/jlcz/start'; break
 				default: url = ''
 			}
 			if (!url) {

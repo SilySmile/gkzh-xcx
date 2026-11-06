@@ -50,6 +50,42 @@
 				<text v-if="errors.departmentId" class="error-tip">{{ errors.departmentId }}</text>
 			</view>
 
+			<!-- 年级 -->
+			<view class="form-item">
+				<text class="label">年级</text>
+				<picker :range="gradeOptions" range-key="dictLabel" @change="onGradeChange">
+					<view class="picker-wrap" :class="{ shake: errors.grade }">
+						<text :class="{ placeholder: !form.grade }">{{ gradeLabel || '请选择年级' }}</text>
+						<text class="picker-arrow">▾</text>
+					</view>
+				</picker>
+				<text v-if="errors.grade" class="error-tip">{{ errors.grade }}</text>
+			</view>
+
+			<!-- 学历 -->
+			<view class="form-item">
+				<text class="label">学历</text>
+				<picker :range="educationOptions" @change="onEducationChange">
+					<view class="picker-wrap" :class="{ shake: errors.education }">
+						<text :class="{ placeholder: !form.education }">{{ form.education || '请选择学历' }}</text>
+						<text class="picker-arrow">▾</text>
+					</view>
+				</picker>
+				<text v-if="errors.education" class="error-tip">{{ errors.education }}</text>
+			</view>
+
+			<!-- 毕业时间 -->
+			<view class="form-item">
+				<text class="label">毕业时间</text>
+				<picker mode="date" fields="month" @change="onGraduationTimeChange">
+					<view class="picker-wrap" :class="{ shake: errors.graduationTime }">
+						<text :class="{ placeholder: !form.graduationTime }">{{ form.graduationTime || '请选择毕业年月' }}</text>
+						<text class="picker-arrow">▾</text>
+					</view>
+				</picker>
+				<text v-if="errors.graduationTime" class="error-tip">{{ errors.graduationTime }}</text>
+			</view>
+
 			<!-- 学号 -->
 			<view class="form-item">
 				<text class="label">学号</text>
@@ -130,7 +166,7 @@
 
 			<!-- 手机号 -->
 			<view class="form-item">
-				<text class="label">手机号</text>
+				<text class="label">手机号(选填)</text>
 				<view class="input-wrap" :class="{ 'focused': focusFields.phone, 'shake': errors.phone }">
 					<input v-model="form.phone" class="form-input" type="number" maxlength="11" placeholder="请输入手机号"
 						placeholder-style="color:#b0bec5"
@@ -198,6 +234,7 @@
 <script>
 import { getAllSchools, registerStudent } from '@/api/checkin'
 import { getDepartmentTreeBySchoolId } from '@/api/checkin'
+import { getDicts } from '@/api/common'
 
 export default {
 	data() {
@@ -211,6 +248,8 @@ export default {
 			deptTree: [],
 			collegeList: [],
 			majorList: [],
+			gradeOptions: [],
+			educationOptions: ['高中', '中专', '大专', '本科', '硕士研究生', '博士研究生', '其他'],
 			focusFields: {},
 			form: {
 				schoolId: '',
@@ -219,6 +258,9 @@ export default {
 				collegeName: '',
 				departmentId: '',
 				departmentName: '',
+				grade: '',
+				education: '',
+				graduationTime: '',
 				studentNo: '',
 				confirmNo: '',
 				password: '',
@@ -230,11 +272,22 @@ export default {
 			errors: {}
 		}
 	},
+	computed: {
+		gradeLabel() {
+			const item = this.gradeOptions.find(option => String(option.dictValue) === String(this.form.grade))
+			return item ? item.dictLabel : ''
+		}
+	},
 	onLoad(options) {
 		getAllSchools().then(res => {
 			if (res.code === 200) this.schoolList = res.data || []
 		}).catch(() => {
 			uni.showToast({ title: '学校列表加载失败', icon: 'none' })
+		})
+		getDicts('grade_type').then(res => {
+			this.gradeOptions = Array.isArray(res) ? res : []
+		}).catch(() => {
+			uni.showToast({ title: '年级选项加载失败', icon: 'none' })
 		})
 		this.$nextTick(() => {
 			setTimeout(() => { this.pageReady = true }, 100)
@@ -292,11 +345,28 @@ export default {
 			this.pickerType = ''
 			this.errors.departmentId = ''
 		},
+		onGradeChange(e) {
+			const item = this.gradeOptions[Number(e.detail.value)]
+			if (!item) return
+			this.form.grade = item.dictValue
+			this.errors.grade = ''
+		},
+		onEducationChange(e) {
+			this.form.education = this.educationOptions[Number(e.detail.value)] || ''
+			this.errors.education = ''
+		},
+		onGraduationTimeChange(e) {
+			this.form.graduationTime = e.detail.value || ''
+			this.errors.graduationTime = ''
+		},
 		validate() {
 			const e = {}
 			if (!this.form.schoolId) e.schoolId = '请选择学校'
 			if (!this.form.collegeId) e.collegeId = '请选择院系'
 			if (!this.form.departmentId) e.departmentId = '请选择二级专业'
+			if (!this.form.grade) e.grade = '请选择年级'
+			if (!this.form.education) e.education = '请选择学历'
+			if (!this.form.graduationTime) e.graduationTime = '请选择毕业时间'
 			if (!this.form.studentNo.trim()) e.studentNo = '请输入学号'
 			if (this.form.studentNo !== this.form.confirmNo) e.confirmNo = '两次学号不一致'
 			if (!this.form.password) e.password = '请输入密码'
@@ -304,8 +374,8 @@ export default {
 			if (this.form.password !== this.form.confirmPwd) e.confirmPwd = '两次密码不一致'
 			if (!this.form.name.trim()) e.name = '请输入姓名'
 			if (!this.form.gender) e.gender = '请选择性别'
-			if (!this.form.phone.trim()) e.phone = '请输入手机号'
-			if (!/^1\d{10}$/.test(this.form.phone)) e.phone = '手机号格式不正确'
+			// if (!this.form.phone.trim()) e.phone = '请输入手机号'
+			// if (!/^1\d{10}$/.test(this.form.phone)) e.phone = '手机号格式不正确'
 			this.errors = e
 			return Object.keys(e).length === 0
 		},
@@ -318,6 +388,9 @@ export default {
 				schoolId: this.form.schoolId,
 				collegeId: this.form.collegeId,
 				departmentId: this.form.departmentId,
+				grade: this.form.grade,
+				education: this.form.education,
+				graduationTime: this.form.graduationTime,
 				studentNo: this.form.studentNo,
 				className: this.form.className || '',
 				enrollmentYear: this.form.enrollmentYear || '',

@@ -26,7 +26,7 @@
 					>
 						<view class="game-info">
 							<text class="game-title">{{ game.title }}</text>
-							<text class="game-type">{{ typeName(game.gameType) }}</text>
+							<!-- <text class="game-type">{{ typeName(game.gameType) }}</text> -->
 						</view>
 						<view class="game-status" :class="game.isFinish ? 'finish' : (game.isFail ? 'fail' : '')">
 							{{ game.isFinish ? '已完成' : (game.isFail ? '未通过' : '未完成') }}
@@ -40,6 +40,15 @@
 		<view class="footer-bar">
 			<button class="download-all-btn" @click="downloadAllPdf">下载全部报告PDF</button>
 		</view>
+		<view v-if="reportDownloadUrl" class="link-mask" @click.self="reportDownloadUrl = ''">
+			<view class="link-dialog">
+				<text class="link-title">报告下载链接</text>
+				<text class="link-hint">链接已复制，可粘贴到浏览器下载</text>
+				<text class="download-link" selectable>{{ reportDownloadUrl }}</text>
+				<button class="copy-link-btn" @click="copyReportLink">复制链接</button>
+				<text class="close-link" @click="reportDownloadUrl = ''">关闭</text>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -47,15 +56,24 @@
 import { getWeekFlow } from '@/api/activity/week'
 import { getMyResult as getZytjResult } from '@/api/zytj.js'
 import { getReport as getSszctopReport } from '@/api/sszctop.js'
+import { enterRecord, userMessage } from '@/api/zycck.js'
+import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj.js'
+import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc.js'
+import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld.js'
+import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq.js'
+import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
+import { reportArchiveUrl } from '@/utils/report-download.js'
 
 export default {
 	data() {
 		return {
 			loading: true,
 			activityId: null,
-			sections: []
+			sections: [],
+			backing: false,
+			reportDownloadUrl: ''
 		}
 	},
 	onLoad(options) {
@@ -65,11 +83,31 @@ export default {
 			this.loading = false
 			return
 		}
-		this.loadGames()
 	},
+	// 从游戏或反馈页返回后刷新，未反馈的猜猜看不显示为已完成。
+	onShow() { if (this.activityId) this.loadGames() },
 	methods: {
 		back() {
-			uni.navigateBack()
+			if (this.backing) return
+			this.backing = true
+			const pages = getCurrentPages()
+			const fallback = () => {
+				const activityId = encodeURIComponent(this.activityId || uni.getStorageSync('activityId') || '')
+				uni.redirectTo({
+					url: `/pages/mp/sub-pages/career-week/index?activityId=${activityId}`,
+					complete: () => { this.backing = false }
+				})
+			}
+			if (pages.length > 1) {
+				uni.navigateBack({
+					delta: 1,
+					complete: () => { this.backing = false },
+					fail: () => { this.backing = false; fallback() }
+				})
+			} else {
+				this.backing = false
+				fallback()
+			}
 		},
 		typeName(type) {
 			const map = {
@@ -82,7 +120,13 @@ export default {
 				'lottery': '抽奖',
 				'check-in': '签到',
 				'check-out': '签退',
-				'survey': '问卷调查'
+				'survey': '问卷调查',
+				'zycck': '未来职业猜猜看',
+				'zcyltzj': '职场压力·骰子局',
+				'zyjdc': '职业角斗场',
+				'nlld': '能量雷达',
+				'zyfxq': '职业飞行棋',
+				'jlcz': '简历称重'
 			}
 			return map[type] || type
 		},
@@ -135,30 +179,142 @@ export default {
 				} catch (e) { uni.showToast({ title: '报告加载失败', icon: 'none' }) }
 				return
 			}
+			if (game.gameType === 'zycck') {
+				try {
+					const entered = await enterRecord({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zycck',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zycck/report?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: userMessage(e, '职业猜猜看报告加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'zcyltzj') {
+				try {
+					// 骰子局按活动实例和游戏编号幂等取回本人记录，再打开压力结果页。
+					const entered = await enterZcyltzj({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zcyltzj',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zcyltzj/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: zcyltzjMessage(e, '压力结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'zyjdc') {
+				try {
+					// 职业角斗场按活动实例和游戏编号幂等取回本人记录，再打开结果页。
+					const entered = await enterZyjdc({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zyjdc',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zyjdc/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: zyjdcMessage(e, '对局结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'nlld') {
+				try {
+					// 能量雷达按活动实例和游戏编号幂等取回本人记录，再打开结果页。
+					const entered = await enterNlld({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'nlld',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/nlld/report?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: nlldMessage(e, '测评结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'zyfxq') {
+				try {
+					// 职业飞行棋按活动实例和游戏编号幂等取回本人记录，再打开本局结果页。
+					const entered = await enterZyfxq({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zyfxq',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zyfxq/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: zyfxqMessage(e, '本局结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'jlcz') {
+				try {
+					// 简历称重按活动实例和游戏编号幂等取回本人记录，再打开称重结果页。
+					const entered = await enterJlcz({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'jlcz',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/jlcz/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: jlczMessage(e, '称重结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
 			uni.showToast({ title: '该游戏暂无独立报告页', icon: 'none' })
 		},
 		downloadAllPdf() {
 			if (!this.activityId) return uni.showToast({ title: '缺少活动信息，请返回重新进入', icon: 'none' })
 			uni.showLoading({ title: '生成全部游戏报告' })
 			createAllReportCache(this.activityId).then(res => {
-				const path = res.data
-				if (!path || path.indexOf('/profile/report-cache/') !== 0 || !path.endsWith('.zip')) {
-					throw new Error('报告压缩包生成失败，请重试')
+				if (!res || Number(res.code) !== 200) {
+					throw new Error((res && res.msg) || '报告压缩包生成失败，请重试')
 				}
-				const reportUrl = config.BASE_URL + path
-				uni.setClipboardData({
-					data: reportUrl,
-					success: () => uni.showModal({
-						title: '全部游戏报告已生成',
-						content: '压缩包已按区域和游戏分类，链接已复制，请粘贴到浏览器下载。',
-						showCancel: false,
-						confirmText: '知道了'
-					})
-				})
+				this.reportDownloadUrl = reportArchiveUrl(config.BASE_URL, res.data)
+				this.copyReportLink()
 			}).catch(error => uni.showToast({
-				title: error.message || '报告压缩包生成失败，请重试',
+				title: error.message || '报告下载失败，请重试',
 				icon: 'none'
 			})).finally(() => uni.hideLoading())
+		},
+		copyReportLink() {
+			if (!this.reportDownloadUrl) return
+			uni.setClipboardData({
+				data: this.reportDownloadUrl,
+				success: () => uni.showToast({ title: '下载链接已复制', icon: 'success' }),
+				fail: () => uni.showToast({ title: '复制失败，请长按链接复制', icon: 'none' })
+			})
 		}
 	}
 }
@@ -240,5 +396,65 @@ export default {
     border-radius: 50rpx;
     font-size: 32rpx;
     font-weight: 600;
+}
+.link-mask {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40rpx;
+	box-sizing: border-box;
+	z-index: 99;
+}
+.link-dialog {
+	width: 100%;
+	background: #fff;
+	border-radius: 16rpx;
+	padding: 36rpx 30rpx 24rpx;
+	box-sizing: border-box;
+	text-align: center;
+}
+.link-title {
+	display: block;
+	font-size: 34rpx;
+	font-weight: 700;
+	color: #26364a;
+}
+.link-hint {
+	display: block;
+	margin: 18rpx 0;
+	font-size: 26rpx;
+	color: #697789;
+}
+.download-link {
+	display: block;
+	max-height: 220rpx;
+	overflow-y: auto;
+	padding: 18rpx;
+	border: 1px solid #d9e0e8;
+	border-radius: 8rpx;
+	background: #f7f9fb;
+	text-align: left;
+	word-break: break-all;
+	font-size: 24rpx;
+	line-height: 1.5;
+	color: #3569a8;
+}
+.copy-link-btn {
+	margin-top: 24rpx;
+	background: #2868b2;
+	color: #fff;
+	font-size: 30rpx;
+}
+.close-link {
+	display: block;
+	padding: 20rpx 0 4rpx;
+	font-size: 26rpx;
+	color: #697789;
 }
 </style>

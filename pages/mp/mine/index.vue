@@ -20,7 +20,8 @@
 				</view>
 				<!-- 原二维码入口已停用，当前位置改为扫一扫 -->
 				<view class="profile-right" @click="goScan">
-					<text class="qrcode-icon">📷</text>
+					<!-- <text class="qrcode-icon"></text> -->
+					<image style="width: 50rpx; height: 50rpx;" src="/static/scan.png"></image>
 					<text class="qrcode-label">扫一扫</text>
 				</view>
 			</view>
@@ -97,6 +98,12 @@
 
 <script>
 import { getWeekFlow, enterWeekGame } from '@/api/activity/week'
+import { enterRecord, userMessage } from '@/api/zycck'
+	import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj'
+	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
+	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
+	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
+	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
 
 export default {
 	data() {
@@ -168,7 +175,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -181,6 +188,12 @@ export default {
 				})
 				const isXyccStartCode = result.indexOf('/pages/xycc/start') > -1
 				const isSszctopDirectCode = result.indexOf('/pages/sszctop/index') > -1
+				const isZycck = result.indexOf('/pages/zycck/start') > -1 || params.gameType === 'zycck'
+				const isZcyltzj = result.indexOf('/pages/zcyltzj/start') > -1 || params.gameType === 'zcyltzj'
+				const isZyjdc = result.indexOf('/pages/zyjdc/start') > -1 || params.gameType === 'zyjdc'
+				const isNlld = result.indexOf('/pages/nlld/start') > -1 || params.gameType === 'nlld'
+				const isZyfxq = result.indexOf('/pages/zyfxq/start') > -1 || params.gameType === 'zyfxq'
+				const isJlcz = result.indexOf('/pages/jlcz/start') > -1 || params.gameType === 'jlcz'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -195,6 +208,136 @@ export default {
 					'zyxxz': '/pages/zyxxz/channel'
 				}
 				const gameUrl = isXyccStartCode ? '/pages/xycc/index' : (isSszctopDirectCode ? '/pages/sszctop/index' : (map[params.gameType] || ''))
+				if (isZcyltzj) {
+					// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZcyltzj({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zcyltzj',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zcyltzj/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zcyltzjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZyjdc) {
+					// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZyjdc({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zyjdc',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zyjdc/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zyjdcMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isNlld) {
+					// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterNlld({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'nlld',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/nlld/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: nlldMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZyfxq) {
+					// 职业飞行棋：先校验学校、活动和游戏归属，通过后才打开开始页。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZyfxq({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zyfxq',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zyfxq/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zyfxqMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isJlcz) {
+					// 简历称重：先校验学校、活动和游戏归属，通过后才打开开始页。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterJlcz({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'jlcz',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/jlcz/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: jlczMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZycck) {
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterRecord({ instanceId: params.instanceId, gameId: params.gameId, gameType: 'zycck', schoolId: uni.getStorageSync('schoolId') })
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.redirectTo({ url: `/pages/zycck/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}` })
+					} catch (e) {
+						uni.showToast({ title: userMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
 				if (!gameUrl) {
 					uni.showModal({ title: '提示', content: '二维码缺少游戏类型，请到Web后台重新生成游戏二维码', showCancel: false })
 					return
@@ -243,8 +386,8 @@ export default {
 							uni.navigateTo({ url: '/pages/sszctop/report?gameId=' + params.gameId })
 							return
 						}
-						enterWeekGame(params.gameId, params.instanceId).then(() => uni.navigateTo({ url: gameUrl + suffix })).catch(() => {
-							uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						enterWeekGame(params.gameId, params.instanceId).then(() => uni.navigateTo({ url: gameUrl + suffix })).catch(e => {
+							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
 					})
 					return
@@ -257,7 +400,7 @@ export default {
 					try {
 						await enterWeekGame(params.gameId, params.instanceId)
 					} catch (e) {
-						uni.showToast({ title: '游戏入口已失效，请重新扫码进入', icon: 'none' })
+						uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						return
 					}
 				}
@@ -431,9 +574,9 @@ export default {
 .profile-right:active {
 	background: #e8eff8;
 }
-.qrcode-icon {
+/* .qrcode-icon {
 	font-size: 44rpx;
-}
+} */
 .qrcode-label {
 	font-size: 20rpx;
 	color: #607d9b;

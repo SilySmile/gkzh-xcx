@@ -31,6 +31,13 @@ export function enterWeekGame(gameId, instanceId) {
     url: '/api/activity/week/game/' + gameId + '/enter',
     method: 'post',
     params: instanceId ? { instanceId } : undefined
+  }).then(response => {
+    // 通用 request 会把业务码 500 也 resolve；进入游戏必须按业务码拦截，
+    // 否则跨校、跨活动或已失效的入口仍会继续跳转。
+    if (!response || Number(response.code) !== 200) {
+      throw new Error((response && response.msg) || '进入游戏失败，请重新扫码')
+    }
+    return response
   })
 }
 
