@@ -39,7 +39,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 24rpx 12rpx;
+		padding: 0 28rpx 10rpx;
 		box-sizing: border-box;
 	}
 
@@ -54,16 +54,17 @@
 	}
 
 	.back {
-		color: #5b3d16;
-		background: rgba(255, 255, 255, 0.6);
+		color: #6b5a40;
+		background: rgba(255, 253, 247, 0.72);
+		border: 2rpx solid rgba(217, 196, 160, 0.7);
 	}
 
 	.title {
 		flex: 1;
 		text-align: center;
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 600;
-		color: #4a3315;
+		color: #2f2a22;
 		letter-spacing: 2rpx;
 	}
 </style>

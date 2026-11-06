@@ -5,50 +5,50 @@
 		<scroll-view class="body" scroll-y>
 			<view v-if="!result" class="empty">
 				<text class="empty-text">还没有称重结果，请先完成一次称重。</text>
-				<button class="primary-btn" @click="back">返回</button>
+				<button class="ghost-btn" @click="back">返回</button>
 			</view>
 
 			<template v-else>
 				<view class="verdict" :class="verdictClass">
-					<text class="verdict-title">{{ verdictTitle }}</text>
-					<text class="verdict-sub">{{ verdictSub }}</text>
+					<view class="verdict-icon">{{ verdictIcon }}</view>
+					<view class="verdict-main">
+						<text class="verdict-title">{{ verdictTitle }}</text>
+						<text class="verdict-sub">{{ verdictSub }}</text>
+					</view>
 				</view>
 
 				<view class="scale-card">
-					<view class="scale-row">
-						<view class="scale-side">
-							<text class="scale-num">{{ setting.leftWeightG || 80 }}</text>
-							<text class="scale-unit">g 标准</text>
-						</view>
-						<view class="scale-line"></view>
-						<view class="scale-side mine" :class="{ pass: result.pass }">
-							<text class="scale-num">{{ result.totalWeight }}</text>
-							<text class="scale-unit">g 我的简历</text>
-						</view>
-					</view>
-					<view class="gap-line">
-						<text v-if="result.pass">已达到 {{ result.passWeight }}g 通关标准<span v-if="result.balanced">（刚好达标）</span></text>
-						<text v-else>距 {{ result.passWeight }}g 通关标准还差 {{ result.gap }}g</text>
-					</view>
+					<JlczScale
+						:left-weight="Number(setting.leftWeightG) || 80"
+						:right="result.totalWeight"
+						:pass-weight="result.passWeight"
+						:left-text="'标准砝码'"
+						:right-text="'我的简历'"
+					/>
 				</view>
 
 				<view class="meta-row">
 					<view class="meta-item">
-						<text class="meta-value">{{ result.selectedCount || 0 }}</text>
+						<text class="meta-value">{{ result.totalWeight }}g</text>
+						<text class="meta-label">简历总重</text>
+					</view>
+					<view class="meta-divider"></view>
+					<view class="meta-item">
+						<text class="meta-value">{{ result.selectedCount || 0 }} 项</text>
 						<text class="meta-label">勾选砝码</text>
 					</view>
+					<view class="meta-divider"></view>
 					<view class="meta-item">
 						<text class="meta-value">{{ durationText }}</text>
 						<text class="meta-label">称重用时</text>
 					</view>
-					<view class="meta-item">
-						<text class="meta-value">第 {{ result.attemptNo || 1 }} 次</text>
-						<text class="meta-label">称重次数</text>
-					</view>
 				</view>
 
 				<view class="card">
-					<view class="card-title">四大类获得情况</view>
+					<view class="card-head">
+						<text class="card-title">四大类获得情况</text>
+						<text class="card-note">第 {{ result.attemptNo || 1 }} 次称重</text>
+					</view>
 					<view v-for="item in categoryRows" :key="item.categoryCode" class="category-row">
 						<view class="category-head">
 							<text class="category-name">{{ item.categoryName }}</text>
@@ -61,30 +61,38 @@
 				</view>
 
 				<view class="card">
-					<view class="card-title">本次勾选的砝码（{{ selected.length }} 项）</view>
-					<view v-if="selected.length" class="chips">
-						<view v-for="item in selected" :key="item.weightNo" class="chip">
-							<text class="chip-no">#{{ item.weightNo }}</text>
-							<text class="chip-label">{{ item.label }}</text>
-							<text class="chip-gram">{{ item.weightG }}g</text>
+					<view class="card-head">
+						<text class="card-title">本次勾选的砝码</text>
+						<text class="card-note">{{ selected.length }} 项</text>
+					</view>
+					<view v-if="selected.length" class="pick-grid">
+						<view v-for="item in selected" :key="item.weightNo" class="pick">
+							<text class="pick-no">{{ item.weightNo }}</text>
+							<text class="pick-label">{{ item.label }}</text>
+							<text class="pick-gram">{{ item.weightG }}g</text>
 						</view>
 					</view>
 					<text v-else class="card-empty">本次没有勾选任何砝码。</text>
 				</view>
 
 				<view v-if="!result.pass && suggestions.length" class="card">
-					<view class="card-title">优先补充建议</view>
-					<view v-for="item in suggestions" :key="item.weightNo" class="suggest-row">
-						<text class="suggest-icon">{{ item.icon || '⚖️' }}</text>
-						<view class="suggest-body">
-							<text class="suggest-label">#{{ item.weightNo }} {{ item.label }}</text>
+					<view class="card-head">
+						<text class="card-title">优先补充建议</text>
+						<text class="card-note">按分量排序</text>
+					</view>
+					<view v-for="item in suggestions" :key="item.weightNo" class="suggest">
+						<view class="suggest-badge">{{ item.weightNo }}</view>
+						<view class="suggest-main">
+							<view class="suggest-head">
+								<text class="suggest-label">{{ item.label }}</text>
+								<text class="suggest-gram">{{ item.weightG }}g</text>
+							</view>
 							<text class="suggest-cond">{{ item.conditionText }}</text>
 						</view>
-						<text class="suggest-gram">{{ item.weightG }}g</text>
 					</view>
 				</view>
 
-				<view class="foot-note">
+				<view class="note">
 					本结果为简历自查，仅用于活动体验和简历改进参考；如对某项判断不确定，可请现场老师帮助核对。
 				</view>
 				<view class="scroll-space"></view>
@@ -102,10 +110,11 @@
 
 <script>
 	import JlczHeader from '@/components/JlczHeader.vue'
+	import JlczScale from '@/components/JlczScale.vue'
 	import { getRecord, restartRecord, userMessage } from '@/api/jlcz'
 
 	export default {
-		components: { JlczHeader },
+		components: { JlczHeader, JlczScale },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -134,14 +143,23 @@
 				if (this.result.pass) return 'pass'
 				return this.result.timedOut ? 'timeout' : 'fail'
 			},
+			verdictIcon() {
+				if (!this.result) return ''
+				if (this.result.pass) return '✓'
+				return this.result.timedOut ? '!' : '×'
+			},
 			verdictTitle() {
 				if (!this.result) return ''
-				if (this.result.pass) return '恭喜，简历分量达标'
+				if (this.result.pass) return '简历分量达标'
 				return this.result.timedOut ? '时间到，本次未通关' : '还差一点，简历可以更重'
 			},
 			verdictSub() {
 				if (!this.result) return ''
-				if (this.result.pass) return `总重 ${this.result.totalWeight}g，达到 ${this.result.passWeight}g 通关标准`
+				if (this.result.pass) {
+					return this.result.balanced
+						? `总重 ${this.result.totalWeight}g，刚好达到 ${this.result.passWeight}g 标准`
+						: `总重 ${this.result.totalWeight}g，超过 ${this.result.passWeight}g 通关标准`
+				}
 				if (this.result.timedOut) return '本次称重超时，结果按未通关计'
 				return `总重 ${this.result.totalWeight}g，再补充 ${this.result.gap}g 即可通关`
 			},
@@ -220,7 +238,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100vh;
-		background: linear-gradient(180deg, #fdf6e8 0%, #f3e3c3 100%);
+		background: linear-gradient(180deg, #f7f1e6 0%, #efe2ce 100%);
 		overflow: hidden;
 	}
 
@@ -239,114 +257,116 @@
 	}
 
 	.empty-text {
-		margin-bottom: 40rpx;
-		font-size: 26rpx;
-		color: #8a7455;
+		margin-bottom: 36rpx;
+		font-size: 25rpx;
+		color: #8b7c66;
+	}
+
+	.ghost-btn {
+		width: 300rpx;
+		height: 84rpx;
+		line-height: 84rpx;
+		border-radius: 42rpx;
+		border: 2rpx solid #c9a25e;
+		font-size: 27rpx;
+		color: #8a6122;
+		background: transparent;
+	}
+
+	.ghost-btn::after {
+		border: none;
 	}
 
 	.verdict {
-		margin-top: 10rpx;
-		padding: 26rpx 28rpx;
-		border-radius: 22rpx;
-		background: #fffaf0;
-		border: 2rpx solid #eddfc2;
+		display: flex;
+		align-items: center;
+		margin-top: 8rpx;
+		padding: 24rpx 24rpx;
+		border-radius: 24rpx;
+		border: 2rpx solid rgba(217, 196, 160, 0.6);
+		background: rgba(255, 253, 247, 0.9);
 	}
 
 	.verdict.pass {
-		background: #eef8ec;
-		border-color: #bfe0b8;
+		border-color: #b5d4bc;
+		background: #eef7f0;
 	}
 
 	.verdict.fail,
 	.verdict.timeout {
-		background: #fdf0ec;
-		border-color: #f0c9bd;
+		border-color: #e3b9aa;
+		background: #fcf0ea;
+	}
+
+	.verdict-icon {
+		flex-shrink: 0;
+		width: 76rpx;
+		height: 76rpx;
+		margin-right: 18rpx;
+		border-radius: 50%;
+		line-height: 76rpx;
+		text-align: center;
+		font-size: 40rpx;
+		font-weight: 700;
+		color: #fffdf7;
+		background: #b98a3c;
+	}
+
+	.verdict.pass .verdict-icon {
+		background: #2f7d4f;
+	}
+
+	.verdict.fail .verdict-icon,
+	.verdict.timeout .verdict-icon {
+		background: #b04a32;
+	}
+
+	.verdict-main {
+		flex: 1;
+		min-width: 0;
 	}
 
 	.verdict-title {
 		display: block;
-		font-size: 34rpx;
+		font-size: 32rpx;
 		font-weight: 700;
-		color: #3f2f18;
+		color: #2f2a22;
 	}
 
 	.verdict.pass .verdict-title {
-		color: #2e7d32;
+		color: #2f7d4f;
 	}
 
 	.verdict.fail .verdict-title,
 	.verdict.timeout .verdict-title {
-		color: #b3452c;
+		color: #a8462f;
 	}
 
 	.verdict-sub {
 		display: block;
-		margin-top: 8rpx;
-		font-size: 24rpx;
-		line-height: 1.6;
-		color: #7a6444;
+		margin-top: 6rpx;
+		font-size: 21rpx;
+		line-height: 1.55;
+		color: #7c6a52;
 	}
 
 	.scale-card {
-		margin-top: 20rpx;
-		padding: 22rpx 24rpx;
-		border-radius: 22rpx;
-		background: rgba(255, 255, 255, 0.82);
-		box-shadow: 0 8rpx 20rpx rgba(139, 94, 52, 0.1);
-	}
-
-	.scale-row {
-		display: flex;
-		align-items: center;
-	}
-
-	.scale-side {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 14rpx 0;
-		border-radius: 16rpx;
-		background: #f5ebd7;
-	}
-
-	.scale-side.mine.pass {
-		background: #e6f4e2;
-	}
-
-	.scale-num {
-		font-size: 56rpx;
-		font-weight: 700;
-		color: #4a3315;
-	}
-
-	.scale-side.mine.pass .scale-num {
-		color: #2e7d32;
-	}
-
-	.scale-unit {
-		font-size: 21rpx;
-		color: #8a6b3f;
-	}
-
-	.scale-line {
-		width: 80rpx;
-		height: 6rpx;
-		margin: 0 14rpx;
-		border-radius: 6rpx;
-		background: linear-gradient(90deg, #d9b46a, #8b5e34);
-	}
-
-	.gap-line {
-		margin-top: 16rpx;
-		text-align: center;
-		font-size: 23rpx;
-		color: #7a5a2c;
+		margin-top: 18rpx;
+		padding: 6rpx 10rpx 2rpx;
+		border-radius: 26rpx;
+		border: 2rpx solid rgba(217, 196, 160, 0.65);
+		background: rgba(255, 253, 247, 0.86);
+		box-shadow: 0 12rpx 28rpx rgba(120, 84, 34, 0.08);
 	}
 
 	.meta-row {
 		display: flex;
+		align-items: center;
 		margin-top: 18rpx;
+		padding: 18rpx 6rpx;
+		border-radius: 20rpx;
+		background: rgba(255, 253, 247, 0.8);
+		border: 2rpx solid rgba(217, 196, 160, 0.45);
 	}
 
 	.meta-item {
@@ -354,205 +374,234 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 16rpx 0;
-		margin-right: 12rpx;
-		border-radius: 18rpx;
-		background: rgba(255, 255, 255, 0.72);
-	}
-
-	.meta-item:last-child {
-		margin-right: 0;
 	}
 
 	.meta-value {
 		font-size: 30rpx;
 		font-weight: 700;
-		color: #4a3315;
+		color: #2f2a22;
 	}
 
 	.meta-label {
 		margin-top: 4rpx;
-		font-size: 20rpx;
-		color: #8a7455;
+		font-size: 19rpx;
+		color: #9a8a70;
+	}
+
+	.meta-divider {
+		width: 2rpx;
+		height: 44rpx;
+		background: rgba(217, 196, 160, 0.6);
 	}
 
 	.card {
-		margin-top: 20rpx;
+		margin-top: 18rpx;
 		padding: 22rpx 24rpx;
 		border-radius: 22rpx;
-		background: rgba(255, 255, 255, 0.82);
+		border: 2rpx solid rgba(217, 196, 160, 0.5);
+		background: rgba(255, 253, 247, 0.9);
+	}
+
+	.card-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		margin-bottom: 6rpx;
 	}
 
 	.card-title {
 		font-size: 27rpx;
 		font-weight: 600;
-		color: #4a3315;
+		color: #2f2a22;
+	}
+
+	.card-note {
+		font-size: 19rpx;
+		color: #9a8a70;
+	}
+
+	.card-empty {
+		display: block;
+		margin-top: 10rpx;
+		font-size: 21rpx;
+		color: #9a8464;
 	}
 
 	.category-row {
-		margin-top: 18rpx;
+		margin-top: 16rpx;
 	}
 
 	.category-head {
 		display: flex;
 		justify-content: space-between;
-		font-size: 22rpx;
-		color: #6b5533;
+		font-size: 21rpx;
+		color: #6b5a40;
 	}
 
 	.category-value {
 		font-weight: 600;
-		color: #a05a2c;
+		color: #a3742a;
 	}
 
 	.bar {
 		margin-top: 8rpx;
-		height: 12rpx;
-		border-radius: 6rpx;
-		background: #efe2c8;
+		height: 10rpx;
+		border-radius: 5rpx;
+		background: #efe3cc;
 		overflow: hidden;
 	}
 
 	.bar-inner {
 		height: 100%;
-		border-radius: 6rpx;
-		background: linear-gradient(90deg, #d9b46a, #b8862b);
+		border-radius: 5rpx;
+		background: linear-gradient(90deg, #d9b26b, #a3742a);
 	}
 
-	.chips {
+	.pick-grid {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: space-between;
+		margin-top: 10rpx;
+	}
+
+	.pick {
+		display: flex;
+		align-items: center;
+		width: 48.5%;
+		margin-top: 10rpx;
+		padding: 10rpx 12rpx;
+		border-radius: 14rpx;
+		background: #f7eeda;
+		box-sizing: border-box;
+	}
+
+	.pick-no {
+		flex-shrink: 0;
+		width: 34rpx;
+		height: 34rpx;
+		margin-right: 8rpx;
+		border-radius: 50%;
+		line-height: 34rpx;
+		text-align: center;
+		font-size: 18rpx;
+		color: #8a6122;
+		background: #ecdcbc;
+	}
+
+	.pick-label {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: 21rpx;
+		color: #4a3a22;
+	}
+
+	.pick-gram {
+		margin-left: 6rpx;
+		font-size: 19rpx;
+		color: #a3742a;
+	}
+
+	.suggest {
+		display: flex;
+		align-items: flex-start;
 		margin-top: 14rpx;
 	}
 
-	.chip {
-		display: flex;
-		align-items: center;
-		margin: 0 12rpx 12rpx 0;
-		padding: 8rpx 16rpx;
-		border-radius: 30rpx;
-		background: #f6ecd6;
-	}
-
-	.chip-no {
-		font-size: 19rpx;
-		color: #a08a64;
-	}
-
-	.chip-label {
-		margin: 0 8rpx;
-		font-size: 23rpx;
-		color: #4a3315;
-	}
-
-	.chip-gram {
-		font-size: 21rpx;
-		color: #a05a2c;
-	}
-
-	.card-empty {
-		display: block;
-		margin-top: 12rpx;
-		font-size: 22rpx;
-		color: #9a8464;
-	}
-
-	.suggest-row {
-		display: flex;
-		align-items: flex-start;
-		margin-top: 16rpx;
-	}
-
-	.suggest-icon {
+	.suggest-badge {
+		flex-shrink: 0;
+		width: 40rpx;
+		height: 40rpx;
 		margin-right: 12rpx;
-		font-size: 32rpx;
+		border-radius: 12rpx;
+		line-height: 40rpx;
+		text-align: center;
+		font-size: 20rpx;
+		font-weight: 600;
+		color: #8a6122;
+		background: #f3e5c8;
 	}
 
-	.suggest-body {
+	.suggest-main {
 		flex: 1;
+		min-width: 0;
+	}
+
+	.suggest-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
 	}
 
 	.suggest-label {
-		display: block;
-		font-size: 25rpx;
+		font-size: 24rpx;
 		font-weight: 600;
-		color: #4a3315;
+		color: #2f2a22;
+	}
+
+	.suggest-gram {
+		font-size: 21rpx;
+		font-weight: 600;
+		color: #a3742a;
 	}
 
 	.suggest-cond {
 		display: block;
 		margin-top: 4rpx;
-		font-size: 20rpx;
+		font-size: 19rpx;
 		line-height: 1.5;
-		color: #8a7455;
+		color: #8b7c66;
 	}
 
-	.suggest-gram {
-		margin-left: 12rpx;
-		font-size: 24rpx;
-		font-weight: 600;
-		color: #a05a2c;
-	}
-
-	.foot-note {
-		margin-top: 22rpx;
-		font-size: 20rpx;
+	.note {
+		margin: 20rpx 4rpx 0;
+		font-size: 19rpx;
 		line-height: 1.7;
-		color: #9a8464;
+		color: #9a8a70;
 	}
 
 	.scroll-space {
-		height: 30rpx;
+		height: 28rpx;
 	}
 
 	.footer {
 		flex-shrink: 0;
 		display: flex;
-		padding: 16rpx 30rpx calc(18rpx + constant(safe-area-inset-bottom));
+		padding: 14rpx 30rpx 18rpx;
+		padding-bottom: calc(18rpx + constant(safe-area-inset-bottom));
 		padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
-		background: rgba(253, 246, 232, 0.97);
+		background: rgba(247, 241, 230, 0.97);
+		border-top: 2rpx solid rgba(217, 196, 160, 0.45);
 	}
 
 	.retry-btn,
 	.back-btn {
-		height: 88rpx;
-		line-height: 88rpx;
-		border-radius: 44rpx;
+		height: 90rpx;
+		line-height: 90rpx;
 		border: none;
-		font-size: 30rpx;
+		border-radius: 45rpx;
+		font-size: 29rpx;
 		font-weight: 600;
 	}
 
 	.retry-btn {
 		flex: 1;
 		margin-right: 16rpx;
-		color: #8a5a12;
-		background: #f6e3b8;
+		color: #8a6122;
+		background: #f2e3c4;
 	}
 
 	.back-btn {
 		flex: 1;
-		color: #ffffff;
-		background: linear-gradient(180deg, #d9a441 0%, #b8862b 100%);
+		color: #fffdf7;
+		background: linear-gradient(135deg, #c99a4a 0%, #a3742a 100%);
+		box-shadow: 0 10rpx 20rpx rgba(150, 108, 45, 0.24);
 	}
 
 	.retry-btn::after,
 	.back-btn::after {
-		border: none;
-	}
-
-	.primary-btn {
-		width: 320rpx;
-		height: 88rpx;
-		line-height: 88rpx;
-		border-radius: 44rpx;
-		border: none;
-		font-size: 28rpx;
-		color: #ffffff;
-		background: linear-gradient(180deg, #d9a441 0%, #b8862b 100%);
-	}
-
-	.primary-btn::after {
 		border: none;
 	}
 </style>

@@ -1,62 +1,75 @@
 <template>
 	<view class="page">
-		<JlczHeader @back="back" />
+		<JlczHeader title="称重台" @back="back" />
 
 		<view class="top">
-			<view class="timer" :class="{ urgent: remainingSeconds > 0 && remainingSeconds <= 30 }">
-				<text v-if="timeLimit > 0">{{ countdownText }}</text>
-				<text v-else>不限时</text>
-			</view>
-			<view class="scale">
-				<view class="scale-pillar"></view>
-				<view class="scale-beam" :style="{ transform: 'rotate(' + angle + 'deg)' }">
-					<view class="pan left" :style="{ transform: 'rotate(' + -angle + 'deg)' }">
-						<text class="pan-num">{{ leftWeight }}</text>
-						<text class="pan-unit">g 标准</text>
-					</view>
-					<view class="pan right" :class="{ pass: totalWeight >= passWeight }"
-						:style="{ transform: 'rotate(' + -angle + 'deg)' }">
-						<text class="pan-num">{{ totalWeight }}</text>
-						<text class="pan-unit">g 我的简历</text>
-					</view>
+			<view class="top-head">
+				<view class="top-summary">
+					<text class="summary-num" :class="{ pass: totalWeight >= passWeight }">{{ totalWeight }}g</text>
+					<text class="summary-cap">已选 {{ selectedNos.length }} 项</text>
 				</view>
-				<view class="scale-base"></view>
+				<view class="timer" :class="{ urgent: remainingSeconds > 0 && remainingSeconds <= 30 }">
+					<text v-if="timeLimit > 0">{{ countdownText }}</text>
+					<text v-else>不限时</text>
+				</view>
 			</view>
-			<view class="scale-tip">
-				<text v-if="totalWeight >= passWeight" class="pass-text">已达到通关标准</text>
-				<text v-else class="gap-text">距通关还差 {{ passWeight - totalWeight }}g</text>
+
+			<view class="scale-card">
+				<JlczScale
+					:left-weight="leftWeight"
+					:right="totalWeight"
+					:pass-weight="passWeight"
+					:left-text="'标准砝码'"
+					:right-text="'我的简历'"
+				/>
+			</view>
+
+			<view class="target-row">
+				<text class="target-text">
+					{{ totalWeight >= passWeight ? '已达到通关标准' : '距通关还差 ' + (passWeight - totalWeight) + 'g' }}
+				</text>
+				<text class="target-value">{{ totalWeight }} / {{ passWeight }}g</text>
+			</view>
+			<view class="progress">
+				<view class="progress-inner" :class="{ pass: totalWeight >= passWeight }"
+					:style="{ width: progressPercent + '%' }"></view>
+			</view>
+		</view>
+
+		<view class="tabs">
+			<view v-for="group in groups" :key="group.code" class="tab"
+				:class="{ active: group.code === activeCategory }" @click="activeCategory = group.code">
+				<text class="tab-name">{{ group.short }}</text>
+				<text class="tab-count">{{ group.selectedCount }}/{{ group.items.length }}</text>
 			</view>
 		</view>
 
 		<scroll-view class="list" scroll-y>
-			<view v-for="group in groups" :key="group.code" class="group">
-				<view class="group-head">
-					<text class="group-name">{{ group.name }}</text>
-					<text class="group-count">已选 {{ group.selectedCount }} / {{ group.items.length }}</text>
-				</view>
-				<view class="card-grid">
-					<view v-for="item in group.items" :key="item.weightNo" class="card"
-						:class="{ active: isSelected(item.weightNo) }" @click="toggle(item.weightNo)">
-						<view class="card-top">
-							<text class="card-icon">{{ item.icon || '⚖️' }}</text>
-							<text class="card-no">#{{ item.weightNo }}</text>
-						</view>
-						<text class="card-label">{{ item.label }}</text>
-						<text class="card-cond">{{ item.conditionText }}</text>
-						<view class="card-bottom">
-							<text class="card-gram">{{ item.weightG }}g</text>
-							<view class="card-check">{{ isSelected(item.weightNo) ? '✓' : '+' }}</view>
-						</view>
-					</view>
-				</view>
+			<view class="list-hint">
+				<text>对照简历勾选已经具备的项，可随时切换分类。</text>
 			</view>
-			<view class="list-bottom"></view>
+			<view v-for="item in activeGroup.items" :key="item.weightNo" class="weight-row"
+				:class="{ on: isSelected(item.weightNo) }" @click="toggle(item.weightNo)">
+				<view class="weight-badge">
+					<image v-if="item.imageUrl" class="weight-img" :src="resolveImage(item.imageUrl)" mode="aspectFit" />
+					<text v-else class="weight-no">{{ item.weightNo }}</text>
+				</view>
+				<view class="weight-main">
+					<view class="weight-head">
+						<text class="weight-label">{{ item.label }}</text>
+						<text class="weight-gram">{{ item.weightG }}g</text>
+					</view>
+					<text class="weight-cond">{{ item.conditionText }}</text>
+				</view>
+				<view class="weight-check">{{ isSelected(item.weightNo) ? '✓' : '+' }}</view>
+			</view>
+			<view class="list-space"></view>
 		</scroll-view>
 
 		<view class="footer">
-			<view class="sum">
-				<text class="sum-label">已选 {{ selectedNos.length }} 项</text>
-				<text class="sum-value">{{ totalWeight }}g</text>
+			<view class="footer-sum">
+				<text class="footer-num" :class="{ pass: totalWeight >= passWeight }">{{ totalWeight }}g</text>
+				<text class="footer-cap">{{ totalWeight >= passWeight ? '已达标' : '目标 ' + passWeight + 'g' }}</text>
 			</view>
 			<button class="submit-btn" :disabled="submitting || recordFinished" @click="submit">
 				{{ submitting ? '正在称重…' : '完成称重' }}
@@ -67,10 +80,12 @@
 
 <script>
 	import JlczHeader from '@/components/JlczHeader.vue'
+	import JlczScale from '@/components/JlczScale.vue'
 	import { getRecord, startRecord, submitWeights, userMessage } from '@/api/jlcz'
+	import config from '@/config/api.js'
 
 	export default {
-		components: { JlczHeader },
+		components: { JlczHeader, JlczScale },
 		data: () => ({
 			recordId: '',
 			instanceId: '',
@@ -78,6 +93,7 @@
 			record: null,
 			weights: [],
 			selectedNos: [],
+			activeCategory: 'core',
 			setting: { leftWeightG: 80, passWeightG: 80, timeLimitSeconds: 0, allowRetry: '1' },
 			submitting: false,
 			recordFinished: false,
@@ -88,10 +104,10 @@
 		}),
 		computed: {
 			leftWeight() {
-				return this.setting.leftWeightG || 80
+				return Number(this.setting.leftWeightG) || 80
 			},
 			passWeight() {
-				return this.setting.passWeightG || 80
+				return Number(this.setting.passWeightG) || 80
 			},
 			totalWeight() {
 				let total = 0
@@ -102,27 +118,32 @@
 				}
 				return total
 			},
-			angle() {
-				const diff = this.totalWeight - this.leftWeight
-				return Math.max(-20, Math.min(20, (diff / 125) * 40))
+			progressPercent() {
+				if (!this.passWeight) return 0
+				return Math.min(100, Math.round((this.totalWeight * 100) / this.passWeight))
 			},
 			groups() {
 				const order = ['core', 'soft', 'basic', 'bonus']
 				return order.map(code => {
 					const items = this.weights.filter(item => item.categoryCode === code)
+					const name = items.length ? items[0].categoryName : code
 					return {
 						code,
-						name: items.length ? items[0].categoryName : code,
+						name,
+						short: String(name).split('（')[0],
 						items,
 						selectedCount: items.filter(item => this.isSelected(item.weightNo)).length
 					}
 				}).filter(group => group.items.length)
 			},
+			activeGroup() {
+				return this.groups.find(group => group.code === this.activeCategory) || this.groups[0] || { items: [] }
+			},
 			countdownText() {
 				const total = Math.max(0, this.remainingSeconds)
 				const minutes = Math.floor(total / 60)
 				const seconds = total % 60
-				return `剩余 ${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+				return `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`
 			}
 		},
 		onLoad(options) {
@@ -148,6 +169,11 @@
 			}
 		},
 		methods: {
+			resolveImage(url) {
+				if (!url) return ''
+				if (/^https?:\/\//.test(url)) return url
+				return `${config.BASE_URL}${url}`
+			},
 			async load() {
 				if (!this.recordId) {
 					uni.showToast({ title: '缺少称重记录，请重新扫码', icon: 'none' })
@@ -164,6 +190,7 @@
 					this.setting = data.setting || this.setting
 					this.weights = (data.weights || []).map(item => ({ ...item }))
 					this.selectedNos = this.weights.filter(item => item.selected).map(item => item.weightNo)
+					this.syncActiveCategory()
 					const started = await startRecord(this.recordId)
 					const startedData = (started && started.data) || data
 					this.record = startedData
@@ -181,6 +208,13 @@
 					uni.showToast({ title: userMessage(e, '称重信息加载失败，请重新扫码'), icon: 'none' })
 				}
 			},
+			syncActiveCategory() {
+				if (!this.weights.length) return
+				const exists = this.weights.some(item => item.categoryCode === this.activeCategory)
+				if (!exists) {
+					this.activeCategory = this.weights[0].categoryCode
+				}
+			},
 			startTimer() {
 				this.clearTimer()
 				this.timer = setInterval(() => {
@@ -193,14 +227,6 @@
 					}
 				}, 1000)
 			},
-			/** 按服务端开始时间计算剩余秒数，离开页面后重新进入不会重置限时。 */
-			remainingFromStart(value) {
-				if (!value) return this.timeLimit
-				const start = new Date(value).getTime()
-				if (Number.isNaN(start)) return this.timeLimit
-				const elapsed = Math.max(0, Date.now() - start)
-				return Math.max(0, Math.ceil(this.timeLimit - elapsed / 1000))
-			},
 			clearTimer() {
 				if (this.timer) {
 					clearInterval(this.timer)
@@ -212,6 +238,13 @@
 				this.autoSubmitted = true
 				uni.showToast({ title: '时间到，正在结算当前勾选', icon: 'none' })
 				this.submit(true)
+			},
+			remainingFromStart(value) {
+				if (!value) return this.timeLimit
+				const start = new Date(value).getTime()
+				if (Number.isNaN(start)) return this.timeLimit
+				const elapsed = Math.max(0, Date.now() - start)
+				return Math.max(0, Math.ceil(this.timeLimit - elapsed / 1000))
 			},
 			isSelected(weightNo) {
 				return this.selectedNos.indexOf(weightNo) > -1
@@ -266,284 +299,299 @@
 		display: flex;
 		flex-direction: column;
 		height: 100vh;
-		background: linear-gradient(180deg, #fdf6e8 0%, #f3e3c3 100%);
+		background: linear-gradient(180deg, #f7f1e6 0%, #efe2ce 100%);
 		overflow: hidden;
 	}
 
 	.top {
 		flex-shrink: 0;
-		padding: 4rpx 30rpx 14rpx;
+		padding: 4rpx 30rpx 0;
+	}
+
+	.top-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 4rpx 4rpx 10rpx;
+	}
+
+	.top-summary {
+		display: flex;
+		align-items: baseline;
+	}
+
+	.summary-num {
+		font-size: 44rpx;
+		font-weight: 700;
+		color: #2f2a22;
+	}
+
+	.summary-num.pass {
+		color: #2f7d4f;
+	}
+
+	.summary-cap {
+		margin-left: 10rpx;
+		font-size: 21rpx;
+		color: #9a8a70;
 	}
 
 	.timer {
-		margin: 0 auto;
-		width: 240rpx;
-		height: 54rpx;
-		line-height: 54rpx;
-		border-radius: 27rpx;
-		text-align: center;
-		font-size: 24rpx;
+		padding: 8rpx 20rpx;
+		border-radius: 24rpx;
+		font-size: 23rpx;
 		font-weight: 600;
-		color: #6b4a1e;
-		background: rgba(255, 255, 255, 0.75);
-		box-shadow: 0 6rpx 14rpx rgba(139, 94, 52, 0.12);
+		color: #7c6437;
+		background: rgba(255, 253, 247, 0.85);
+		border: 2rpx solid rgba(217, 196, 160, 0.7);
 	}
 
 	.timer.urgent {
-		color: #ffffff;
-		background: #c62828;
+		color: #fffaf2;
+		background: #b04a32;
+		border-color: #b04a32;
 	}
 
-	.scale {
-		position: relative;
-		height: 210rpx;
-		margin-top: 8rpx;
+	.scale-card {
+		padding: 6rpx 10rpx 2rpx;
+		border-radius: 26rpx;
+		border: 2rpx solid rgba(217, 196, 160, 0.65);
+		background: rgba(255, 253, 247, 0.86);
+		box-shadow: 0 12rpx 28rpx rgba(120, 84, 34, 0.08);
 	}
 
-	.scale-pillar {
-		position: absolute;
-		left: 50%;
-		bottom: 42rpx;
-		width: 14rpx;
-		height: 110rpx;
-		margin-left: -7rpx;
-		border-radius: 8rpx;
-		background: linear-gradient(180deg, #d9b46a, #a97b2c);
+	.target-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 14rpx 6rpx 8rpx;
 	}
 
-	.scale-beam {
-		position: absolute;
-		left: 50%;
-		top: 48rpx;
-		width: 520rpx;
+	.target-text {
+		font-size: 22rpx;
+		color: #8b7c66;
+	}
+
+	.target-value {
+		font-size: 22rpx;
+		font-weight: 600;
+		color: #a3814f;
+	}
+
+	.progress {
 		height: 10rpx;
-		margin-left: -260rpx;
-		border-radius: 10rpx;
-		background: linear-gradient(90deg, #c9a227, #8b5e34, #c9a227);
-		transform-origin: 50% 50%;
-		transition: transform 0.35s ease;
+		margin: 0 4rpx 12rpx;
+		border-radius: 6rpx;
+		background: rgba(217, 196, 160, 0.35);
+		overflow: hidden;
 	}
 
-	.pan {
-		position: absolute;
-		top: 14rpx;
+	.progress-inner {
+		height: 100%;
+		border-radius: 6rpx;
+		background: linear-gradient(90deg, #d9b26b, #a3742a);
+		transition: width 0.3s ease;
+	}
+
+	.progress-inner.pass {
+		background: linear-gradient(90deg, #8fbf9b, #2f7d4f);
+	}
+
+	.tabs {
+		flex-shrink: 0;
+		display: flex;
+		margin: 4rpx 30rpx 10rpx;
+		padding: 6rpx;
+		border-radius: 18rpx;
+		background: rgba(255, 253, 247, 0.72);
+		border: 2rpx solid rgba(217, 196, 160, 0.5);
+	}
+
+	.tab {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		width: 190rpx;
-		height: 118rpx;
-		border-radius: 0 0 24rpx 24rpx;
-		background: #fffaf0;
-		border: 3rpx solid #d9b46a;
-		box-sizing: border-box;
-		transition: transform 0.35s ease, background 0.3s ease;
+		padding: 10rpx 0;
+		border-radius: 14rpx;
+		transition: background 0.2s ease;
 	}
 
-	.pan.left {
-		left: -70rpx;
+	.tab.active {
+		background: #f0dfbe;
 	}
 
-	.pan.right {
-		right: -70rpx;
-	}
-
-	.pan.right.pass {
-		background: #eaf6e8;
-		border-color: #4c9a45;
-	}
-
-	.pan-num {
-		font-size: 44rpx;
-		font-weight: 700;
-		color: #4a3315;
-	}
-
-	.pan-unit {
-		margin-top: 2rpx;
-		font-size: 20rpx;
-		color: #8a6b3f;
-	}
-
-	.scale-base {
-		position: absolute;
-		left: 50%;
-		bottom: 26rpx;
-		width: 240rpx;
-		height: 22rpx;
-		margin-left: -120rpx;
-		border-radius: 11rpx;
-		background: linear-gradient(180deg, #c9a227, #8b5e34);
-	}
-
-	.scale-tip {
-		text-align: center;
-		font-size: 24rpx;
-	}
-
-	.pass-text {
-		color: #2e7d32;
+	.tab-name {
+		font-size: 23rpx;
 		font-weight: 600;
+		color: #6b5a40;
 	}
 
-	.gap-text {
-		color: #a05a2c;
+	.tab.active .tab-name {
+		color: #4a3a22;
+	}
+
+	.tab-count {
+		margin-top: 2rpx;
+		font-size: 18rpx;
+		color: #a08c6c;
 	}
 
 	.list {
 		flex: 1;
 		height: 0;
-		padding: 0 26rpx;
+		padding: 0 30rpx;
 		box-sizing: border-box;
 	}
 
-	.group {
-		margin-bottom: 22rpx;
+	.list-hint {
+		padding: 4rpx 4rpx 12rpx;
+		font-size: 20rpx;
+		color: #9a8a70;
 	}
 
-	.group-head {
+	.weight-row {
 		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		padding: 10rpx 6rpx;
-	}
-
-	.group-name {
-		font-size: 28rpx;
-		font-weight: 600;
-		color: #4a3315;
-	}
-
-	.group-count {
-		font-size: 21rpx;
-		color: #9a7d52;
-	}
-
-	.card-grid {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-	}
-
-	.card {
-		width: 48.5%;
-		margin-bottom: 16rpx;
-		padding: 16rpx 18rpx;
+		align-items: flex-start;
+		margin-bottom: 14rpx;
+		padding: 18rpx 18rpx;
 		border-radius: 20rpx;
-		background: rgba(255, 255, 255, 0.82);
-		border: 3rpx solid transparent;
-		box-sizing: border-box;
+		border: 2rpx solid rgba(217, 196, 160, 0.55);
+		background: rgba(255, 253, 247, 0.88);
 		transition: border-color 0.2s ease, background 0.2s ease;
 	}
 
-	.card.active {
-		border-color: #c9a227;
-		background: #fff6df;
+	.weight-row.on {
+		border-color: #b98a3c;
+		background: #fff7e6;
 	}
 
-	.card-top {
+	.weight-badge {
+		flex-shrink: 0;
+		width: 54rpx;
+		height: 54rpx;
+		margin-right: 16rpx;
+		border-radius: 14rpx;
+		line-height: 54rpx;
+		text-align: center;
+		background: #f3e5c8;
+		overflow: hidden;
+	}
+
+	.weight-row.on .weight-badge {
+		background: #e8cf9d;
+	}
+
+	.weight-no {
+		font-size: 24rpx;
+		font-weight: 700;
+		color: #8a6122;
+	}
+
+	.weight-img {
+		width: 54rpx;
+		height: 54rpx;
+	}
+
+	.weight-main {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.weight-head {
 		display: flex;
-		align-items: center;
+		align-items: baseline;
 		justify-content: space-between;
 	}
 
-	.card-icon {
-		font-size: 34rpx;
-	}
-
-	.card-no {
-		font-size: 20rpx;
-		color: #b0a186;
-	}
-
-	.card-label {
-		display: block;
-		margin-top: 6rpx;
-		font-size: 27rpx;
+	.weight-label {
+		font-size: 26rpx;
 		font-weight: 600;
-		color: #3f2f18;
+		color: #2f2a22;
 	}
 
-	.card-cond {
-		display: -webkit-box;
-		margin-top: 6rpx;
-		overflow: hidden;
+	.weight-gram {
+		font-size: 22rpx;
+		font-weight: 600;
+		color: #a3742a;
+	}
+
+	.weight-cond {
+		display: block;
+		margin-top: 5rpx;
 		font-size: 20rpx;
 		line-height: 1.5;
-		color: #8a7455;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
+		color: #8b7c66;
 	}
 
-	.card-bottom {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: 10rpx;
-	}
-
-	.card-gram {
-		font-size: 24rpx;
-		font-weight: 600;
-		color: #a05a2c;
-	}
-
-	.card-check {
-		width: 38rpx;
-		height: 38rpx;
-		line-height: 36rpx;
+	.weight-check {
+		flex-shrink: 0;
+		width: 40rpx;
+		height: 40rpx;
+		margin-left: 12rpx;
+		margin-top: 4rpx;
 		border-radius: 50%;
+		line-height: 38rpx;
 		text-align: center;
-		font-size: 26rpx;
-		color: #ffffff;
-		background: #cbb790;
+		font-size: 24rpx;
+		color: #fffdf7;
+		background: #d8c8ab;
 	}
 
-	.card.active .card-check {
-		background: #c9a227;
+	.weight-row.on .weight-check {
+		background: #b98a3c;
 	}
 
-	.list-bottom {
-		height: 20rpx;
+	.list-space {
+		height: 24rpx;
 	}
 
 	.footer {
 		flex-shrink: 0;
 		display: flex;
 		align-items: center;
-		padding: 16rpx 30rpx calc(18rpx + constant(safe-area-inset-bottom));
+		padding: 14rpx 30rpx 18rpx;
+		padding-bottom: calc(18rpx + constant(safe-area-inset-bottom));
 		padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
-		background: rgba(253, 246, 232, 0.97);
+		background: rgba(247, 241, 230, 0.97);
+		border-top: 2rpx solid rgba(217, 196, 160, 0.45);
 	}
 
-	.sum {
+	.footer-sum {
 		display: flex;
 		flex-direction: column;
-		margin-right: 22rpx;
+		width: 180rpx;
+		margin-right: 18rpx;
 	}
 
-	.sum-label {
-		font-size: 21rpx;
-		color: #8a7455;
-	}
-
-	.sum-value {
-		font-size: 34rpx;
+	.footer-num {
+		font-size: 38rpx;
 		font-weight: 700;
-		color: #4a3315;
+		color: #2f2a22;
+	}
+
+	.footer-num.pass {
+		color: #2f7d4f;
+	}
+
+	.footer-cap {
+		margin-top: 2rpx;
+		font-size: 19rpx;
+		color: #9a8a70;
 	}
 
 	.submit-btn {
 		flex: 1;
-		height: 88rpx;
-		line-height: 88rpx;
-		border-radius: 44rpx;
+		height: 92rpx;
+		line-height: 92rpx;
 		border: none;
-		font-size: 32rpx;
+		border-radius: 46rpx;
+		font-size: 31rpx;
 		font-weight: 600;
-		color: #ffffff;
-		background: linear-gradient(180deg, #d9a441 0%, #b8862b 100%);
-		box-shadow: 0 8rpx 18rpx rgba(184, 134, 43, 0.26);
+		letter-spacing: 2rpx;
+		color: #fffdf7;
+		background: linear-gradient(135deg, #c99a4a 0%, #a3742a 100%);
+		box-shadow: 0 10rpx 22rpx rgba(150, 108, 45, 0.26);
 	}
 
 	.submit-btn::after {
