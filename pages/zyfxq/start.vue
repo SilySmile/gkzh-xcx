@@ -217,7 +217,8 @@
 		font-size: 23rpx;
 		line-height: 1.5;
 		color: #eaf6ff;
-		text-align: center;
+		text-align: justify;
+		text-align-last: left;
 	}
 
 	.start-btn {

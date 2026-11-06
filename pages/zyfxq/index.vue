@@ -842,7 +842,8 @@
 		letter-spacing: 1rpx;
 		color: #fff;
 		font-weight: 600;
-		text-align: center;
+		text-align: justify;
+		text-align-last: left;
 	}
 
 	.play {
@@ -1015,11 +1016,14 @@
 	}
 
 	.dialog-title {
+		display: block;
+		width: 100%;
 		font-size: 32rpx;
 		line-height: 1.6;
 		font-weight: 700;
 		color: #593100;
-		text-align: center;
+		text-align: justify;
+		text-align-last: left;
 		overflow-wrap: break-word;
 	}
 
@@ -1068,11 +1072,14 @@
 	}
 
 	.opt-text {
+		display: block;
 		flex: 1;
+		min-width: 0;
 		font-size: 27rpx;
 		line-height: 1.5;
 		color: #593100;
-		text-align: center;
+		text-align: justify;
+		text-align-last: left;
 		overflow-wrap: break-word;
 	}
 
@@ -1103,5 +1110,7 @@
 		font-size: 23rpx;
 		line-height: 1.5;
 		color: #3f5b76;
+		text-align: justify;
+		text-align-last: left;
 	}
 </style>

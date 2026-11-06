@@ -900,13 +900,21 @@
 
 		background: #f7f7f7;
 
-		min-height: 100vh;
+		height: 100vh;
 
 		display: flex;
 
 		flex-direction: column;
-		min-height: 100vh;
+		overflow: hidden;
+		box-sizing: border-box;
 
+	}
+
+	.scroll-body {
+		flex: 1;
+		height: 0;
+		min-height: 0;
+		width: 100%;
 	}
 
 
@@ -1454,18 +1462,15 @@
 
 	.footer-bar {
 
-		margin: 28rpx 20rpx 0;
+		margin: 0 20rpx;
 
 		padding: 24rpx 0;
 
 		border-top: 1rpx solid #e8ecf0;
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 100;
-		padding-bottom: constant(safe-area-inset-bottom);
-		padding-bottom: env(safe-area-inset-bottom);
+		flex-shrink: 0;
+		background: #f7f7f7;
+		padding-bottom: calc(24rpx + constant(safe-area-inset-bottom));
+		padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
 
 	}
 
