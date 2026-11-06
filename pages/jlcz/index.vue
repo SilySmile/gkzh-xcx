@@ -52,7 +52,7 @@
 				:class="{ on: isSelected(item.weightNo) }" @click="toggle(item.weightNo)">
 				<view class="weight-badge">
 					<image v-if="item.imageUrl" class="weight-img" :src="resolveImage(item.imageUrl)" mode="aspectFit" />
-					<text v-else class="weight-no">{{ item.weightNo }}</text>
+					<text v-else class="weight-no">{{ item.displayNo }}</text>
 				</view>
 				<view class="weight-main">
 					<view class="weight-head">
@@ -125,7 +125,10 @@
 			groups() {
 				const order = ['core', 'soft', 'basic', 'bonus']
 				return order.map(code => {
-					const items = this.weights.filter(item => item.categoryCode === code)
+					const items = this.weights
+						.filter(item => item.categoryCode === code)
+						.sort((left, right) => left.weightNo - right.weightNo)
+						.map((item, index) => ({ ...item, displayNo: index + 1 }))
 					const name = items.length ? items[0].categoryName : code
 					return {
 						code,

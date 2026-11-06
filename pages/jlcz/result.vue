@@ -67,7 +67,7 @@
 					</view>
 					<view v-if="selected.length" class="pick-grid">
 						<view v-for="item in selected" :key="item.weightNo" class="pick">
-							<text class="pick-no">{{ item.weightNo }}</text>
+							<text class="pick-no">{{ displayNo(item.weightNo) }}</text>
 							<text class="pick-label">{{ item.label }}</text>
 							<text class="pick-gram">{{ item.weightG }}g</text>
 						</view>
@@ -81,7 +81,7 @@
 						<text class="card-note">按分量排序</text>
 					</view>
 					<view v-for="item in suggestions" :key="item.weightNo" class="suggest">
-						<view class="suggest-badge">{{ item.weightNo }}</view>
+						<view class="suggest-badge">{{ displayNo(item.weightNo) }}</view>
 						<view class="suggest-main">
 							<view class="suggest-head">
 								<text class="suggest-label">{{ item.label }}</text>
@@ -168,6 +168,20 @@
 				if (value == null) return '-'
 				return (Number(value) / 1000).toFixed(1) + 's'
 			},
+			// 每个大类内部从 1 开始编号，与称重页的分类页签保持一致。
+			displayNos() {
+				const catalog = (this.record && this.record.weights) || []
+				const counters = {}
+				const map = {}
+				catalog
+					.slice()
+					.sort((left, right) => left.weightNo - right.weightNo)
+					.forEach(item => {
+						counters[item.categoryCode] = (counters[item.categoryCode] || 0) + 1
+						map[item.weightNo] = counters[item.categoryCode]
+					})
+				return map
+			},
 			categoryRows() {
 				const totals = (this.result && this.result.categoryTotals) || []
 				const catalog = (this.record && this.record.weights) || []
@@ -193,6 +207,9 @@
 			this.load()
 		},
 		methods: {
+			displayNo(weightNo) {
+				return this.displayNos[weightNo] || weightNo
+			},
 			async load() {
 				try {
 					const res = await getRecord(this.recordId, { instanceId: this.instanceId, gameId: this.gameId })
