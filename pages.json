@@ -161,6 +161,9 @@
 		{"path":"pages/zyfxq/start","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
 		{"path":"pages/zyfxq/index","style":{"navigationBarTitleText":"职业飞行棋","navigationStyle":"custom","backgroundColor":"#4ab3ee","backgroundColorTop":"#7ed3ff","backgroundColorBottom":"#59bdf3"}},
 		{"path":"pages/zyfxq/result","style":{"navigationBarTitleText":"本局结果","navigationStyle":"custom","backgroundColor":"#58b4ee","backgroundColorTop":"#58b4ee","backgroundColorBottom":"#6ec2f2"}},
+		{"path":"pages/jlcz/start","style":{"navigationBarTitleText":"简历称重","navigationStyle":"custom","backgroundColor":"#FDF6E8","backgroundColorTop":"#FDF6E8","backgroundColorBottom":"#F3E3C3"}},
+		{"path":"pages/jlcz/index","style":{"navigationBarTitleText":"称一称简历","navigationStyle":"custom","backgroundColor":"#FDF6E8","backgroundColorTop":"#FDF6E8","backgroundColorBottom":"#F3E3C3"}},
+		{"path":"pages/jlcz/result","style":{"navigationBarTitleText":"称重结果","navigationStyle":"custom","backgroundColor":"#FDF6E8","backgroundColorTop":"#FDF6E8","backgroundColorBottom":"#F3E3C3"}},
         {
 						    "path": "pages/zytj/result",
 						    "style": {

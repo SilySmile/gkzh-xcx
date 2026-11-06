@@ -103,6 +103,7 @@ import { enterRecord, userMessage } from '@/api/zycck'
 	import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc'
 	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
 	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
+	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
 
 export default {
 	data() {
@@ -174,7 +175,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -192,6 +193,7 @@ export default {
 				const isZyjdc = result.indexOf('/pages/zyjdc/start') > -1 || params.gameType === 'zyjdc'
 				const isNlld = result.indexOf('/pages/nlld/start') > -1 || params.gameType === 'nlld'
 				const isZyfxq = result.indexOf('/pages/zyfxq/start') > -1 || params.gameType === 'zyfxq'
+				const isJlcz = result.indexOf('/pages/jlcz/start') > -1 || params.gameType === 'jlcz'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -295,6 +297,29 @@ export default {
 						})
 					} catch (e) {
 						uni.showToast({ title: zyfxqMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isJlcz) {
+					// 简历称重：先校验学校、活动和游戏归属，通过后才打开开始页。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterJlcz({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'jlcz',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/jlcz/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: jlczMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 					}
 					return
 				}

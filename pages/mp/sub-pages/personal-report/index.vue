@@ -61,6 +61,7 @@ import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/ap
 import { enterRecord as enterZyjdc, userMessage as zyjdcMessage } from '@/api/zyjdc.js'
 import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld.js'
 import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq.js'
+import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
 import { reportArchiveUrl } from '@/utils/report-download.js'
@@ -124,7 +125,8 @@ export default {
 				'zcyltzj': '职场压力·骰子局',
 				'zyjdc': '职业角斗场',
 				'nlld': '能量雷达',
-				'zyfxq': '职业飞行棋'
+				'zyfxq': '职业飞行棋',
+				'jlcz': '简历称重'
 			}
 			return map[type] || type
 		},
@@ -268,6 +270,25 @@ export default {
 					})
 				} catch (e) {
 					uni.showToast({ title: zyfxqMessage(e, '本局结果加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'jlcz') {
+				try {
+					// 简历称重按活动实例和游戏编号幂等取回本人记录，再打开称重结果页。
+					const entered = await enterJlcz({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'jlcz',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/jlcz/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: jlczMessage(e, '称重结果加载失败，请重试'), icon: 'none' })
 				}
 				return
 			}
