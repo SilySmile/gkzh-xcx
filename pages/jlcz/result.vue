@@ -103,7 +103,7 @@
 			<button v-if="!result.pass && canRetry" class="retry-btn" :disabled="loading" @click="retry">
 				{{ loading ? '正在重置…' : '重新称重' }}
 			</button>
-			<button class="back-btn" @click="back">返回活动</button>
+			<button class="back-btn" @click="goActivity">返回活动</button>
 		</view>
 	</view>
 </template>
@@ -112,6 +112,7 @@
 	import JlczHeader from '@/components/JlczHeader.vue'
 	import JlczScale from '@/components/JlczScale.vue'
 	import { getRecord, restartRecord, userMessage } from '@/api/jlcz'
+	import { getWeekFlow } from '@/api/activity/week'
 
 	export default {
 		components: { JlczHeader, JlczScale },
@@ -243,8 +244,27 @@
 					uni.navigateBack({ delta: 1 })
 					return
 				}
-				const bizType = (this.record && this.record.bizType) || 'career_week'
-				uni.reLaunch({ url: `/pages/mp/sub-pages/career-week/index?bizType=${bizType}` })
+				this.goActivity()
+			},
+			/**
+			 * 返回对应活动页：优先使用记录中的 bizType；
+			 * 旧记录没有该字段时读取活动流程接口，最后才回退到生涯活动。
+			 */
+			async goActivity() {
+				let bizType = (this.record && this.record.bizType) || ''
+				if (!bizType && this.instanceId) {
+					try {
+						const res = await getWeekFlow(this.instanceId)
+						const instance = res && res.data && res.data.instance
+						bizType = (instance && instance.bizType) || ''
+					} catch (e) {
+						// 活动信息读取失败时继续使用本地缓存兜底，不阻断返回。
+					}
+				}
+				if (!bizType) {
+					bizType = uni.getStorageSync('weekBizType') || 'career_week'
+				}
+				uni.reLaunch({ url: `/pages/mp/sub-pages/career-week/index?bizType=${encodeURIComponent(bizType)}` })
 			}
 		}
 	}
