@@ -155,39 +155,39 @@
 
 	.title {
 		position: absolute;
-		left: 65rpx;
-		top: 50rpx;
-		width: 620rpx;
+		left: 75rpx;
+		top: 48rpx;
+		width: 600rpx;
 	}
 
 	.subtitle {
 		position: absolute;
-		left: 105rpx;
-		top: 392rpx;
-		width: 540rpx;
+		left: 115rpx;
+		top: 336rpx;
+		width: 520rpx;
 	}
 
 	.card {
 		position: absolute;
-		width: 283rpx;
-		height: 224rpx;
-		padding: 14rpx 16rpx 0;
-		border-radius: 24rpx;
+		width: 280rpx;
+		height: 196rpx;
+		padding: 10rpx 14rpx 0;
+		border-radius: 22rpx;
 		box-sizing: border-box;
 		text-align: center;
 		overflow: hidden;
 		transition: transform 0.12s ease;
 	}
 
-	/* 两列四行固定位置，与设计稿 750x1624 对齐。 */
-	.card.pos-0 { left: 85rpx; top: 482rpx; }
-	.card.pos-1 { left: 400rpx; top: 482rpx; }
-	.card.pos-2 { left: 85rpx; top: 745rpx; }
-	.card.pos-3 { left: 400rpx; top: 745rpx; }
-	.card.pos-4 { left: 85rpx; top: 1008rpx; }
-	.card.pos-5 { left: 400rpx; top: 1008rpx; }
-	.card.pos-6 { left: 85rpx; top: 1271rpx; }
-	.card.pos-7 { left: 400rpx; top: 1271rpx; }
+	/* 两列四行固定位置：行间距 66rpx、列间距 40rpx，底部与按钮留出空隙。 */
+	.card.pos-0 { left: 82rpx; top: 474rpx; }
+	.card.pos-1 { left: 402rpx; top: 474rpx; }
+	.card.pos-2 { left: 82rpx; top: 736rpx; }
+	.card.pos-3 { left: 402rpx; top: 736rpx; }
+	.card.pos-4 { left: 82rpx; top: 998rpx; }
+	.card.pos-5 { left: 402rpx; top: 998rpx; }
+	.card.pos-6 { left: 82rpx; top: 1260rpx; }
+	.card.pos-7 { left: 402rpx; top: 1260rpx; }
 
 	.card-bg {
 		position: absolute;
@@ -212,7 +212,7 @@
 		position: relative;
 		z-index: 1;
 		display: block;
-		height: 92rpx;
+		height: 74rpx;
 		margin: 0 auto;
 	}
 
@@ -220,8 +220,8 @@
 		position: relative;
 		z-index: 1;
 		display: block;
-		margin-top: 4rpx;
-		font-size: 30rpx;
+		margin-top: 2rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 		line-height: 1.2;
 		color: #123a7a;
@@ -232,7 +232,7 @@
 		position: relative;
 		z-index: 1;
 		display: block;
-		margin-top: 4rpx;
+		margin-top: 2rpx;
 		height: 52rpx;
 		overflow: hidden;
 		font-size: 20rpx;
@@ -259,7 +259,7 @@
 	.confirm {
 		position: absolute;
 		left: 158rpx;
-		top: 1502rpx;
+		top: 1494rpx;
 		z-index: 20;
 		width: 434rpx;
 		height: 92rpx;
