@@ -233,6 +233,7 @@
 	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
 	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
 	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
+	import { enterRecord as enterZmwl, userMessage as zmwlMessage } from '@/api/zmwl'
 	import {
 		checkLottery
 	} from '@/api/lottery.js'
@@ -604,7 +605,25 @@
 					}
 					return
 				}
-				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld' && task.type !== 'zyfxq' && task.type !== 'jlcz') {
+				if (task.isFinish && task.type === 'zmwl') {
+					try {
+						const entered = await enterZmwl({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'zmwl',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/zmwl/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zmwlMessage(e, '未来选择卡加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld' && task.type !== 'zyfxq' && task.type !== 'jlcz' && task.type !== 'zmwl') {
 					try {
 						// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 						await enterWeekGame(task.id, this.instanceId)
@@ -693,6 +712,9 @@
 						break
 					case 'jlcz':
 						url = '/pages/jlcz/start'
+						break
+					case 'zmwl':
+						url = '/pages/zmwl/start'
 						break
 					default:
 

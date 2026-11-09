@@ -187,6 +187,11 @@ export default {
 							this.playGame(game)
 							return
 						}
+						// 职面未来同样由自己的 /records/enter 写入参与记录。
+						if (game.gameType === 'zmwl') {
+							this.playGame(game)
+							return
+						}
 						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(e => {
 							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
@@ -215,6 +220,7 @@ export default {
 				case 'nlld': url = '/pages/nlld/start'; break
 				case 'zyfxq': url = '/pages/zyfxq/start'; break
 				case 'jlcz': url = '/pages/jlcz/start'; break
+				case 'zmwl': url = '/pages/zmwl/start'; break
 				default: url = ''
 			}
 			if (!url) {

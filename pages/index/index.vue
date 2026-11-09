@@ -97,6 +97,7 @@
 	import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld'
 	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
 	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
+import { enterRecord as enterZmwl, userMessage as zmwlMessage } from '@/api/zmwl'
 
 	// 微信SDK导入 - 仅在H5环境下使用
 
@@ -435,7 +436,7 @@
 			async handleScanResult(result) {
 				// 新活动二维码：直接按 URL 跳转
 				// 游戏二维码以 GKZH_MP: 小程序文本码保存，微信相机不会把它当成网页 URL 打开。
-				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1)) {
+				if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1 || result.indexOf('/pages/zmwl/start') > -1)) {
 					const query = this.parseScanQuery(result)
 					const params = Object.keys(query).map(k => k + '=' + encodeURIComponent(query[k])).join('&')
 					const isXyccStart = result.indexOf('/pages/xycc/start') > -1
@@ -446,6 +447,7 @@
 					const isNlld = result.indexOf('/pages/nlld/start') > -1 || query.gameType === 'nlld'
 					const isZyfxq = result.indexOf('/pages/zyfxq/start') > -1 || query.gameType === 'zyfxq'
 					const isJlcz = result.indexOf('/pages/jlcz/start') > -1 || query.gameType === 'jlcz'
+					const isZmwl = result.indexOf('/pages/zmwl/start') > -1 || query.gameType === 'zmwl'
 					if (isZcyltzj) {
 						// 直达开始页二维码：扫码时先校验学校、活动和游戏归属，通过后才打开游戏。
 						if (!query.instanceId || !query.gameId) {
@@ -556,6 +558,29 @@
 							})
 						} catch (e) {
 							uni.showToast({ title: jlczMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+						}
+						return
+					}
+					if (isZmwl) {
+						// 职面未来：先校验学校、活动和游戏归属，通过后才进入开始页。
+						if (!query.instanceId || !query.gameId) {
+							uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+							return
+						}
+						try {
+							const entered = await enterZmwl({
+								instanceId: query.instanceId,
+								gameId: query.gameId,
+								gameType: 'zmwl',
+								schoolId: uni.getStorageSync('schoolId')
+							})
+							const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+							if (!recordId) throw new Error('记录创建失败')
+							uni.redirectTo({
+								url: `/pages/zmwl/start?instanceId=${encodeURIComponent(query.instanceId)}&gameId=${encodeURIComponent(query.gameId)}&recordId=${encodeURIComponent(recordId)}`
+							})
+						} catch (e) {
+							uni.showToast({ title: zmwlMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 						}
 						return
 					}
