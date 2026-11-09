@@ -1,111 +1,63 @@
 <template>
 	<view class="page">
-		<view class="bg-circle one"></view>
-		<view class="bg-circle two"></view>
+		<view class="blob blob-one"></view>
+		<view class="blob blob-two"></view>
+		<view class="blob blob-three"></view>
+		<view class="bottom-wave"></view>
+		<view class="deco-card">
+			<view class="deco-avatar"></view>
+			<view class="deco-line deco-line-one"></view>
+			<view class="deco-line deco-line-two"></view>
+			<view class="deco-line deco-line-three"></view>
+		</view>
 
-		<JlczHeader title="简历称重" @back="back" />
+		<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
+			<view class="back" @click="back">‹</view>
+		</view>
 
-		<scroll-view class="body" scroll-y>
-			<view class="hero">
-				<text class="eyebrow">简历分量自查</text>
-				<text class="hero-title">称一称你的简历</text>
-				<text class="hero-sub">20 个砝码 · 4 个维度 · {{ passWeight }}g 达标</text>
-			</view>
+		<view class="body">
+			<image class="logo" src="/static/jlcz/start-logo.png" mode="widthFix" />
+			<image class="scale-art" src="/static/jlcz/start-scale.png" mode="widthFix" />
 
-			<view class="preview-card">
-				<JlczScale
-					:left-weight="leftWeight"
-					:pass-weight="passWeight"
-					:left-text="'标准砝码'"
-					:right-text="'你的简历'"
-					size="compact"
-				/>
-				<view class="preview-legend">
-					<view class="legend-item">
-						<text class="legend-dot left"></text>
-						<text>左盘固定 {{ leftWeight }}g</text>
-					</view>
-					<view class="legend-item">
-						<text class="legend-dot right"></text>
-						<text>右盘为你勾选的重量</text>
-					</view>
+			<view class="bottom">
+				<view v-if="statusText" class="status-tip">
+					<text class="status-text">{{ statusText }}</text>
+				</view>
+				<view class="start-wrap" :class="{ pressed: pressed, loading: loading }"
+					@touchstart="pressed = true" @touchend="pressed = false" @touchcancel="pressed = false"
+					@click="start">
+					<image class="start-art" src="/static/jlcz/start-button.png" mode="widthFix" />
+					<text v-if="loading" class="loading-text">正在进入…</text>
 				</view>
 			</view>
-
-			<view class="card">
-				<view class="card-head">
-					<text class="card-title">怎么玩</text>
-					<text class="card-tag">约 1 分钟</text>
-				</view>
-				<view v-for="(step, index) in steps" :key="index" class="step-row">
-					<view class="step-no">{{ index + 1 }}</view>
-					<view class="step-body">
-						<text class="step-title">{{ step.title }}</text>
-						<text class="step-desc">{{ step.desc }}</text>
-					</view>
-				</view>
-			</view>
-
-			<view class="section-head">
-				<text class="section-title">四大类砝码</text>
-				<text class="section-note">合计 125g</text>
-			</view>
-			<view class="cat-grid">
-				<view v-for="item in categories" :key="item.code" class="cat-card">
-					<view class="cat-top">
-						<text class="cat-name">{{ item.name }}</text>
-						<text class="cat-weight">{{ item.weight }}g</text>
-					</view>
-					<text class="cat-meta">{{ item.meta }}</text>
-					<view class="cat-bar" :class="item.code"></view>
-				</view>
-			</view>
-
-			<view class="note">
-				对照自己的简历勾选已具备的砝码；右侧总重达到 {{ passWeight }}g 即通关，未通关可以重新称一次。
-			</view>
-			<view class="scroll-space"></view>
-		</scroll-view>
-
-		<view class="footer">
-			<view v-if="statusText" class="status-tip">
-				<text class="status-text">{{ statusText }}</text>
-			</view>
-			<button class="primary-btn" :disabled="loading" @click="start">
-				{{ loading ? '正在进入…' : '开始称重' }}
-			</button>
 		</view>
 	</view>
 </template>
 
 <script>
-	import JlczHeader from '@/components/JlczHeader.vue'
-	import JlczScale from '@/components/JlczScale.vue'
 	import { enterRecord, getRecord, startRecord, userMessage } from '@/api/jlcz'
 
 	export default {
-		components: { JlczHeader, JlczScale },
 		data: () => ({
 			instanceId: '',
 			gameId: '',
 			recordId: '',
 			record: null,
 			loading: false,
+			pressed: false,
 			statusText: '',
+			statusBarHeight: 30,
 			leftWeight: 80,
-			passWeight: 80,
-			steps: [
-				{ title: '对照简历勾选', desc: '从四大类共 20 个砝码中，勾选自己已经具备的项。' },
-				{ title: '挂上右侧托盘', desc: '系统把勾选的砝码挂到天平右侧，实时显示总重量。' },
-				{ title: '达到 80g 通关', desc: '右侧达到左侧标准即通关；未通关可以重新称一次。' }
-			],
-			categories: [
-				{ code: 'core', name: '硬通货', meta: '核心竞争力 · 5 项', weight: 50 },
-				{ code: 'soft', name: '软实力', meta: '发展潜力 · 5 项', weight: 25 },
-				{ code: 'basic', name: '基本功', meta: '职业素养 · 5 项', weight: 25 },
-				{ code: 'bonus', name: '加分项', meta: '额外亮点 · 5 项', weight: 25 }
-			]
+			passWeight: 80
 		}),
+		mounted() {
+			try {
+				const info = uni.getSystemInfoSync()
+				this.statusBarHeight = (info.statusBarHeight || 20) + 8
+			} catch (e) {
+				this.statusBarHeight = 30
+			}
+		},
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''
 			this.gameId = options.gameId || ''
@@ -177,6 +129,7 @@
 					uni.showToast({ title: userMessage(e, '开始称重失败，请稍后重试'), icon: 'none' })
 				} finally {
 					this.loading = false
+					this.pressed = false
 				}
 			},
 			back() {
@@ -197,314 +150,188 @@
 		display: flex;
 		flex-direction: column;
 		height: 100vh;
-		background: linear-gradient(180deg, #f7f1e6 0%, #efe2ce 100%);
+		background: linear-gradient(180deg, #fdf5e7 0%, #fcebcf 100%);
 		overflow: hidden;
 	}
 
-	.bg-circle {
+	.blob {
 		position: absolute;
 		border-radius: 50%;
 		pointer-events: none;
 	}
 
-	.bg-circle.one {
-		top: -160rpx;
-		right: -120rpx;
-		width: 460rpx;
-		height: 460rpx;
-		background: rgba(217, 178, 107, 0.16);
+	.blob-one {
+		top: -220rpx;
+		right: -200rpx;
+		width: 720rpx;
+		height: 720rpx;
+		background: radial-gradient(circle at 50% 50%, rgba(251, 227, 182, 0.95) 0%, rgba(251, 227, 182, 0) 68%);
 	}
 
-	.bg-circle.two {
-		bottom: 120rpx;
-		left: -180rpx;
-		width: 420rpx;
+	.blob-two {
+		bottom: -280rpx;
+		left: -260rpx;
+		width: 820rpx;
+		height: 820rpx;
+		background: radial-gradient(circle at 50% 50%, rgba(250, 224, 180, 0.9) 0%, rgba(250, 224, 180, 0) 70%);
+	}
+
+	.blob-three {
+		top: 46%;
+		left: -240rpx;
+		width: 460rpx;
+		height: 460rpx;
+		background: radial-gradient(circle at 50% 50%, rgba(255, 252, 244, 0.9) 0%, rgba(255, 252, 244, 0) 70%);
+	}
+
+	/* 底部米色波浪和简历卡片，呼应效果图底部装饰。 */
+	.bottom-wave {
+		position: absolute;
+		left: -20%;
+		bottom: -220rpx;
+		width: 140%;
 		height: 420rpx;
-		background: rgba(255, 255, 255, 0.42);
+		border-radius: 50%;
+		background: rgba(251, 232, 199, 0.55);
+	}
+
+	.deco-card {
+		position: absolute;
+		right: 46rpx;
+		bottom: 34rpx;
+		width: 180rpx;
+		height: 224rpx;
+		padding: 22rpx 20rpx;
+		border-radius: 18rpx;
+		background: rgba(255, 253, 248, 0.62);
+		box-sizing: border-box;
+		transform: rotate(-8deg);
+		z-index: 1;
+	}
+
+	.deco-avatar {
+		width: 52rpx;
+		height: 52rpx;
+		border-radius: 50%;
+		background: rgba(232, 211, 175, 0.75);
+	}
+
+	.deco-line {
+		height: 10rpx;
+		margin-top: 14rpx;
+		border-radius: 6rpx;
+		background: rgba(232, 211, 175, 0.6);
+	}
+
+	.deco-line-one {
+		width: 96rpx;
+	}
+
+	.deco-line-two {
+		width: 138rpx;
+	}
+
+	.deco-line-three {
+		width: 120rpx;
+	}
+
+	.topbar {
+		position: relative;
+		z-index: 3;
+		padding-left: 28rpx;
+		padding-bottom: 6rpx;
+	}
+
+	.back {
+		width: 62rpx;
+		height: 62rpx;
+		line-height: 56rpx;
+		border-radius: 50%;
+		text-align: center;
+		font-size: 46rpx;
+		color: #8a6a32;
+		background: rgba(255, 255, 255, 0.62);
+		border: 2rpx solid rgba(232, 201, 146, 0.7);
+		box-sizing: border-box;
 	}
 
 	.body {
 		position: relative;
-		z-index: 1;
+		z-index: 2;
+		display: flex;
 		flex: 1;
 		height: 0;
-		padding: 0 32rpx;
+		flex-direction: column;
+		align-items: center;
+		padding: 0 30rpx;
 		box-sizing: border-box;
 	}
 
-	.hero {
-		padding: 12rpx 4rpx 22rpx;
-	}
-
-	.eyebrow {
-		display: block;
-		font-size: 21rpx;
-		letter-spacing: 4rpx;
-		color: #a3814f;
-	}
-
-	.hero-title {
-		display: block;
-		margin-top: 8rpx;
-		font-size: 52rpx;
-		line-height: 1.25;
-		font-weight: 700;
-		color: #2f2a22;
-		letter-spacing: 2rpx;
-	}
-
-	.hero-sub {
-		display: block;
+	.logo {
+		width: 560rpx;
 		margin-top: 10rpx;
-		font-size: 23rpx;
-		color: #8b7c66;
 	}
 
-	.preview-card {
-		padding: 16rpx 12rpx 14rpx;
-		border-radius: 26rpx;
-		border: 2rpx solid rgba(217, 196, 160, 0.7);
-		background: rgba(255, 253, 247, 0.86);
-		box-shadow: 0 12rpx 28rpx rgba(120, 84, 34, 0.08);
+	.scale-art {
+		width: 700rpx;
+		margin-top: 60rpx;
 	}
 
-	.preview-legend {
+	.bottom {
 		display: flex;
-		justify-content: center;
-		margin-top: 2rpx;
-	}
-
-	.legend-item {
-		display: flex;
+		flex-direction: column;
 		align-items: center;
-		margin: 0 18rpx;
-		font-size: 20rpx;
-		color: #8b7c66;
-	}
-
-	.legend-dot {
-		width: 14rpx;
-		height: 14rpx;
-		margin-right: 8rpx;
-		border-radius: 50%;
-	}
-
-	.legend-dot.left {
-		background: #d9b26b;
-	}
-
-	.legend-dot.right {
-		background: #8fa9a0;
-	}
-
-	.card {
-		margin-top: 22rpx;
-		padding: 24rpx 26rpx 10rpx;
-		border-radius: 24rpx;
-		background: rgba(255, 253, 247, 0.9);
-		border: 2rpx solid rgba(217, 196, 160, 0.55);
-	}
-
-	.card-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 8rpx;
-	}
-
-	.card-title {
-		font-size: 29rpx;
-		font-weight: 600;
-		color: #2f2a22;
-	}
-
-	.card-tag {
-		padding: 4rpx 14rpx;
-		border-radius: 20rpx;
-		font-size: 19rpx;
-		color: #9a7c45;
-		background: #f5ead6;
-	}
-
-	.step-row {
-		display: flex;
-		align-items: flex-start;
-		padding: 14rpx 0;
-	}
-
-	.step-no {
-		flex-shrink: 0;
-		width: 38rpx;
-		height: 38rpx;
-		margin-right: 16rpx;
-		border-radius: 50%;
-		line-height: 38rpx;
-		text-align: center;
-		font-size: 21rpx;
-		font-weight: 600;
-		color: #8a6122;
-		background: #f3e5c8;
-	}
-
-	.step-body {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.step-title {
-		display: block;
-		font-size: 25rpx;
-		font-weight: 600;
-		color: #3b3327;
-	}
-
-	.step-desc {
-		display: block;
-		margin-top: 4rpx;
-		font-size: 21rpx;
-		line-height: 1.6;
-		color: #8b7c66;
-	}
-
-	.section-head {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		margin: 26rpx 6rpx 14rpx;
-	}
-
-	.section-title {
-		font-size: 29rpx;
-		font-weight: 600;
-		color: #2f2a22;
-	}
-
-	.section-note {
-		font-size: 21rpx;
-		color: #9a8a70;
-	}
-
-	.cat-grid {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-	}
-
-	.cat-card {
-		position: relative;
-		width: 48.5%;
-		margin-bottom: 16rpx;
-		padding: 20rpx 20rpx 24rpx;
-		border-radius: 20rpx;
-		background: rgba(255, 253, 247, 0.9);
-		border: 2rpx solid rgba(217, 196, 160, 0.5);
-		box-sizing: border-box;
-		overflow: hidden;
-	}
-
-	.cat-top {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-	}
-
-	.cat-name {
-		font-size: 26rpx;
-		font-weight: 600;
-		color: #2f2a22;
-	}
-
-	.cat-weight {
-		font-size: 22rpx;
-		font-weight: 600;
-		color: #a3814f;
-	}
-
-	.cat-meta {
-		display: block;
-		margin-top: 6rpx;
-		font-size: 19rpx;
-		color: #9a8a70;
-	}
-
-	.cat-bar {
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		width: 100%;
-		height: 6rpx;
-	}
-
-	.cat-bar.core {
-		background: #b98a3c;
-	}
-
-	.cat-bar.soft {
-		background: #7f9f93;
-	}
-
-	.cat-bar.basic {
-		background: #8d8aa6;
-	}
-
-	.cat-bar.bonus {
-		background: #c08a72;
-	}
-
-	.note {
-		margin: 10rpx 6rpx 0;
-		font-size: 20rpx;
-		line-height: 1.7;
-		color: #9a8a70;
-	}
-
-	.scroll-space {
-		height: 36rpx;
-	}
-
-	.footer {
-		position: relative;
-		z-index: 2;
-		flex-shrink: 0;
-		padding: 14rpx 32rpx 20rpx;
-		padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
-		padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-		background: rgba(247, 241, 230, 0.96);
+		margin-top: auto;
+		padding-bottom: calc(280rpx + constant(safe-area-inset-bottom));
+		padding-bottom: calc(280rpx + env(safe-area-inset-bottom));
 	}
 
 	.status-tip {
-		margin-bottom: 12rpx;
-		padding: 10rpx 16rpx;
-		border-radius: 14rpx;
-		background: rgba(217, 178, 107, 0.16);
+		max-width: 620rpx;
+		margin-bottom: 20rpx;
+		padding: 10rpx 24rpx;
+		border-radius: 26rpx;
+		background: rgba(255, 250, 238, 0.88);
+		border: 2rpx solid rgba(232, 201, 146, 0.6);
 	}
 
 	.status-text {
-		font-size: 21rpx;
-		line-height: 1.5;
-		color: #7c6437;
+		font-size: 22rpx;
+		line-height: 1.55;
+		color: #8a6a32;
+		text-align: center;
 	}
 
-	.primary-btn {
-		display: block;
-		width: 100%;
-		height: 96rpx;
-		line-height: 96rpx;
-		border: none;
-		border-radius: 48rpx;
-		font-size: 33rpx;
+	.start-wrap {
+		position: relative;
+		width: 480rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: transform 0.15s ease;
+	}
+
+	.start-wrap.pressed {
+		transform: scale(0.96);
+	}
+
+	.start-wrap.loading {
+		opacity: 0.86;
+	}
+
+	.start-art {
+		width: 480rpx;
+	}
+
+	.loading-text {
+		position: absolute;
+		left: 60rpx;
+		right: 0;
+		text-align: center;
+		font-size: 30rpx;
 		font-weight: 600;
+		color: #fffdf6;
 		letter-spacing: 2rpx;
-		color: #fffdf7;
-		background: linear-gradient(135deg, #c99a4a 0%, #a3742a 100%);
-		box-shadow: 0 12rpx 24rpx rgba(150, 108, 45, 0.28);
-	}
-
-	.primary-btn::after {
-		border: none;
-	}
-
-	.primary-btn[disabled] {
-		opacity: 0.72;
+		text-shadow: 0 2rpx 4rpx rgba(120, 78, 20, 0.35);
 	}
 </style>
