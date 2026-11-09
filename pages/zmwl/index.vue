@@ -9,7 +9,7 @@
 			<image class="subtitle" :src="assets.subtitle" mode="widthFix"></image>
 
 			<view v-for="(item, index) in directions" :key="item.directionCode" class="card"
-				:class="{ active: selected === item.directionCode }" :style="cardStyle(index)" @click="select(item)">
+				:class="['pos-' + index, { active: selected === item.directionCode }]" @click="select(item)">
 				<image class="card-bg" :src="assets.optionCard" mode="scaleToFill"></image>
 				<image v-if="iconOf(item)" class="card-icon" :src="iconOf(item)" mode="heightFix"></image>
 				<text class="card-name">{{ item.name }}</text>
@@ -35,11 +35,8 @@
 	/**
 	 * 职面未来第二页：选择未来发展方向。
 	 * 8 个方向按后台配置顺序排成两列，选中后点击“确定我的选择”提交，确认后默认只读。
+	 * 卡片位置使用固定类名（pos-0 ~ pos-7），不使用动态 :style，避免小程序端把样式对象渲染成 [object Object]。
 	 */
-	const CARD_TOPS = [482, 745, 1008, 1271]
-	const CARD_LEFT = [85, 400]
-	const CARD_WIDTH = 283
-	const CARD_HEIGHT = 224
 
 	export default {
 		components: { ZmwlHeader },
@@ -81,16 +78,6 @@
 					}
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '方向加载失败，请稍后重试'), icon: 'none' })
-				}
-			},
-			cardStyle(index) {
-				const row = Math.floor(index / 2)
-				const col = index % 2
-				return {
-					left: CARD_LEFT[col] + 'rpx',
-					top: (CARD_TOPS[row] || CARD_TOPS[3]) + 'rpx',
-					width: CARD_WIDTH + 'rpx',
-					height: CARD_HEIGHT + 'rpx'
 				}
 			},
 			iconOf(item) {
@@ -182,6 +169,8 @@
 
 	.card {
 		position: absolute;
+		width: 283rpx;
+		height: 224rpx;
 		padding: 14rpx 16rpx 0;
 		border-radius: 24rpx;
 		box-sizing: border-box;
@@ -189,6 +178,16 @@
 		overflow: hidden;
 		transition: transform 0.12s ease;
 	}
+
+	/* 两列四行固定位置，与设计稿 750x1624 对齐。 */
+	.card.pos-0 { left: 85rpx; top: 482rpx; }
+	.card.pos-1 { left: 400rpx; top: 482rpx; }
+	.card.pos-2 { left: 85rpx; top: 745rpx; }
+	.card.pos-3 { left: 400rpx; top: 745rpx; }
+	.card.pos-4 { left: 85rpx; top: 1008rpx; }
+	.card.pos-5 { left: 400rpx; top: 1008rpx; }
+	.card.pos-6 { left: 85rpx; top: 1271rpx; }
+	.card.pos-7 { left: 400rpx; top: 1271rpx; }
 
 	.card-bg {
 		position: absolute;
