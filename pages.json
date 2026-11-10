@@ -163,9 +163,9 @@
 		{"path":"pages/zmwl/start","style":{"navigationBarTitleText":"职面未来","navigationStyle":"custom","backgroundColor":"#BFE4F6","backgroundColorTop":"#BFE4F6","backgroundColorBottom":"#8FD0F2"}},
 		{"path":"pages/zmwl/index","style":{"navigationBarTitleText":"选择未来发展方向","navigationStyle":"custom","backgroundColor":"#A9D9F7","backgroundColorTop":"#A9D9F7","backgroundColorBottom":"#8FD0F2"}},
 		{"path":"pages/zmwl/result","style":{"navigationBarTitleText":"我的未来选择卡","navigationStyle":"custom","backgroundColor":"#58B4EE","backgroundColorTop":"#58B4EE","backgroundColorBottom":"#6EC2F2"}},
-		{"path":"pages/zdyp/start","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
-		{"path":"pages/zdyp/index","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
-		{"path":"pages/zdyp/result","style":{"navigationBarTitleText":"职业拼图结果","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
+		{"path":"pages/zdyp/start","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FEF2CA","backgroundColorTop":"#FEF2CA","backgroundColorBottom":"#FEF2CA"}},
+		{"path":"pages/zdyp/index","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FEF2CA","backgroundColorTop":"#FEF2CA","backgroundColorBottom":"#FEF2CA"}},
+		{"path":"pages/zdyp/result","style":{"navigationBarTitleText":"职业拼图结果","navigationStyle":"custom","backgroundColor":"#FEF2CA","backgroundColorTop":"#FEF2CA","backgroundColorBottom":"#FEF2CA"}},
         {
             "path": "pages/activity/index",
             "style": {

@@ -1,63 +1,76 @@
 <template>
 	<view class="page">
+		<image class="stage-bg" :src="assets.gameEmpty" mode="scaleToFill"></image>
+
+		<!-- 进度条：底图已抹掉原进度，这里按剩余时间重绘 -->
+		<view class="track" style="left:40rpx;top:243rpx;width:670rpx;height:9rpx"></view>
+		<view class="track-fill" :style="'left:40rpx;top:243rpx;height:9rpx;width:' + progressWidth + 'rpx'"></view>
+
+		<!-- 四个卡槽：命中区域与设计稿象限一致 -->
+		<view v-for="slot in slots" :key="slot.slotCode" class="quad" :style="quadStyle(slot.slotCode)"
+			@click="tapSlot(slot)"></view>
+
+		<!-- 已放入卡片的编号，位置与设计稿数字一致 -->
+		<view v-for="slot in slots" :key="'no-' + slot.slotCode" v-if="placed[slot.slotCode]"
+			class="quad-no" :style="numberStyle(slot.slotCode)">{{ placed[slot.slotCode].cardNo }}</view>
+
+		<!-- 底部主按钮：底图已抹掉“开始游戏”，这里放提交按钮 -->
+		<view class="submit" :class="{ disabled: filledCount < 4 }" @click="submit(false)">
+			{{ submitting ? '提交中…' : (filledCount < 4 ? '还差 ' + (4 - filledCount) + ' 张' : '提交答案') }}
+		</view>
+
+		<!-- 选岗位面板：与选卡面板同一套白卡样式 -->
+		<view v-if="careerTrayVisible" class="tray-mask">
+			<view class="tray tray-career" @click.stop>
+				<view class="tray-head">
+					<text class="tray-title">选择一套岗位，开始拼图挑战</text>
+				</view>
+				<scroll-view class="career-scroll" scroll-y>
+					<view v-for="item in careers" :key="item.careerCode" class="career-row" @click="chooseCareer(item.careerCode)">
+						<text class="career-name">{{ item.careerName }}</text>
+						<text class="career-arrow">›</text>
+					</view>
+				</scroll-view>
+			</view>
+		</view>
+
+		<!-- 选卡面板：还原设计稿拼图4 的白色上浮面板 -->
+		<view v-if="trayVisible" class="tray-mask" @click="closeTray">
+			<view class="tray" @click.stop>
+				<view class="tray-head">
+					<text class="tray-title">点击卡片放入「{{ activeSlotName }}」</text>
+					<text class="tray-close" @click="closeTray">×</text>
+				</view>
+				<view class="tray-grid">
+					<view v-for="card in remainingCards" :key="card.cardId" class="card-cell" @click="placeCard(card)">
+						<view class="card-art">
+							<image class="piece" :src="assets.pieces[(card.cardNo - 1) % 4]" mode="widthFix"></image>
+							<image class="badge" :src="assets.badges[(card.cardNo - 1) % 4]" mode="widthFix"></image>
+						</view>
+						<text class="card-text">{{ card.cardText }}</text>
+					</view>
+					<view v-if="!remainingCards.length" class="card-empty">四张卡片都已放入卡槽</view>
+				</view>
+			</view>
+		</view>
+
 		<ZdypHeader title="职得一拼" @back="back" />
-
-		<!-- 岗位选择：进入闯关前先选一套岗位 -->
-		<view v-if="!career" class="selector">
-			<view class="selector-tip">选择你感兴趣的岗位，开启拼图挑战</view>
-			<scroll-view class="career-list" scroll-y>
-				<view v-for="item in careers" :key="item.careerCode" class="career-item" @click="chooseCareer(item)">
-					<text class="career-name">{{ item.careerName }}</text>
-				</view>
-			</scroll-view>
-		</view>
-
-		<!-- 闯关页 -->
-		<view v-else class="game">
-			<view class="topbar">
-				<view class="career-tag">{{ career.careerName }}</view>
-				<view class="timer" :class="{ urgent: remain <= 10 }">{{ remain }}s</view>
-			</view>
-			<view class="progress">
-				<view class="progress-inner" :style="'width:' + progressPercent + '%'"></view>
-			</view>
-
-			<view class="board">
-				<view v-for="slot in slots" :key="slot.slotCode" class="slot" :class="slotClass(slot)" @click="tapSlot(slot)">
-					<text class="slot-label">{{ slot.slotName }}</text>
-					<text v-if="placed[slot.slotCode]" class="slot-text">{{ placed[slot.slotCode].cardText }}</text>
-					<text v-else class="slot-placeholder">点击放入卡片</text>
-				</view>
-			</view>
-
-			<view class="hint">{{ hintText }}</view>
-
-			<scroll-view class="card-tray" scroll-y>
-				<view v-for="card in remainingCards" :key="card.cardId" class="card"
-					:class="{ selected: selectedCardId === card.cardId }" @click="selectCard(card)">
-					<text class="card-text">{{ card.cardText }}</text>
-				</view>
-				<view v-if="!remainingCards.length" class="card-empty">四张卡片都已放入卡槽</view>
-			</scroll-view>
-
-			<view class="submit-btn" :class="{ disabled: filledCount < 4 || submitting }" @click="submit(filledCount < 4)">
-				<text class="submit-text">提交答案</text>
-			</view>
-		</view>
 	</view>
 </template>
 
 <script>
 	import ZdypHeader from '@/components/ZdypHeader.vue'
+	import assets from '@/config/zdyp-assets.js'
 	import { getRecord, startRecord, submitRecord, userMessage } from '@/api/zdyp'
 
 	/**
-	 * 职得一拼闯关页：先选岗位，再把四张卡片放进对应维度卡槽。
-	 * 倒计时以服务端 deadlineAt 为准，到点自动提交已放内容；判定与用时全部由服务端计算。
+	 * 职得一拼闯关页：按设计稿拼图3 还原四色拼图板，点击象限弹出拼图4 的白卡面板选卡。
+	 * 倒计时与判定以服务端为准，到点自动提交已放入的卡片。
 	 */
 	export default {
 		components: { ZdypHeader },
 		data: () => ({
+			assets,
 			recordId: '',
 			instanceId: '',
 			gameId: '',
@@ -66,27 +79,32 @@
 			slots: [],
 			cards: [],
 			placed: {},
-			selectedCardId: null,
 			attemptNo: null,
 			deadlineAt: null,
 			timeLimit: 45,
 			remain: 45,
 			timer: null,
 			submitting: false,
-			placeTimes: {},
-			hintText: '先在下方选择一张卡片，再点击上方对应卡槽放入'
+			trayVisible: false,
+			careerTrayVisible: false,
+			activeSlot: '',
+			placeTimes: {}
 		}),
 		computed: {
 			remainingCards() {
-				const used = Object.keys(this.placed).map((slot) => this.placed[slot].cardId)
+				const used = Object.keys(this.placed).map((key) => this.placed[key].cardId)
 				return this.cards.filter((card) => used.indexOf(card.cardId) < 0)
 			},
 			filledCount() {
 				return Object.keys(this.placed).length
 			},
-			progressPercent() {
-				if (!this.timeLimit) return 100
-				return Math.max(0, Math.min(100, Math.round(this.remain * 100 / this.timeLimit)))
+			progressWidth() {
+				if (!this.timeLimit) return 670
+				return Math.max(0, Math.min(670, Math.round(this.remain * 670 / this.timeLimit)))
+			},
+			activeSlotName() {
+				const slot = this.slots.find((item) => item.slotCode === this.activeSlot)
+				return slot ? slot.slotName : ''
 			}
 		},
 		async onLoad(options) {
@@ -109,24 +127,24 @@
 					const data = res.data || {}
 					this.careers = data.careers || []
 					this.timeLimit = (data.setting && data.setting.timeLimit) || 45
+					this.slots = data.slots || []
 					if (data.status === 'finished') {
 						this.goResult()
 						return
 					}
 					if (data.pendingAttempt) {
 						this.applyAttempt(data.pendingAttempt)
-						return
-					}
-					if (data.lastResult && data.lastResult.pass === false) {
-						this.hintText = '上一次挑战未通过，换个岗位再试一次吧'
+					} else {
+						this.careerTrayVisible = true
 					}
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '闯关信息加载失败，请稍后重试'), icon: 'none' })
 				}
 			},
-			async chooseCareer(item) {
+			async chooseCareer(code) {
 				try {
-					const res = await startRecord(this.recordId, item.careerCode)
+					const res = await startRecord(this.recordId, code)
+					this.careerTrayVisible = false
 					this.applyAttempt(res.data || {})
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '开始闯关失败，请稍后重试'), icon: 'none' })
@@ -135,14 +153,13 @@
 			applyAttempt(data) {
 				this.career = data.career || null
 				this.attemptNo = data.attemptNo
-				this.slots = data.slots || []
-				this.cards = data.cards || []
+				this.slots = data.slots || this.slots
+				this.cards = (data.cards || []).slice()
 				this.placed = {}
 				this.placeTimes = {}
-				this.selectedCardId = null
+				this.trayVisible = false
 				this.deadlineAt = data.deadlineAt || null
 				this.timeLimit = data.timeLimit || this.timeLimit
-				this.hintText = '先在下方选择一张卡片，再点击上方对应卡槽放入'
 				this.startTimer()
 			},
 			startTimer() {
@@ -159,7 +176,6 @@
 				this.remain = left > 0 ? left : 0
 				if (this.remain <= 0) {
 					this.stopTimer()
-					// 到点自动提交已放内容；服务端会按开始时间独立判定超时。
 					this.submit(true)
 				}
 			},
@@ -169,38 +185,50 @@
 					this.timer = null
 				}
 			},
-			selectCard(card) {
-				this.selectedCardId = this.selectedCardId === card.cardId ? null : card.cardId
-				this.hintText = this.selectedCardId
-					? '已选中卡片，请点击上方对应卡槽放入'
-					: '先在下方选择一张卡片，再点击上方对应卡槽放入'
+			quadStyle(code) {
+				const rects = {
+					content: 'left:72rpx;top:507rpx;width:302rpx;height:297rpx',
+					skill: 'left:374rpx;top:507rpx;width:302rpx;height:297rpx',
+					weakness: 'left:72rpx;top:804rpx;width:302rpx;height:298rpx',
+					prospect: 'left:374rpx;top:804rpx;width:302rpx;height:298rpx'
+				}
+				return rects[code] || ''
+			},
+			numberStyle(code) {
+				const centers = {
+					content: [162, 577],
+					skill: [449, 577],
+					weakness: [167, 891],
+					prospect: [468, 890]
+				}
+				const point = centers[code] || [0, 0]
+				return `left:${point[0]}rpx;top:${point[1]}rpx;width:120rpx;height:140rpx`
 			},
 			tapSlot(slot) {
 				if (this.placed[slot.slotCode]) {
-					// 再次点击已放卡片可取出，放回下方卡片区。
-					const card = this.placed[slot.slotCode]
+					// 再次点击已放入的象限可取出卡片，回到待选列表。
 					this.$delete(this.placed, slot.slotCode)
 					this.$delete(this.placeTimes, slot.slotCode)
-					this.selectedCardId = card.cardId
-					this.hintText = '已取出卡片，可重新选择卡槽'
+					uni.showToast({ title: '已取出卡片', icon: 'none' })
 					return
 				}
-				if (!this.selectedCardId) {
-					uni.showToast({ title: '请先在下方选择一张卡片', icon: 'none' })
+				if (!this.cards.length) {
+					// 还没选岗位：先选一套岗位再开始本局。
+					this.careerTrayVisible = true
 					return
 				}
-				const card = this.cards.find((item) => item.cardId === this.selectedCardId)
-				if (!card) return
-				this.$set(this.placed, slot.slotCode, card)
-				this.$set(this.placeTimes, slot.slotCode, Date.now())
-				this.selectedCardId = null
-				this.hintText = this.filledCount === 4 ? '四张卡片已就位，点击下方提交答案' : '继续选择下一张卡片'
+				this.activeSlot = slot.slotCode
+				this.trayVisible = true
 			},
-			slotClass(slot) {
-				return [
-					'slot-' + slot.slotCode,
-					this.placed[slot.slotCode] ? 'filled' : ''
-				]
+			closeTray() {
+				this.trayVisible = false
+				this.activeSlot = ''
+			},
+			placeCard(card) {
+				if (!this.activeSlot) return
+				this.$set(this.placed, this.activeSlot, card)
+				this.$set(this.placeTimes, this.activeSlot, Date.now())
+				this.closeTray()
 			},
 			async submit(force) {
 				if (this.submitting) return
@@ -224,7 +252,6 @@
 					this.goResult()
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '提交答案失败，请稍后重试'), icon: 'none' })
-					// 提交失败时恢复倒计时，避免页面停在 0 秒无法继续。
 					if (this.deadlineAt && this.deadlineAt > Date.now()) {
 						this.startTimer()
 					}
@@ -250,230 +277,198 @@
 
 <style scoped>
 	.page {
-		width: 100%;
+		position: relative;
+		width: 750rpx;
+		height: 1624rpx;
 		min-height: 100vh;
-		background: #FCF3D8;
-		display: flex;
-		flex-direction: column;
+		background: #FEF2CA;
+		overflow: hidden;
 	}
 
-	.selector {
-		flex: 1;
-		padding: 120rpx 40rpx 40rpx;
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
+	.stage-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 750rpx;
+		height: 1624rpx;
 	}
 
-	.selector-tip {
-		font-size: 28rpx;
-		color: #7A6A55;
+	.track {
+		position: absolute;
+		background: #B3B3B3;
+		border-radius: 6rpx;
+		z-index: 2;
+	}
+
+	.track-fill {
+		position: absolute;
+		background: #F0A250;
+		border-radius: 6rpx;
+		z-index: 3;
+		transition: width 0.3s linear;
+	}
+
+	.quad {
+		position: absolute;
+		z-index: 4;
+	}
+
+	.quad-no {
+		position: absolute;
+		z-index: 5;
+		line-height: 140rpx;
 		text-align: center;
-		margin-bottom: 24rpx;
+		font-size: 128rpx;
+		font-weight: 600;
+		color: #1A1A1A;
 	}
 
-	.career-list {
-		flex: 1;
-		height: 0;
+	.submit {
+		position: absolute;
+		left: 42rpx;
+		top: 1420rpx;
+		width: 665rpx;
+		height: 96rpx;
+		line-height: 96rpx;
+		text-align: center;
+		border-radius: 48rpx;
+		background: #F4AB4F;
+		color: #684822;
+		font-size: 36rpx;
+		font-weight: 600;
+		letter-spacing: 4rpx;
+		z-index: 6;
 	}
 
-	.career-item {
-		margin-bottom: 18rpx;
-		padding: 28rpx 30rpx;
+	.submit.disabled {
+		background: #EBC98F;
+	}
+
+	.tray-mask {
+		position: fixed;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 20;
+		background: rgba(0, 0, 0, 0.18);
+	}
+
+	.tray {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 1024rpx;
 		background: #FFFFFF;
-		border-radius: 24rpx;
-		box-shadow: 0 6rpx 18rpx rgba(160, 120, 40, 0.08);
-		border: 3rpx solid transparent;
+		border-radius: 40rpx 40rpx 0 0;
+		padding: 28rpx 30rpx 40rpx;
+		box-sizing: border-box;
 	}
 
-	.career-name {
-		font-size: 30rpx;
+	.tray-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 60rpx;
+	}
+
+	.tray-title {
+		font-size: 28rpx;
 		font-weight: 600;
 		color: #3D3428;
 	}
 
-	.game {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 110rpx 32rpx 32rpx;
-		box-sizing: border-box;
+	.tray-close {
+		font-size: 44rpx;
+		color: #A99878;
+		padding: 0 10rpx;
 	}
 
-	.topbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.career-tag {
-		max-width: 480rpx;
-		padding: 10rpx 22rpx;
-		border-radius: 22rpx;
-		background: #FFFFFF;
-		font-size: 24rpx;
-		color: #8A6D3B;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-
-	.timer {
-		min-width: 110rpx;
-		padding: 10rpx 20rpx;
-		border-radius: 22rpx;
-		background: #FFFFFF;
-		font-size: 30rpx;
-		font-weight: 700;
-		color: #EE8B3E;
-		text-align: center;
-	}
-
-	.timer.urgent {
-		color: #FFFFFF;
-		background: #E45B4A;
-	}
-
-	.progress {
-		margin-top: 18rpx;
-		height: 12rpx;
-		border-radius: 6rpx;
-		background: #E7DCC2;
-		overflow: hidden;
-	}
-
-	.progress-inner {
-		height: 12rpx;
-		border-radius: 6rpx;
-		background: linear-gradient(90deg, #F5C443, #EE8B3E);
-		transition: width 0.3s linear;
-	}
-
-	.board {
-		margin-top: 28rpx;
+	.tray-grid {
+		margin-top: 12rpx;
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
 	}
 
-	.slot {
+	.card-cell {
 		width: 330rpx;
-		height: 300rpx;
-		margin-bottom: 18rpx;
-		padding: 20rpx 22rpx;
+		height: 430rpx;
+		margin-bottom: 16rpx;
+		padding: 16rpx 18rpx;
 		box-sizing: border-box;
-		border-radius: 28rpx;
+		border-radius: 24rpx;
+		border: 3rpx solid #F3E7CC;
+		background: #FFFDF8;
 		display: flex;
 		flex-direction: column;
 	}
 
-	.slot-content {
-		background: #F6C6A6;
-		border: 4rpx solid #EE8B3E;
-	}
-
-	.slot-skill {
-		background: #FBE3A6;
-		border: 4rpx solid #F5C443;
-	}
-
-	.slot-weakness {
-		background: #D8CBE8;
-		border: 4rpx solid #9B7BC4;
-	}
-
-	.slot-prospect {
-		background: #FBD3E2;
-		border: 4rpx solid #F3A7C6;
-	}
-
-	.slot.filled {
-		box-shadow: 0 8rpx 20rpx rgba(160, 120, 40, 0.18);
-	}
-
-	.slot-label {
-		font-size: 28rpx;
-		font-weight: 700;
-		color: #4A3B2A;
-	}
-
-	.slot-text {
-		margin-top: 12rpx;
-		flex: 1;
-		font-size: 22rpx;
-		line-height: 1.55;
-		color: #4A3B2A;
-		overflow: hidden;
-	}
-
-	.slot-placeholder {
-		margin-top: 12rpx;
-		flex: 1;
-		font-size: 22rpx;
-		color: rgba(74, 59, 42, 0.5);
-	}
-
-	.hint {
-		margin-top: 4rpx;
-		font-size: 23rpx;
-		color: #8A6D3B;
-		text-align: center;
-	}
-
-	.card-tray {
-		flex: 1;
-		height: 0;
-		margin-top: 16rpx;
-		padding: 6rpx 2rpx;
-		box-sizing: border-box;
-	}
-
-	.card {
-		margin-bottom: 16rpx;
-		padding: 22rpx 26rpx;
-		background: #FFFFFF;
-		border-radius: 22rpx;
-		border: 4rpx solid #F1E3C4;
-		box-shadow: 0 6rpx 16rpx rgba(160, 120, 40, 0.07);
-	}
-
-	.card.selected {
-		border-color: #EE8B3E;
-		background: #FFF6EC;
-	}
-
-	.card-text {
-		font-size: 23rpx;
-		line-height: 1.6;
-		color: #4A3B2A;
-	}
-
-	.card-empty {
-		padding: 30rpx 0;
-		text-align: center;
-		font-size: 24rpx;
-		color: #A99878;
-	}
-
-	.submit-btn {
-		margin-top: 12rpx;
-		height: 100rpx;
-		border-radius: 50rpx;
-		background: linear-gradient(180deg, #F6A34B 0%, #EE8B3E 100%);
-		box-shadow: 0 10rpx 24rpx rgba(214, 126, 40, 0.26);
+	.card-art {
+		position: relative;
+		height: 150rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	.submit-btn.disabled {
-		opacity: 0.55;
+	.piece {
+		width: 140rpx;
 	}
 
-	.submit-text {
+	.badge {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 56rpx;
+		height: 56rpx;
+	}
+
+	.card-text {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+		line-height: 1.55;
+		color: #4A3B2A;
+		overflow: hidden;
+	}
+
+	.card-empty {
+		width: 100%;
+		padding: 60rpx 0;
+		text-align: center;
+		font-size: 26rpx;
+		color: #A99878;
+	}
+
+	.tray-career {
+		height: 1080rpx;
+	}
+
+	.career-scroll {
+		margin-top: 16rpx;
+		height: 940rpx;
+	}
+
+	.career-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 30rpx 24rpx;
+		margin-bottom: 14rpx;
+		border-radius: 20rpx;
+		background: #FFFDF8;
+		border: 3rpx solid #F3E7CC;
+	}
+
+	.career-name {
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #3D3428;
+	}
+
+	.career-arrow {
 		font-size: 34rpx;
-		font-weight: 700;
-		color: #FFFFFF;
-		letter-spacing: 4rpx;
+		color: #C9B58D;
 	}
 </style>

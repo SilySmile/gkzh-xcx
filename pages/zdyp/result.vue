@@ -1,122 +1,89 @@
 <template>
 	<view class="page">
-		<ZdypHeader title="职得一拼" @back="back" />
+		<image class="stage-bg" :src="assets.report" mode="scaleToFill"></image>
 
-		<scroll-view class="scroll" scroll-y>
-			<view class="inner">
-				<view class="banner" :class="passed ? 'banner-pass' : 'banner-fail'">
-					<text class="banner-title">{{ passed ? '恭喜通关' : (result.timeout ? '本局超时' : '本局未通过') }}</text>
-					<text class="banner-sub">{{ bannerSub }}</text>
-				</view>
-
-				<view class="metrics">
-					<view class="metric">
-						<text class="metric-value">{{ durationText }}</text>
-						<text class="metric-label">本局用时</text>
-					</view>
-					<view class="metric">
-						<text class="metric-value">{{ result.correctCount || 0 }}/4</text>
-						<text class="metric-label">放对卡槽</text>
-					</view>
-					<view class="metric">
-						<text class="metric-value">{{ result.wrongCount || 0 }}</text>
-						<text class="metric-label">放错卡槽</text>
-					</view>
-					<view class="metric">
-						<text class="metric-value">{{ totalAttempts }}</text>
-						<text class="metric-label">闯关次数</text>
-					</view>
-				</view>
-
-				<view class="section-title">拼图结果</view>
-				<view v-for="slot in result.slots || []" :key="slot.slotCode" class="slot-card"
-					:class="slot.correct ? 'slot-pass' : 'slot-fail'">
-					<view class="slot-head">
-						<text class="slot-name">{{ slot.slotName }}</text>
-						<text class="slot-status">{{ slot.correct ? '放置正确' : (slot.filled ? '放置错误' : '未填写') }}</text>
-					</view>
-					<text class="slot-correct">{{ slot.correctCardText }}</text>
-					<text v-if="!slot.correct && slot.filled" class="slot-wrong">你放入的是：{{ slot.cardText }}</text>
-				</view>
-
-				<view class="section-title">职业解说</view>
-				<view class="card">
-					<text class="card-label">岗位定义</text>
-					<text class="card-body">{{ detail.intro || '暂无岗位定义' }}</text>
-				</view>
-				<view class="card">
-					<text class="card-label">行业价值</text>
-					<text class="card-body">{{ detail.industryValue || '暂无行业价值说明' }}</text>
-				</view>
-				<view class="card">
-					<text class="card-label">新生入门建议</text>
-					<text class="card-body">{{ detail.newcomerAdvice || '暂无入门建议' }}</text>
-				</view>
-
-				<template v-if="passed && result.behaviorName">
-					<view class="section-title">职业认知分型</view>
-					<view class="behavior">
-						<text class="behavior-name">{{ result.behaviorName }}</text>
-						<text class="behavior-text">{{ result.conclusion }}</text>
-						<text class="behavior-label">提升建议</text>
-						<text class="behavior-text">{{ result.suggestion }}</text>
-					</view>
-				</template>
-
-				<view class="bottom-space"></view>
-			</view>
-		</scroll-view>
-
-		<view class="actions">
-			<view v-if="!passed" class="btn btn-ghost" @click="retry">
-				<text class="btn-text">再试一次</text>
-			</view>
-			<view class="btn btn-main" @click="backToActivity">
-				<text class="btn-text">返回活动</text>
-			</view>
+		<!-- 正确排序：设计稿底部四个浅黄方块，这里按岗位四维顺序填正确答案编号 -->
+		<view v-for="(slot, index) in result.slots || []" :key="slot.slotCode" class="answer-slot"
+			:style="slotStyle(index)">
+			<text class="answer-no">{{ slot.correctCardNo || '-' }}</text>
 		</view>
+
+		<!-- 职业解说白卡：设计稿留有整块白卡，这里放可滚动的解析内容 -->
+		<view class="card">
+			<scroll-view class="card-scroll" scroll-y>
+				<view class="card-inner">
+					<view class="card-head">
+						<text class="career-name">{{ (result.career && result.career.careerName) || '职业拼图' }}</text>
+						<text class="result-tag" :class="passed ? 'tag-pass' : 'tag-fail'">{{ resultTag }}</text>
+					</view>
+					<view class="metric-line">
+						用时 {{ durationText }}　放对 {{ result.correctCount || 0 }}/4　放错 {{ result.wrongCount || 0 }}　第 {{ result.attemptNo || 1 }} 次
+					</view>
+
+					<view class="block">
+						<text class="block-label">岗位定义</text>
+						<text class="block-text">{{ detail.intro || '暂无岗位定义' }}</text>
+					</view>
+					<view class="block">
+						<text class="block-label">行业价值</text>
+						<text class="block-text">{{ detail.industryValue || '暂无行业价值说明' }}</text>
+					</view>
+					<view class="block">
+						<text class="block-label">新生入门建议</text>
+						<text class="block-text">{{ detail.newcomerAdvice || '暂无入门建议' }}</text>
+					</view>
+
+					<view v-if="passed && result.behaviorName" class="block">
+						<text class="block-label">职业认知分型：{{ result.behaviorName }}</text>
+						<text class="block-text">{{ result.conclusion }}</text>
+						<text class="block-label">提升建议</text>
+						<text class="block-text">{{ result.suggestion }}</text>
+					</view>
+				</view>
+			</scroll-view>
+		</view>
+
+		<!-- 失败时可再来一次；两个按钮并排，风格与设计稿底部按钮一致 -->
+		<view v-if="!passed" class="btn btn-half-left" @click="retry">再试一次</view>
+		<view class="btn" :class="passed ? 'btn-full' : 'btn-half-right'" @click="backToActivity">返回活动</view>
+
+		<ZdypHeader title="职业拼图结果" @back="back" />
 	</view>
 </template>
 
 <script>
 	import ZdypHeader from '@/components/ZdypHeader.vue'
+	import assets from '@/config/zdyp-assets.js'
 	import { getRecord, userMessage } from '@/api/zdyp'
 
 	/**
-	 * 职得一拼结果页：展示本局判定、四维正确答案与职业解说。
-	 * 未通关可再试一次，通关后展示职业认知分型、个人结论与提升建议。
+	 * 职得一拼解析页：按设计稿 5.6 还原整页结构。
+	 * 顶部拼图与“正确排序”来自设计稿底图，四个方块按四维顺序显示正确卡片编号；
+	 * 下半部白卡内展示三段职业解说与（通关后的）认知分型。
 	 */
 	export default {
 		components: { ZdypHeader },
 		data: () => ({
+			assets,
 			recordId: '',
 			instanceId: '',
 			gameId: '',
 			bizType: 'career_week',
 			record: {},
 			result: {},
-			detail: {},
-			timeLimit: 45
+			detail: {}
 		}),
 		computed: {
 			passed() {
 				return this.result.pass === true
 			},
-			totalAttempts() {
-				return this.record.attemptNo || this.result.attemptNo || 0
+			resultTag() {
+				if (this.passed) return '通关'
+				return this.result.timeout ? '超时' : '未通过'
 			},
 			durationText() {
-				if (!this.result.durationMs && this.result.durationMs !== 0) return '-'
+				if (this.result.durationMs === undefined || this.result.durationMs === null) return '-'
 				return (this.result.durationMs / 1000).toFixed(1) + ' 秒'
-			},
-			bannerSub() {
-				if (this.passed) {
-					return '你已完整还原「' + ((this.result.career && this.result.career.careerName) || '该岗位') + '」的职业信息'
-				}
-				if (this.result.timeout) {
-					return '时间到，未填满的卡槽按错误计算，可再来一次'
-				}
-				return '对照下面的正确答案再看一遍，然后重新挑战'
 			}
 		},
 		async onLoad(options) {
@@ -132,12 +99,15 @@
 					const data = res.data || {}
 					this.record = data
 					this.bizType = data.bizType || 'career_week'
-					this.timeLimit = (data.setting && data.setting.timeLimit) || 45
 					this.result = data.lastResult || {}
 					this.detail = this.result.detail || {}
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '结果加载失败，请稍后重试'), icon: 'none' })
 				}
+			},
+			slotStyle(index) {
+				const lefts = [46, 217, 387, 558]
+				return `left:${lefts[index] || 46}rpx;top:904rpx`
 			},
 			retry() {
 				const base = `recordId=${encodeURIComponent(this.recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(this.gameId)}`
@@ -162,228 +132,143 @@
 
 <style scoped>
 	.page {
-		width: 100%;
-		height: 100vh;
-		background: #FCF3D8;
-		display: flex;
-		flex-direction: column;
+		position: relative;
+		width: 750rpx;
+		height: 1624rpx;
+		min-height: 100vh;
+		background: #FEF2CA;
+		overflow: hidden;
 	}
 
-	.scroll {
-		flex: 1;
-		height: 0;
+	.stage-bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 750rpx;
+		height: 1624rpx;
 	}
 
-	.inner {
-		padding: 110rpx 32rpx 0;
-		box-sizing: border-box;
-	}
-
-	.banner {
-		padding: 34rpx 30rpx;
-		border-radius: 30rpx;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.banner-pass {
-		background: linear-gradient(180deg, #7FC98A 0%, #5FAF6C 100%);
-	}
-
-	.banner-fail {
-		background: linear-gradient(180deg, #EE9A86 0%, #DE6D57 100%);
-	}
-
-	.banner-title {
-		font-size: 42rpx;
-		font-weight: 700;
-		color: #FFFFFF;
-	}
-
-	.banner-sub {
-		margin-top: 10rpx;
-		font-size: 24rpx;
-		line-height: 1.5;
-		color: rgba(255, 255, 255, 0.92);
-	}
-
-	.metrics {
-		margin-top: 20rpx;
-		display: flex;
-		justify-content: space-between;
-	}
-
-	.metric {
-		flex: 1;
-		margin: 0 6rpx;
-		padding: 20rpx 8rpx;
-		background: #FFFFFF;
-		border-radius: 20rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.metric-value {
-		font-size: 30rpx;
-		font-weight: 700;
-		color: #EE8B3E;
-	}
-
-	.metric-label {
-		margin-top: 6rpx;
-		font-size: 21rpx;
-		color: #8A6D3B;
-	}
-
-	.section-title {
-		margin: 28rpx 0 14rpx;
-		font-size: 30rpx;
-		font-weight: 700;
-		color: #3D3428;
-	}
-
-	.slot-card {
-		margin-bottom: 16rpx;
-		padding: 22rpx 24rpx;
-		border-radius: 22rpx;
-		background: #FFFFFF;
-		border-left: 8rpx solid #E7DCC2;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.slot-pass {
-		border-left-color: #5FAF6C;
-	}
-
-	.slot-fail {
-		border-left-color: #DE6D57;
-	}
-
-	.slot-head {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.slot-name {
-		font-size: 27rpx;
-		font-weight: 700;
-		color: #3D3428;
-	}
-
-	.slot-status {
-		font-size: 22rpx;
-		color: #8A6D3B;
-	}
-
-	.slot-correct {
-		margin-top: 10rpx;
-		font-size: 23rpx;
-		line-height: 1.6;
-		color: #4A3B2A;
-	}
-
-	.slot-wrong {
-		margin-top: 8rpx;
-		font-size: 22rpx;
-		line-height: 1.55;
-		color: #C2553F;
-	}
-
-	.card {
-		margin-bottom: 16rpx;
-		padding: 24rpx;
-		border-radius: 22rpx;
-		background: #FFFFFF;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.card-label {
-		font-size: 25rpx;
-		font-weight: 700;
-		color: #EE8B3E;
-	}
-
-	.card-body {
-		margin-top: 10rpx;
-		font-size: 23rpx;
-		line-height: 1.7;
-		color: #4A3B2A;
-	}
-
-	.behavior {
-		padding: 28rpx 26rpx;
-		border-radius: 24rpx;
-		background: #FFF6EC;
-		border: 3rpx solid #F3D9B4;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.behavior-name {
-		font-size: 32rpx;
-		font-weight: 700;
-		color: #EE8B3E;
-	}
-
-	.behavior-label {
-		margin-top: 18rpx;
-		font-size: 25rpx;
-		font-weight: 700;
-		color: #8A6D3B;
-	}
-
-	.behavior-text {
-		margin-top: 10rpx;
-		font-size: 23rpx;
-		line-height: 1.75;
-		color: #4A3B2A;
-	}
-
-	.bottom-space {
-		height: 180rpx;
-	}
-
-	.actions {
-		flex-shrink: 0;
-		display: flex;
-		padding: 18rpx 32rpx;
-		padding-bottom: calc(18rpx + constant(safe-area-inset-bottom));
-		padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
-		background: rgba(252, 243, 216, 0.96);
-	}
-
-	.btn {
-		flex: 1;
-		height: 96rpx;
-		margin: 0 8rpx;
-		border-radius: 48rpx;
+	.answer-slot {
+		position: absolute;
+		width: 146rpx;
+		height: 146rpx;
+		background: #FFE986;
+		z-index: 3;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	.btn-main {
-		background: linear-gradient(180deg, #F6A34B 0%, #EE8B3E 100%);
-		box-shadow: 0 8rpx 20rpx rgba(214, 126, 40, 0.24);
+	.answer-no {
+		font-size: 84rpx;
+		font-weight: 600;
+		color: #1A1A1A;
 	}
 
-	.btn-ghost {
+	.card {
+		position: absolute;
+		left: 75rpx;
+		top: 1180rpx;
+		width: 600rpx;
+		height: 444rpx;
 		background: #FFFFFF;
-		border: 3rpx solid #E7DCC2;
+		border-radius: 36rpx 36rpx 0 0;
+		z-index: 4;
+		overflow: hidden;
 	}
 
-	.btn-text {
-		font-size: 32rpx;
+	.card-scroll {
+		height: 444rpx;
+	}
+
+	.card-inner {
+		padding: 28rpx 28rpx 220rpx;
+	}
+
+	.card-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.career-name {
+		font-size: 30rpx;
 		font-weight: 700;
-		color: #FFFFFF;
-		letter-spacing: 2rpx;
+		color: #3D3428;
 	}
 
-	.btn-ghost .btn-text {
+	.result-tag {
+		font-size: 22rpx;
+		padding: 4rpx 16rpx;
+		border-radius: 16rpx;
+	}
+
+	.tag-pass {
+		background: #E4F4E5;
+		color: #3E8E4B;
+	}
+
+	.tag-fail {
+		background: #FBE7E2;
+		color: #C2553F;
+	}
+
+	.metric-line {
+		margin-top: 8rpx;
+		font-size: 21rpx;
 		color: #8A6D3B;
+	}
+
+	.block {
+		margin-top: 18rpx;
+	}
+
+	.block-label {
+		display: block;
+		font-size: 24rpx;
+		font-weight: 700;
+		color: #EE8B3E;
+	}
+
+	.block-text {
+		display: block;
+		margin-top: 6rpx;
+		font-size: 22rpx;
+		line-height: 1.65;
+		color: #4A3B2A;
+	}
+
+	.btn {
+		position: absolute;
+		top: 1417rpx;
+		height: 96rpx;
+		line-height: 96rpx;
+		text-align: center;
+		border-radius: 48rpx;
+		background: #F4AB4F;
+		color: #684822;
+		font-size: 34rpx;
+		font-weight: 600;
+		letter-spacing: 2rpx;
+		z-index: 6;
+	}
+
+	.btn-full {
+		left: 42rpx;
+		width: 665rpx;
+	}
+
+	.btn-half-left {
+		left: 42rpx;
+		width: 320rpx;
+		background: #FFFDF8;
+		border: 3rpx solid #F4AB4F;
+		color: #B0752B;
+		box-sizing: border-box;
+	}
+
+	.btn-half-right {
+		left: 387rpx;
+		width: 320rpx;
 	}
 </style>
