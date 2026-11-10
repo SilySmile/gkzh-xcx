@@ -1,6 +1,6 @@
 <template>
 	<view class="page">
-		<image class="page-sky" src="/static/zyfxq/board/sky.jpg" mode="scaleToFill" />
+		<image class="page-sky" :src="assets.boardSky" mode="scaleToFill" />
 		<view class="scene-header">
 			<view class="topbar" :style="{ paddingTop: statusBarHeight + 'px' }">
 				<view class="back" :style="{ top: statusBarHeight + 'px' }" @click="back">‹</view>
@@ -13,7 +13,7 @@
 
 			<view class="status-row">
 				<view class="player">
-					<image class="pill" src="/static/zyfxq/board/player-card.png" mode="scaleToFill" />
+					<image class="pill" :src="assets.boardPlayerCard" mode="scaleToFill" />
 					<image class="player-icon" :src="assets.iconPawn" mode="aspectFit" />
 					<text class="player-text">当前玩家</text>
 				</view>
@@ -52,8 +52,8 @@
 
 			<image class="sticker-go" :src="assets.stickerGo" mode="aspectFit" />
 			<image class="deco-party" :src="assets.decoParty" mode="aspectFit" />
-			<image class="deco-toy" src="/static/zyfxq/board/toy.png" mode="aspectFit" />
-			<image class="start-arrow" src="/static/zyfxq/board/arrow.png" mode="aspectFit" />
+			<image class="deco-toy" :src="assets.boardToy" mode="aspectFit" />
+			<image class="start-arrow" :src="assets.boardArrow" mode="aspectFit" />
 
 			<view class="center">
 				<image class="center-logo" :src="assets.boardLogo" mode="aspectFit" />
@@ -80,7 +80,7 @@
 
 		<view v-if="questionVisible" class="mask">
 			<view class="dialog">
-				<image class="dialog-art" src="/static/zyfxq/board/question-frame.png" mode="scaleToFill" />
+				<image class="dialog-art" :src="assets.boardQuestionFrame" mode="scaleToFill" />
 				<view class="dialog-inner">
 					<view class="dialog-head">
 						<text class="dialog-type">{{ question.questionTypeName }}</text>
@@ -302,7 +302,7 @@
 				const no = Number(cell.cellNo)
 				const label = [3, 9, 15].includes(no) ? '情景任务卡' : ([6, 10, 12, 16, 18].includes(no) ? '职业问答' : (no === 19 ? '终点' : ''))
 				return String(cell.cellColor).toUpperCase() === '#' + colors[no - 1] && (cell.cellLabel || '') === label
-					? `/static/zyfxq/board/cell-${no}.png` : ''
+					? `${assets.boardBase}/cell-${no}.png` : ''
 			},
 			cellClass(cell) {
 				// 小程序不支持对象形式的 :class，这里统一返回空格分隔的类名字符串。

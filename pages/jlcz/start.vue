@@ -16,8 +16,8 @@
 		</view>
 
 		<view class="body">
-			<image class="logo" src="/static/jlcz/start-logo.png" mode="widthFix" />
-			<image class="scale-art" src="/static/jlcz/start-scale.png" mode="widthFix" />
+			<image class="logo" :src="assets.logo" mode="widthFix" />
+			<image class="scale-art" :src="assets.scale" mode="widthFix" />
 
 			<view class="bottom">
 				<view v-if="statusText" class="status-tip">
@@ -26,7 +26,7 @@
 				<view class="start-wrap" :class="{ pressed: pressed, loading: loading }"
 					@touchstart="pressed = true" @touchend="pressed = false" @touchcancel="pressed = false"
 					@click="start">
-					<image class="start-art" src="/static/jlcz/start-button.png" mode="widthFix" />
+					<image class="start-art" :src="assets.button" mode="widthFix" />
 					<text v-if="loading" class="loading-text">正在进入…</text>
 				</view>
 			</view>
@@ -36,9 +36,11 @@
 
 <script>
 	import { enterRecord, getRecord, startRecord, userMessage } from '@/api/jlcz'
+	import assets from '@/config/jlcz-assets.js'
 
 	export default {
 		data: () => ({
+			assets,
 			instanceId: '',
 			gameId: '',
 			recordId: '',
@@ -309,6 +311,7 @@
 		align-items: center;
 		justify-content: center;
 		transition: transform 0.15s ease;
+		margin-top: 60rpx;
 	}
 
 	.start-wrap.pressed {

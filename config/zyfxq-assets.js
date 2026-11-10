@@ -4,6 +4,12 @@
  */
 const BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq/2399e7efecdb'
 
+/**
+ * 对局页棋盘素材（2026-11-10 上传，内容哈希 62789e689df4）。
+ * 这批文件原先放在小程序 static 目录里，改为远程后包内不再保留。
+ */
+const BOARD_BASE = 'https://zhiye.sxgkzh.cn/imgs/zyfxq-board/62789e689df4'
+
 export const ZYFXQ_ASSETS = {
 	// 开始页
 	bgStart: `${BASE}/start-bg.jpg`,
@@ -19,6 +25,13 @@ export const ZYFXQ_ASSETS = {
 	badgeStep: `${BASE}/badge-step.png`,
 	iconClock: `${BASE}/icon-clock.png`,
 	iconPawn: `${BASE}/icon-pawn.png`,
+	// 对局页棋盘素材（远程目录，含 19 个棋格 cell-1..19.png）
+	boardBase: BOARD_BASE,
+	boardSky: `${BOARD_BASE}/sky.jpg`,
+	boardPlayerCard: `${BOARD_BASE}/player-card.png`,
+	boardToy: `${BOARD_BASE}/toy.png`,
+	boardArrow: `${BOARD_BASE}/arrow.png`,
+	boardQuestionFrame: `${BOARD_BASE}/question-frame.png`,
 	// 棋盘上代表当前玩家的棋子
 	pawnToken: `${BASE}/token-pawn.png`,
 	cellStart: `${BASE}/cell-start.png`,
