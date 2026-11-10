@@ -234,6 +234,8 @@
 	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
 	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
 	import { enterRecord as enterZmwl, userMessage as zmwlMessage } from '@/api/zmwl'
+import { enterRecord as enterZdyp, userMessage as zdypMessage } from '@/api/zdyp'
+	import { enterRecord as enterZytj, userMessage as zytjMessage } from '@/api/zytj'
 	import {
 		checkLottery
 	} from '@/api/lottery.js'
@@ -623,7 +625,43 @@
 					}
 					return
 				}
-				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld' && task.type !== 'zyfxq' && task.type !== 'jlcz' && task.type !== 'zmwl') {
+				if (task.isFinish && task.type === 'zdyp') {
+					try {
+						const entered = await enterZdyp({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'zdyp',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/zdyp/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zdypMessage(e, '职业拼图结果加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.isFinish && task.type === 'zytj') {
+					try {
+						const entered = await enterZytj({
+							instanceId: this.instanceId,
+							gameId: task.id,
+							gameType: 'zytj',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && entered.data.recordId
+						if (!recordId) throw new Error('记录不存在')
+						uni.navigateTo({
+							url: `/pages/zytj/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.instanceId)}&gameId=${encodeURIComponent(task.id)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zytjMessage(e, '职业探索卡加载失败，请重试'), icon: 'none' })
+					}
+					return
+				}
+				if (task.id && task.type !== 'zycck' && task.type !== 'zcyltzj' && task.type !== 'zyjdc' && task.type !== 'nlld' && task.type !== 'zyfxq' && task.type !== 'jlcz' && task.type !== 'zmwl' && task.type !== 'zytj' && task.type !== 'zdyp') {
 					try {
 						// 活动周内进入心愿橱窗也必须携带当前活动实例，防止跨活动进入。
 						await enterWeekGame(task.id, this.instanceId)
@@ -683,7 +721,7 @@
 
 					case 'zytj':
 
-						url = '/pages/zytj/index'
+						url = '/pages/zytj/start'
 
 						break
 
@@ -715,6 +753,9 @@
 						break
 					case 'zmwl':
 						url = '/pages/zmwl/start'
+						break
+					case 'zdyp':
+						url = '/pages/zdyp/start'
 						break
 					default:
 

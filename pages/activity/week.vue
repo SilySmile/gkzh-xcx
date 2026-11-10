@@ -192,6 +192,11 @@ export default {
 							this.playGame(game)
 							return
 						}
+						// 职得一拼同样由自己的 /records/enter 写入参与记录。
+						if (game.gameType === 'zdyp') {
+							this.playGame(game)
+							return
+						}
 						enterWeekGame(this.gameId, this.instanceId).then(() => this.playGame(game)).catch(e => {
 							uni.showToast({ title: e.message || '游戏入口已失效，请重新扫码进入', icon: 'none' })
 						})
@@ -211,7 +216,7 @@ export default {
 				case 'mind-window': url = '/pages/xycc/index'; break
 				case 'wjyd': url = '/pages/wjyd/index'; break
 				case 'cyzs': url = '/pages/cyzs/index'; break
-				case 'zytj': url = '/pages/zytj/index'; break
+				case 'zytj': url = '/pages/zytj/start'; break
 				case 'sszctop': url = '/pages/sszctop/index'; break
 				case 'zyxxz': url = '/pages/zyxxz/channel'; break
 				case 'zycck': url = '/pages/zycck/start'; break
@@ -221,6 +226,7 @@ export default {
 				case 'zyfxq': url = '/pages/zyfxq/start'; break
 				case 'jlcz': url = '/pages/jlcz/start'; break
 				case 'zmwl': url = '/pages/zmwl/start'; break
+				case 'zdyp': url = '/pages/zdyp/start'; break
 				default: url = ''
 			}
 			if (!url) {

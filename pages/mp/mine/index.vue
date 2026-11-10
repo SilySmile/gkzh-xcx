@@ -105,6 +105,8 @@ import { enterRecord, userMessage } from '@/api/zycck'
 	import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq'
 	import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz'
 import { enterRecord as enterZmwl, userMessage as zmwlMessage } from '@/api/zmwl'
+import { enterRecord as enterZdyp, userMessage as zdypMessage } from '@/api/zdyp'
+import { enterRecord as enterZytj, userMessage as zytjMessage } from '@/api/zytj'
 
 export default {
 	data() {
@@ -176,7 +178,7 @@ export default {
 		},
 
 		async handleScanResult(result) {
-			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1 || result.indexOf('/pages/zmwl/start') > -1)) {
+			if (result && (result.indexOf('/pages/activity/week') > -1 || result.indexOf('/pages/xycc/start') > -1 || result.indexOf('/pages/sszctop/index') > -1 || result.indexOf('/pages/zycck/start') > -1 || result.indexOf('/pages/zcyltzj/start') > -1 || result.indexOf('/pages/zyjdc/start') > -1 || result.indexOf('/pages/nlld/start') > -1 || result.indexOf('/pages/zyfxq/start') > -1 || result.indexOf('/pages/jlcz/start') > -1 || result.indexOf('/pages/zmwl/start') > -1 || result.indexOf('/pages/zytj/start') > -1 || result.indexOf('/pages/zdyp/start') > -1)) {
 				uni.setStorageSync('scanEntry', '1')
 				const hashIndex = result.indexOf('#')
 				const idx = result.indexOf('?', hashIndex >= 0 ? hashIndex : 0)
@@ -196,6 +198,8 @@ export default {
 				const isZyfxq = result.indexOf('/pages/zyfxq/start') > -1 || params.gameType === 'zyfxq'
 				const isJlcz = result.indexOf('/pages/jlcz/start') > -1 || params.gameType === 'jlcz'
 				const isZmwl = result.indexOf('/pages/zmwl/start') > -1 || params.gameType === 'zmwl'
+				const isZytj = result.indexOf('/pages/zytj/start') > -1 || params.gameType === 'zytj'
+				const isZdyp = result.indexOf('/pages/zdyp/start') > -1 || params.gameType === 'zdyp'
 				const map = {
 					'mind-window': '/pages/xycc/index',
 					'lottery': '/pages/lottery/index',
@@ -204,7 +208,7 @@ export default {
 					'survey': '/pages/wjdc/index',
 					'wjyd': '/pages/wjyd/index',
 					'cyzs': '/pages/cyzs/index',
-					'zytj': '/pages/zytj/index',
+					'zytj': '/pages/zytj/start',
 					// 职场TOP二维码使用统一活动入口，扫码后进入职场TOP房间页。
 					'sszctop': '/pages/sszctop/index',
 					'zyxxz': '/pages/zyxxz/channel'
@@ -345,6 +349,52 @@ export default {
 						})
 					} catch (e) {
 						uni.showToast({ title: zmwlMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZdyp) {
+					// 职得一拼：先校验学校、活动和游戏归属，通过后才打开开始页。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZdyp({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zdyp',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zdyp/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zdypMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
+					}
+					return
+				}
+				if (isZytj) {
+					// 职愿探究：先校验学校、活动和游戏归属，通过后才打开开始页。
+					if (!params.instanceId || !params.gameId) {
+						uni.showToast({ title: '二维码缺少活动信息，请重新扫码', icon: 'none' })
+						return
+					}
+					try {
+						const entered = await enterZytj({
+							instanceId: params.instanceId,
+							gameId: params.gameId,
+							gameType: 'zytj',
+							schoolId: uni.getStorageSync('schoolId')
+						})
+						const recordId = entered && entered.data && entered.data.recordId
+						if (!recordId) throw new Error('记录创建失败')
+						uni.navigateTo({
+							url: `/pages/zytj/start?instanceId=${encodeURIComponent(params.instanceId)}&gameId=${encodeURIComponent(params.gameId)}&recordId=${encodeURIComponent(recordId)}`
+						})
+					} catch (e) {
+						uni.showToast({ title: zytjMessage(e, '游戏入口校验失败，请重新扫码'), icon: 'none' })
 					}
 					return
 				}

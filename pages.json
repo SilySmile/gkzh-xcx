@@ -121,13 +121,9 @@
 						"navigationStyle": "custom"
 					}
 		},
-		{
-					"path": "pages/zytj/index",
-				    "style": {
-				        "navigationBarTitleText": "职愿探究",
-				        "navigationStyle": "custom"
-				    }
-				},
+		{"path":"pages/zytj/start","style":{"navigationBarTitleText":"职愿探究","navigationStyle":"custom","backgroundColor":"#EAF3FB","backgroundColorTop":"#EAF3FB","backgroundColorBottom":"#EAF3FB"}},
+		{"path":"pages/zytj/index","style":{"navigationBarTitleText":"挑选心愿物品","navigationStyle":"custom","backgroundColor":"#EEF4FB","backgroundColorTop":"#EEF4FB","backgroundColorBottom":"#EEF4FB"}},
+		{"path":"pages/zytj/result","style":{"navigationBarTitleText":"职业探索卡","navigationStyle":"custom","backgroundColor":"#DFEAFB","backgroundColorTop":"#DFEAFB","backgroundColorBottom":"#DFEAFB"}},
 		{
 					"path": "pages/sszctop/index",
 					"style": {"navigationBarTitleText": "谁是职场TOP", "navigationStyle": "custom"}
@@ -167,27 +163,9 @@
 		{"path":"pages/zmwl/start","style":{"navigationBarTitleText":"职面未来","navigationStyle":"custom","backgroundColor":"#BFE4F6","backgroundColorTop":"#BFE4F6","backgroundColorBottom":"#8FD0F2"}},
 		{"path":"pages/zmwl/index","style":{"navigationBarTitleText":"选择未来发展方向","navigationStyle":"custom","backgroundColor":"#A9D9F7","backgroundColorTop":"#A9D9F7","backgroundColorBottom":"#8FD0F2"}},
 		{"path":"pages/zmwl/result","style":{"navigationBarTitleText":"我的未来选择卡","navigationStyle":"custom","backgroundColor":"#58B4EE","backgroundColorTop":"#58B4EE","backgroundColorBottom":"#6EC2F2"}},
-        {
-						    "path": "pages/zytj/result",
-						    "style": {
-						        "navigationBarTitleText": "性格类型",
-						        "navigationStyle": "custom"
-						    }
-						},
-		{
-								    "path": "pages/zytj/detail",
-								    "style": {
-								        "navigationBarTitleText": "性格详解",
-								        "navigationStyle": "custom"
-								    }
-								},
-        {
-										    "path": "pages/zytj/career",
-										    "style": {
-										        "navigationBarTitleText": "职业推荐",
-										        "navigationStyle": "custom"
-										    }
-										},
+		{"path":"pages/zdyp/start","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
+		{"path":"pages/zdyp/index","style":{"navigationBarTitleText":"职得一拼","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
+		{"path":"pages/zdyp/result","style":{"navigationBarTitleText":"职业拼图结果","navigationStyle":"custom","backgroundColor":"#FCF3D8","backgroundColorTop":"#FCF3D8","backgroundColorBottom":"#FCF3D8"}},
         {
             "path": "pages/activity/index",
             "style": {

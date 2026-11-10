@@ -54,7 +54,7 @@
 
 <script>
 import { getWeekFlow } from '@/api/activity/week'
-import { getMyResult as getZytjResult } from '@/api/zytj.js'
+import { enterRecord as enterZytj, userMessage as zytjMessage } from '@/api/zytj.js'
 import { getReport as getSszctopReport } from '@/api/sszctop.js'
 import { enterRecord, userMessage } from '@/api/zycck.js'
 import { enterRecord as enterZcyltzj, userMessage as zcyltzjMessage } from '@/api/zcyltzj.js'
@@ -63,6 +63,7 @@ import { enterRecord as enterNlld, userMessage as nlldMessage } from '@/api/nlld
 import { enterRecord as enterZyfxq, userMessage as zyfxqMessage } from '@/api/zyfxq.js'
 import { enterRecord as enterJlcz, userMessage as jlczMessage } from '@/api/jlcz.js'
 import { enterRecord as enterZmwl, userMessage as zmwlMessage } from '@/api/zmwl.js'
+import { enterRecord as enterZdyp, userMessage as zdypMessage } from '@/api/zdyp.js'
 import { createAllReportCache } from '@/api/xycc.js'
 import config from '@/config/api.js'
 import { reportArchiveUrl } from '@/utils/report-download.js'
@@ -128,7 +129,8 @@ export default {
 				'nlld': '能量雷达',
 				'zyfxq': '职业飞行棋',
 				'jlcz': '简历称重',
-				'zmwl': '职面未来'
+				'zmwl': '职面未来',
+				'zdyp': '职得一拼'
 			}
 			return map[type] || type
 		},
@@ -160,16 +162,20 @@ export default {
 			}
 			if (game.gameType === 'zytj') {
 				try {
-					const res = await getZytjResult(this.activityId)
-					if (res.code === 200 && res.data) {
-						uni.navigateTo({
-							url: '/pages/zytj/result?code=' + res.data.choiceCode + '&activityId=' + this.activityId
-						})
-					} else {
-						uni.showToast({ title: '报告加载失败', icon: 'none' })
-					}
+					// 职愿探究以参与记录为准：扫码幂等取回记录后再打开职业探索卡。
+					const entered = await enterZytj({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zytj',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && entered.data.recordId
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zytj/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
 				} catch (e) {
-					uni.showToast({ title: '报告加载失败', icon: 'none' })
+					uni.showToast({ title: zytjMessage(e, '职业探索卡加载失败，请重试'), icon: 'none' })
 				}
 				return
 			}
@@ -310,6 +316,25 @@ export default {
 					})
 				} catch (e) {
 					uni.showToast({ title: zmwlMessage(e, '未来选择卡加载失败，请重试'), icon: 'none' })
+				}
+				return
+			}
+			if (game.gameType === 'zdyp') {
+				try {
+					// 职得一拼按活动实例和游戏编号幂等取回本人记录，再打开职业拼图报告。
+					const entered = await enterZdyp({
+						instanceId: this.activityId,
+						gameId: game.gameId,
+						gameType: 'zdyp',
+						schoolId: uni.getStorageSync('schoolId')
+					})
+					const recordId = entered && entered.data && (entered.data.recordId || entered.data.id)
+					if (!recordId) throw new Error('报告记录不存在')
+					uni.navigateTo({
+						url: `/pages/zdyp/result?recordId=${encodeURIComponent(recordId)}&instanceId=${encodeURIComponent(this.activityId)}&gameId=${encodeURIComponent(game.gameId)}`
+					})
+				} catch (e) {
+					uni.showToast({ title: zdypMessage(e, '职业拼图报告加载失败，请重试'), icon: 'none' })
 				}
 				return
 			}
