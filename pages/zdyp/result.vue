@@ -1,17 +1,17 @@
 <template>
 	<view class="page">
-		<image class="stage-bg" :src="assets.report" mode="scaleToFill"></image>
+		<scroll-view class="scroll" scroll-y>
+			<view class="canvas">
+				<image class="stage-bg" :src="assets.report" mode="scaleToFill"></image>
 
-		<!-- 正确排序：设计稿底部四个浅黄方块，这里按岗位四维顺序填正确答案编号 -->
-		<view v-for="(slot, index) in result.slots || []" :key="slot.slotCode" class="answer-slot"
-			:style="slotStyle(index)">
-			<text class="answer-no">{{ slot.correctCardNo || '-' }}</text>
-		</view>
+				<!-- 正确排序：设计稿底部四个浅黄方块，按岗位四维顺序填正确答案编号 -->
+				<view v-for="(slot, index) in result.slots || []" :key="slot.slotCode" class="answer-slot"
+					:style="slotStyle(index)">
+					<text class="answer-no">{{ answerNo(slot, index) }}</text>
+				</view>
 
-		<!-- 职业解说白卡：设计稿留有整块白卡，这里放可滚动的解析内容 -->
-		<view class="card">
-			<scroll-view class="card-scroll" scroll-y>
-				<view class="card-inner">
+				<!-- 职业解说白卡：从设计稿白卡位置开始，随内容自然向下延伸，整页滚动 -->
+				<view class="card">
 					<view class="card-head">
 						<text class="career-name">{{ (result.career && result.career.careerName) || '职业拼图' }}</text>
 						<text class="result-tag" :class="passed ? 'tag-pass' : 'tag-fail'">{{ resultTag }}</text>
@@ -40,12 +40,14 @@
 						<text class="block-text">{{ result.suggestion }}</text>
 					</view>
 				</view>
-			</scroll-view>
-		</view>
+			</view>
+		</scroll-view>
 
-		<!-- 失败时可再来一次；两个按钮并排，风格与设计稿底部按钮一致 -->
-		<view v-if="!passed" class="btn btn-half-left" @click="retry">再试一次</view>
-		<view class="btn" :class="passed ? 'btn-full' : 'btn-half-right'" @click="backToActivity">返回活动</view>
+		<!-- 操作栏沉底：内容整体滚动，按钮不再浮在文字上 -->
+		<view class="actions">
+			<view v-if="!passed" class="btn btn-ghost" @click="retry">再试一次</view>
+			<view class="btn btn-main" :class="{ 'btn-single': passed }" @click="backToActivity">返回活动</view>
+		</view>
 
 		<ZdypHeader title="职业拼图结果" @back="back" />
 	</view>
@@ -58,8 +60,7 @@
 
 	/**
 	 * 职得一拼解析页：按设计稿 5.6 还原整页结构。
-	 * 顶部拼图与“正确排序”来自设计稿底图，四个方块按四维顺序显示正确卡片编号；
-	 * 下半部白卡内展示三段职业解说与（通关后的）认知分型。
+	 * 整页可下拉滚动，白卡从设计稿位置开始随内容向下延伸，底部“返回活动”固定在屏幕底部。
 	 */
 	export default {
 		components: { ZdypHeader },
@@ -105,6 +106,13 @@
 					uni.showToast({ title: userMessage(e, '结果加载失败，请稍后重试'), icon: 'none' })
 				}
 			},
+			/** 通关时放入的卡片就是正确答案，服务端未返回编号时用学生看到的编号兜底。 */
+			answerNo(slot, index) {
+				if (slot.correctCardNo) return slot.correctCardNo
+				if (this.passed && slot.cardNo) return slot.cardNo
+				// 旧版服务端未返回编号时按四维默认顺序展示，避免出现空白或“-”。
+				return index + 1
+			},
 			slotStyle(index) {
 				const lefts = [46, 217, 387, 558]
 				return `left:${lefts[index] || 46}rpx;top:904rpx`
@@ -132,12 +140,23 @@
 
 <style scoped>
 	.page {
+		width: 750rpx;
+		height: 100vh;
+		background: #FEF2CA;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.scroll {
+		flex: 1;
+		height: 0;
+	}
+
+	.canvas {
 		position: relative;
 		width: 750rpx;
-		height: 1624rpx;
-		min-height: 100vh;
-		background: #FEF2CA;
-		overflow: hidden;
+		padding-bottom: 20rpx;
 	}
 
 	.stage-bg {
@@ -166,23 +185,14 @@
 	}
 
 	.card {
-		position: absolute;
-		left: 75rpx;
-		top: 1180rpx;
+		position: relative;
+		z-index: 4;
 		width: 600rpx;
-		height: 444rpx;
+		margin: 1180rpx 75rpx 0;
+		padding: 28rpx 28rpx 36rpx;
+		box-sizing: border-box;
 		background: #FFFFFF;
 		border-radius: 36rpx 36rpx 0 0;
-		z-index: 4;
-		overflow: hidden;
-	}
-
-	.card-scroll {
-		height: 444rpx;
-	}
-
-	.card-inner {
-		padding: 28rpx 28rpx 220rpx;
 	}
 
 	.card-head {
@@ -238,37 +248,40 @@
 		color: #4A3B2A;
 	}
 
+	.actions {
+		flex-shrink: 0;
+		display: flex;
+		padding: 18rpx 42rpx;
+		padding-bottom: calc(18rpx + constant(safe-area-inset-bottom));
+		padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
+		background: #FEF2CA;
+	}
+
 	.btn {
-		position: absolute;
-		top: 1417rpx;
+		flex: 1;
 		height: 96rpx;
 		line-height: 96rpx;
 		text-align: center;
 		border-radius: 48rpx;
-		background: #F4AB4F;
-		color: #684822;
 		font-size: 34rpx;
 		font-weight: 600;
 		letter-spacing: 2rpx;
-		z-index: 6;
 	}
 
-	.btn-full {
-		left: 42rpx;
-		width: 665rpx;
+	.btn-main {
+		background: #F4AB4F;
+		color: #684822;
 	}
 
-	.btn-half-left {
-		left: 42rpx;
-		width: 320rpx;
+	.btn-single {
+		margin: 0;
+	}
+
+	.btn-ghost {
+		margin-right: 12rpx;
 		background: #FFFDF8;
 		border: 3rpx solid #F4AB4F;
 		color: #B0752B;
 		box-sizing: border-box;
-	}
-
-	.btn-half-right {
-		left: 387rpx;
-		width: 320rpx;
 	}
 </style>

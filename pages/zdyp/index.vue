@@ -154,7 +154,12 @@
 				this.career = data.career || null
 				this.attemptNo = data.attemptNo
 				this.slots = data.slots || this.slots
-				this.cards = (data.cards || []).slice()
+				// 旧版服务端未返回编号时按返回顺序补 1-4，避免碎片图片取不到。
+				this.cards = (data.cards || []).map((card, index) => ({
+					cardId: card.cardId,
+					cardText: card.cardText,
+					cardNo: card.cardNo || index + 1
+				}))
 				this.placed = {}
 				this.placeTimes = {}
 				this.trayVisible = false
