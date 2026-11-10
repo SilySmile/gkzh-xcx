@@ -156,7 +156,11 @@
 	.canvas {
 		position: relative;
 		width: 750rpx;
+		/* 用内边距留出底图上半部分（进度条、拼图、正确排序、职业解说标签），
+		   不能用子元素的 margin-top：它会与父容器发生外边距合并，把整个画布顶下去。 */
+		padding-top: 1180rpx;
 		padding-bottom: 20rpx;
+		box-sizing: border-box;
 	}
 
 	.stage-bg {
@@ -188,7 +192,7 @@
 		position: relative;
 		z-index: 4;
 		width: 600rpx;
-		margin: 1180rpx 75rpx 0;
+		margin: 0 75rpx;
 		padding: 28rpx 28rpx 36rpx;
 		box-sizing: border-box;
 		background: #FFFFFF;
