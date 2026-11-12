@@ -6,29 +6,20 @@
 		<view class="track" style="left:40rpx;top:243rpx;width:670rpx;height:9rpx"></view>
 		<view class="track-fill" :style="'left:40rpx;top:243rpx;height:9rpx;width:' + progressWidth + 'rpx'"></view>
 
-		<!-- 上方拼图内是四张卡片内容（每局随机排序），点击选中 -->
-		<view v-for="(card, index) in cards" :key="card.cardId" class="card-cell"
-			:class="{ selected: selectedCardId === card.cardId, used: usedIds.indexOf(card.cardId) > -1 }"
-			:style="cardStyle(index)" @click="selectCard(card)">
-			<image class="badge" :src="assets.badges[(card.cardNo - 1) % 4]" mode="widthFix"></image>
-			<text class="card-text">{{ card.cardText }}</text>
-			<text v-if="usedIds.indexOf(card.cardId) > -1" class="used-tag">已放入</text>
-		</view>
+		<!-- 四个卡槽：命中区域与设计稿象限一致 -->
+		<view v-for="slot in slots" :key="slot.slotCode" class="quad" :style="quadStyle(slot.slotCode)"
+			@click="tapSlot(slot)"></view>
 
-		<!-- 下方四个维度方格：选中卡片后点击方格放入 -->
-		<view v-for="(slot, index) in slots" :key="slot.slotCode" class="slot-wrap" :style="slotWrapStyle(index)">
-			<text class="slot-label">{{ slot.slotName }}</text>
-			<view class="slot" :class="{ filled: !!placed[slot.slotCode] }" @click="tapSlot(slot)">
-				<text v-if="placed[slot.slotCode]" class="slot-no">{{ placed[slot.slotCode].cardNo }}</text>
-				<text v-else class="slot-plus">+</text>
-			</view>
-		</view>
+		<!-- 已放入卡片的编号，位置与设计稿数字一致 -->
+		<view v-for="slot in slots" :key="'no-' + slot.slotCode" v-if="placed[slot.slotCode]"
+			class="quad-no" :style="numberStyle(slot.slotCode)">{{ placed[slot.slotCode].cardNo }}</view>
 
+		<!-- 底部主按钮：底图已抹掉“开始游戏”，这里放提交按钮 -->
 		<view class="submit" :class="{ disabled: filledCount < 4 }" @click="submit(false)">
 			{{ submitting ? '提交中…' : (filledCount < 4 ? '还差 ' + (4 - filledCount) + ' 张' : '提交答案') }}
 		</view>
 
-		<!-- 选岗位面板 -->
+		<!-- 选岗位面板：与选卡面板同一套白卡样式 -->
 		<view v-if="careerTrayVisible" class="tray-mask">
 			<view class="tray tray-career" @click.stop>
 				<view class="tray-head">
@@ -43,6 +34,26 @@
 			</view>
 		</view>
 
+		<!-- 选卡面板：还原设计稿拼图4 的白色上浮面板 -->
+		<view v-if="trayVisible" class="tray-mask" @click="closeTray">
+			<view class="tray" @click.stop>
+				<view class="tray-head">
+					<text class="tray-title">点击卡片放入「{{ activeSlotName }}」</text>
+					<text class="tray-close" @click="closeTray">×</text>
+				</view>
+				<view class="tray-grid">
+					<view v-for="card in remainingCards" :key="card.cardId" class="card-cell" @click="placeCard(card)">
+						<view class="card-art">
+							<image class="piece" :src="assets.pieces[(card.cardNo - 1) % 4]" mode="widthFix"></image>
+							<image class="badge" :src="assets.badges[(card.cardNo - 1) % 4]" mode="widthFix"></image>
+						</view>
+						<text class="card-text">{{ card.cardText }}</text>
+					</view>
+					<view v-if="!remainingCards.length" class="card-empty">四张卡片都已放入卡槽</view>
+				</view>
+			</view>
+		</view>
+
 		<ZdypHeader title="职得一拼" @back="back" />
 	</view>
 </template>
@@ -53,9 +64,8 @@
 	import { getRecord, startRecord, submitRecord, userMessage } from '@/api/zdyp'
 
 	/**
-	 * 职得一拼闯关页。
-	 * 上方拼图里是四张卡片内容（每局由服务端随机排序），点击卡片选中，再点击下方四个维度方格放入；
-	 * 四格填满后提交，倒计时与判定以服务端为准，到点自动提交已放入的卡片。
+	 * 职得一拼闯关页：按设计稿拼图3 还原四色拼图板，点击象限弹出拼图4 的白卡面板选卡。
+	 * 倒计时与判定以服务端为准，到点自动提交已放入的卡片。
 	 */
 	export default {
 		components: { ZdypHeader },
@@ -69,19 +79,21 @@
 			slots: [],
 			cards: [],
 			placed: {},
-			selectedCardId: null,
 			attemptNo: null,
 			deadlineAt: null,
 			timeLimit: 45,
 			remain: 45,
 			timer: null,
 			submitting: false,
+			trayVisible: false,
 			careerTrayVisible: false,
+			activeSlot: '',
 			placeTimes: {}
 		}),
 		computed: {
-			usedIds() {
-				return Object.keys(this.placed).map((key) => this.placed[key].cardId)
+			remainingCards() {
+				const used = Object.keys(this.placed).map((key) => this.placed[key].cardId)
+				return this.cards.filter((card) => used.indexOf(card.cardId) < 0)
 			},
 			filledCount() {
 				return Object.keys(this.placed).length
@@ -89,6 +101,10 @@
 			progressWidth() {
 				if (!this.timeLimit) return 670
 				return Math.max(0, Math.min(670, Math.round(this.remain * 670 / this.timeLimit)))
+			},
+			activeSlotName() {
+				const slot = this.slots.find((item) => item.slotCode === this.activeSlot)
+				return slot ? slot.slotName : ''
 			}
 		},
 		async onLoad(options) {
@@ -138,15 +154,10 @@
 				this.career = data.career || null
 				this.attemptNo = data.attemptNo
 				this.slots = data.slots || this.slots
-				// 旧版服务端未返回编号时按返回顺序补 1-4，避免编号徽章取不到。
-				this.cards = (data.cards || []).map((card, index) => ({
-					cardId: card.cardId,
-					cardText: card.cardText,
-					cardNo: card.cardNo || index + 1
-				}))
+				this.cards = (data.cards || []).slice()
 				this.placed = {}
 				this.placeTimes = {}
-				this.selectedCardId = null
+				this.trayVisible = false
 				this.deadlineAt = data.deadlineAt || null
 				this.timeLimit = data.timeLimit || this.timeLimit
 				this.startTimer()
@@ -174,44 +185,50 @@
 					this.timer = null
 				}
 			},
-			/** 四张卡片在拼图区的位置：左上、右上、左下、右下 */
-			cardStyle(index) {
-				const rects = [
-					'left:72rpx;top:507rpx;width:302rpx;height:297rpx',
-					'left:374rpx;top:507rpx;width:302rpx;height:297rpx',
-					'left:72rpx;top:804rpx;width:302rpx;height:298rpx',
-					'left:374rpx;top:804rpx;width:302rpx;height:298rpx'
-				]
-				return rects[index] || ''
-			},
-			/** 下方四个维度方格位置，与设计稿底部一排方格一致 */
-			slotWrapStyle(index) {
-				const lefts = [48, 218, 388, 558]
-				return `left:${lefts[index] || 48}rpx;top:1105rpx`
-			},
-			selectCard(card) {
-				if (this.usedIds.indexOf(card.cardId) > -1) {
-					uni.showToast({ title: '这张卡片已经放入了方格', icon: 'none' })
-					return
+			quadStyle(code) {
+				const rects = {
+					content: 'left:72rpx;top:507rpx;width:302rpx;height:297rpx',
+					skill: 'left:374rpx;top:507rpx;width:302rpx;height:297rpx',
+					weakness: 'left:72rpx;top:804rpx;width:302rpx;height:298rpx',
+					prospect: 'left:374rpx;top:804rpx;width:302rpx;height:298rpx'
 				}
-				this.selectedCardId = this.selectedCardId === card.cardId ? null : card.cardId
+				return rects[code] || ''
+			},
+			numberStyle(code) {
+				const centers = {
+					content: [162, 577],
+					skill: [449, 577],
+					weakness: [167, 891],
+					prospect: [468, 890]
+				}
+				const point = centers[code] || [0, 0]
+				return `left:${point[0]}rpx;top:${point[1]}rpx;width:120rpx;height:140rpx`
 			},
 			tapSlot(slot) {
 				if (this.placed[slot.slotCode]) {
+					// 再次点击已放入的象限可取出卡片，回到待选列表。
 					this.$delete(this.placed, slot.slotCode)
 					this.$delete(this.placeTimes, slot.slotCode)
-					this.selectedCardId = null
+					uni.showToast({ title: '已取出卡片', icon: 'none' })
 					return
 				}
-				if (!this.selectedCardId) {
-					uni.showToast({ title: '请先在上方选择一张卡片', icon: 'none' })
+				if (!this.cards.length) {
+					// 还没选岗位：先选一套岗位再开始本局。
+					this.careerTrayVisible = true
 					return
 				}
-				const card = this.cards.find((item) => item.cardId === this.selectedCardId)
-				if (!card) return
-				this.$set(this.placed, slot.slotCode, card)
-				this.$set(this.placeTimes, slot.slotCode, Date.now())
-				this.selectedCardId = null
+				this.activeSlot = slot.slotCode
+				this.trayVisible = true
+			},
+			closeTray() {
+				this.trayVisible = false
+				this.activeSlot = ''
+			},
+			placeCard(card) {
+				if (!this.activeSlot) return
+				this.$set(this.placed, this.activeSlot, card)
+				this.$set(this.placeTimes, this.activeSlot, Date.now())
+				this.closeTray()
 			},
 			async submit(force) {
 				if (this.submitting) return
@@ -291,98 +308,19 @@
 		transition: width 0.3s linear;
 	}
 
-	.card-cell {
+	.quad {
 		position: absolute;
 		z-index: 4;
-		/* 顶部留出编号徽章的高度，正文从徽章下方开始 */
-		padding: 62rpx 20rpx 16rpx;
-		box-sizing: border-box;
-		border-radius: 22rpx;
-		/* 文字直接压在拼图色块上，不再加白色半透明卡片底板 */
-		background: transparent;
-		overflow: hidden;
 	}
 
-	.card-cell.selected {
-		border: 6rpx solid #FFFFFF;
-		box-shadow: 0 0 16rpx rgba(255, 255, 255, 0.9);
-	}
-
-	.card-cell.used {
-		opacity: 0.4;
-	}
-
-	.badge {
-		position: absolute;
-		left: 8rpx;
-		top: 8rpx;
-		width: 46rpx;
-		height: 46rpx;
-	}
-
-	.card-text {
-		font-size: 21rpx;
-		line-height: 1.45;
-		font-weight: 500;
-		color: #1F1B16;
-		/* 黄色拼图块上黑字对比度足够，浅色块加一点白色描边提升可读性 */
-		text-shadow: 0 1rpx 3rpx rgba(255, 255, 255, 0.6);
-	}
-
-	.used-tag {
-		position: absolute;
-		right: 12rpx;
-		bottom: 10rpx;
-		padding: 2rpx 10rpx;
-		border-radius: 10rpx;
-		background: rgba(255, 255, 255, 0.78);
-		font-size: 18rpx;
-		color: #B0752B;
-	}
-
-	.slot-wrap {
+	.quad-no {
 		position: absolute;
 		z-index: 5;
-		width: 145rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.slot-label {
-		font-size: 20rpx;
-		color: #6B5B45;
-		height: 30rpx;
-		line-height: 30rpx;
-	}
-
-	.slot {
-		width: 145rpx;
-		height: 145rpx;
-		margin-top: 8rpx;
-		border-radius: 16rpx;
-		background: #FFE986;
-		border: 4rpx dashed #E0BE71;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.slot.filled {
-		background: #FFF3C4;
-		border-style: solid;
-		border-color: #EE8B3E;
-	}
-
-	.slot-plus {
-		font-size: 44rpx;
-		color: #C9A85E;
-	}
-
-	.slot-no {
-		font-size: 64rpx;
+		line-height: 140rpx;
+		text-align: center;
+		font-size: 128rpx;
 		font-weight: 600;
-		color: #4A3B2A;
+		color: #1A1A1A;
 	}
 
 	.submit {
@@ -421,6 +359,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
+		height: 1024rpx;
 		background: #FFFFFF;
 		border-radius: 40rpx 40rpx 0 0;
 		padding: 28rpx 30rpx 40rpx;
@@ -438,6 +377,68 @@
 		font-size: 28rpx;
 		font-weight: 600;
 		color: #3D3428;
+	}
+
+	.tray-close {
+		font-size: 44rpx;
+		color: #A99878;
+		padding: 0 10rpx;
+	}
+
+	.tray-grid {
+		margin-top: 12rpx;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+
+	.card-cell {
+		width: 330rpx;
+		height: 430rpx;
+		margin-bottom: 16rpx;
+		padding: 16rpx 18rpx;
+		box-sizing: border-box;
+		border-radius: 24rpx;
+		border: 3rpx solid #F3E7CC;
+		background: #FFFDF8;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.card-art {
+		position: relative;
+		height: 150rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.piece {
+		width: 140rpx;
+	}
+
+	.badge {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 56rpx;
+		height: 56rpx;
+	}
+
+	.card-text {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+		line-height: 1.55;
+		color: #4A3B2A;
+		overflow: hidden;
+	}
+
+	.card-empty {
+		width: 100%;
+		padding: 60rpx 0;
+		text-align: center;
+		font-size: 26rpx;
+		color: #A99878;
 	}
 
 	.tray-career {
