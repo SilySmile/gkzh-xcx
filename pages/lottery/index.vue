@@ -91,7 +91,7 @@ export default {
             loading: true,
             error: null,
             spinning: false,
-            activeIndex: 0,
+            activeIndex: -1,
             timer: null,
             loadedPrizeImages: [], // 预加载后的本地图片路径
             preloadingImages: false,
@@ -408,7 +408,8 @@ export default {
         },
 
         executeLotteryAnimation(winIndex) {
-            let current = this.activeIndex;
+            // 刚进入页面时没有高亮格子（activeIndex=-1），动画从第 1 格起转，避免出现负数步数。
+            let current = this.activeIndex >= 0 ? this.activeIndex : 0;
             let rounds = 3; // 至少转3圈
             // 确保总步数能准确停在winIndex位置
             let totalSteps = rounds * this.prizes.length + (winIndex - current);
