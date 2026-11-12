@@ -294,22 +294,22 @@
 	.card-cell {
 		position: absolute;
 		z-index: 4;
-		padding: 42rpx 16rpx 16rpx;
+		/* 顶部留出编号徽章的高度，正文从徽章下方开始 */
+		padding: 62rpx 20rpx 16rpx;
 		box-sizing: border-box;
 		border-radius: 22rpx;
-		background: rgba(255, 255, 255, 0.82);
-		border: 4rpx solid rgba(255, 255, 255, 0.9);
+		/* 文字直接压在拼图色块上，不再加白色半透明卡片底板 */
+		background: transparent;
 		overflow: hidden;
 	}
 
 	.card-cell.selected {
-		border-color: #EE8B3E;
-		background: rgba(255, 246, 236, 0.96);
-		box-shadow: 0 8rpx 20rpx rgba(214, 126, 40, 0.24);
+		border: 6rpx solid #FFFFFF;
+		box-shadow: 0 0 16rpx rgba(255, 255, 255, 0.9);
 	}
 
 	.card-cell.used {
-		opacity: 0.45;
+		opacity: 0.4;
 	}
 
 	.badge {
@@ -323,13 +323,19 @@
 	.card-text {
 		font-size: 21rpx;
 		line-height: 1.45;
-		color: #3D3428;
+		font-weight: 500;
+		color: #1F1B16;
+		/* 黄色拼图块上黑字对比度足够，浅色块加一点白色描边提升可读性 */
+		text-shadow: 0 1rpx 3rpx rgba(255, 255, 255, 0.6);
 	}
 
 	.used-tag {
 		position: absolute;
 		right: 12rpx;
 		bottom: 10rpx;
+		padding: 2rpx 10rpx;
+		border-radius: 10rpx;
+		background: rgba(255, 255, 255, 0.78);
 		font-size: 18rpx;
 		color: #B0752B;
 	}
