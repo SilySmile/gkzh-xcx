@@ -1,6 +1,6 @@
 // 职得一拼（zdyp）设计稿素材：整页背景 + 拼图碎片 + 编号徽章。
 // 素材按内容哈希发布到远程目录，改动后重新上传并替换 BASE 即可。
-const BASE = 'https://zhiye.sxgkzh.cn/imgs/zdyp/8b1ab3c67d4c'
+const BASE = 'https://zhiye.sxgkzh.cn/imgs/zdyp/141c1b09b552'
 
 export default {
 	// 拼图1：落地页（logo + 职得一拼 + 开始游戏/查看报告）
