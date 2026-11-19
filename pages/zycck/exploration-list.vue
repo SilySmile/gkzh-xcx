@@ -31,11 +31,11 @@
 						<text v-if="!items.length"
 							class="empty-tip">没关系，今天不一定要找到“最想探索的职业”。\n你刚刚已经认识了一个职业，未来还可以继续探索更多可能。</text>
 
-						<button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="listFull"
+						<!-- <button v-if="!readOnly" class="add-other" hover-class="button-hover" :disabled="listFull"
 							@click="toggleOther">
 							<text>{{ listFull ? '清单已满，请先删除' : (showOther ? '收起其他职业' : '添加其他职业') }}</text>
 							<text v-if="!listFull" class="add-symbol">{{ showOther ? '−' : '＋' }}</text>
-						</button>
+						</button> -->
 
 						<view v-if="showOther && !readOnly && !listFull" class="other-panel">
 							<picker mode="selector" :range="categories" range-key="name" @change="categoryChanged">

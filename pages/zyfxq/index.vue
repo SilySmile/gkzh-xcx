@@ -302,7 +302,7 @@
 				const no = Number(cell.cellNo)
 				const label = [3, 9, 15].includes(no) ? '情景任务卡' : ([6, 10, 12, 16, 18].includes(no) ? '职业问答' : (no === 19 ? '终点' : ''))
 				return String(cell.cellColor).toUpperCase() === '#' + colors[no - 1] && (cell.cellLabel || '') === label
-					? `${assets.boardBase}/cell-${no}.png` : ''
+					? `${this.assets.boardBase}/cell-${no}.png` : ''
 			},
 			cellClass(cell) {
 				// 小程序不支持对象形式的 :class，这里统一返回空格分隔的类名字符串。
@@ -511,6 +511,7 @@
 </script>
 
 <style scoped>
+	/* 棋盘页面样式需与模板一起编译，保持作用域标识一致。 */
 	.page {
 		position: relative;
 		min-height: 100vh;

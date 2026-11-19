@@ -1,13 +1,9 @@
-<template>
+﻿<template>
 	<view class="page">
 		<view class="stage">
 			<image class="stage-bg" :src="assets.bgStart" mode="scaleToFill"></image>
 
 			<ZytjHeader />
-
-			<view v-if="hint" class="hint">
-				<text class="hint-text">{{ hint }}</text>
-			</view>
 
 			<view class="start-btn" :class="{ pressed: pressing }" @touchstart="pressing = true"
 				@touchend="pressing = false" @touchcancel="pressing = false" @click="start">
@@ -35,8 +31,7 @@
 			recordId: '',
 			record: {},
 			loading: false,
-			pressing: false,
-			hint: ''
+			pressing: false
 		}),
 		async onLoad(options) {
 			this.instanceId = options.instanceId || options.activityId || ''
@@ -71,9 +66,12 @@
 					this.record = res.data || {}
 					const result = this.record.result || null
 					if (this.record.status === 'finished' && result) {
-						this.hint = '你的人格类型是 ' + (result.typeCode || '') + '，可查看职业探索卡'
-					} else {
-						this.hint = ''
+						// 背景图已包含页内文案，这里只用 toast 提示，避免文字叠在插画上。
+						uni.showToast({
+							title: '你的人格类型是 ' + (result.typeCode || '') + '，已生成探索卡',
+							icon: 'none',
+							duration: 2200
+						})
 					}
 				} catch (e) {
 					uni.showToast({ title: userMessage(e, '探究信息加载失败，请重新扫码'), icon: 'none' })
@@ -135,23 +133,6 @@
 		height: 1623rpx;
 	}
 
-	.hint {
-		position: absolute;
-		left: 75rpx;
-		right: 75rpx;
-		top: 1370rpx;
-		padding: 12rpx 20rpx;
-		border-radius: 16rpx;
-		background: rgba(255, 255, 255, 0.78);
-	}
-
-	.hint-text {
-		display: block;
-		text-align: center;
-		font-size: 22rpx;
-		line-height: 1.5;
-		color: #3a4a7a;
-	}
 
 	.start-btn {
 		position: absolute;

@@ -5,7 +5,7 @@
 
 			<ZytjHeader />
 
-			<!-- 人格类型卡 -->
+			<!-- 人格类型卡：设计稿 x78..672 / y290..700 -->
 			<view class="type-card">
 				<image class="type-caption" :src="assets.captionType" mode="widthFix"></image>
 				<view class="letters">
@@ -14,24 +14,24 @@
 				</view>
 			</view>
 
-			<!-- 三段解读 -->
+			<!-- 三段解读：设计稿 x38..712 / y765..1420 -->
 			<view class="content-card">
 				<view class="section">
-					<image class="section-label" :src="assets.labelFeature" mode="widthFix"></image>
+					<image class="section-label" :src="assets.labelFeature" mode="heightFix"></image>
 					<text class="section-text">{{ result.feature || '暂无性格特点' }}</text>
 				</view>
 				<view class="section">
-					<image class="section-label" :src="assets.labelField" mode="widthFix"></image>
+					<image class="section-label" :src="assets.labelField" mode="heightFix"></image>
 					<text class="section-text">{{ result.careerField || '暂无适合职业领域' }}</text>
 				</view>
 				<view class="section">
-					<image class="section-label" :src="assets.labelCareer" mode="widthFix"></image>
+					<image class="section-label" :src="assets.labelCareer" mode="heightFix"></image>
 					<text class="section-text">{{ result.typicalCareers || '暂无典型职业' }}</text>
 				</view>
 				<view v-if="result.isTimeout" class="timeout-tip">本局到点自动提交，未选满的列已按该列第一个物品补全。</view>
 			</view>
 
-			<!-- 保存职业探索卡 -->
+			<!-- 保存职业探索卡：设计稿 x139..610 / y1462..1554 -->
 			<view class="save-btn" :class="{ pressed: pressing }" @touchstart="pressing = true"
 				@touchend="pressing = false" @touchcancel="pressing = false" @click="savePoster">
 				<image class="save-img" :src="assets.btnSave" mode="scaleToFill"></image>
@@ -52,6 +52,7 @@
 	/**
 	 * 职愿探究第三页：职业探索卡。
 	 * 展示四位人格类型代码与性格特点/适合职业领域/典型职业，并支持保存为图片。
+	 * 页面按 750×1623 设计稿绝对定位；标题与礼盒插画由背景图承担，禁止重复渲染。
 	 */
 	export default {
 		components: { ZytjHeader },
@@ -138,40 +139,40 @@
 				const ctx = uni.createCanvasContext('zytjPoster', this)
 				ctx.drawImage(bg.path, 0, 0, 750, 1624)
 
-				// 类型卡
+				// 类型卡（与页面同位置）
 				ctx.setFillStyle('#ffffff')
-				ctx.fillRect(72, 360, 606, 300)
+				ctx.fillRect(78, 290, 594, 410)
 				ctx.setFillStyle('#7f8ff0')
-				ctx.fillRect(72, 360, 606, 8)
-				ctx.drawImage(caption.path, 195, 392, 360, 44)
-				const letterWidth = 96
+				ctx.fillRect(78, 290, 594, 8)
+				ctx.drawImage(caption.path, (750 - 330) / 2, 420, 330, 40)
+				const letterWidth = 104
 				const gap = 22
 				const totalWidth = this.letters.length * letterWidth + (this.letters.length - 1) * gap
 				let left = (750 - totalWidth) / 2
 				for (let index = 0; index < letterImages.length; index++) {
-					ctx.drawImage(letterImages[index].path, left, 460, letterWidth, 110)
+					ctx.drawImage(letterImages[index].path, left, 508, letterWidth, 114)
 					left += letterWidth + gap
 				}
 
 				// 解读卡
 				ctx.setFillStyle('#ffffff')
-				ctx.fillRect(55, 700, 640, 660)
-				let y = 740
+				ctx.fillRect(38, 765, 674, 655)
+				let y = 820
 				const sections = [
 					{ image: labelFeature, text: this.result.feature },
 					{ image: labelField, text: this.result.careerField },
 					{ image: labelCareer, text: this.result.typicalCareers }
 				]
 				for (const section of sections) {
-					ctx.drawImage(section.image.path, 92, y, 260, 72)
-					y = this.drawParagraph(ctx, section.text || '暂无内容', 92, y + 116, 566, 28, 44, '#2b3550')
-					y += 46
+					ctx.drawImage(section.image.path, 70, y, 210, 56)
+					y = this.drawParagraph(ctx, section.text || '暂无内容', 70, y + 100, 560, 28, 44, '#2b3550')
+					y += 60
 				}
 
 				ctx.setTextAlign('center')
 				ctx.setFontSize(22)
 				ctx.setFillStyle('rgba(255,255,255,0.92)')
-				ctx.fillText('职愿探究 · 我的职业探索卡', 375, 1420)
+				ctx.fillText('职愿探究 · 我的职业探索卡', 375, 1580)
 				ctx.setTextAlign('left')
 
 				// draw 是异步渲染，必须等回调后再导出，否则拿到空画布。
@@ -298,10 +299,9 @@
 	.stage {
 		position: relative;
 		width: 750rpx;
-		min-height: 1623rpx;
+		height: 1623rpx;
 		margin: 0 auto;
-		padding-bottom: 40rpx;
-		box-sizing: border-box;
+		overflow: hidden;
 	}
 
 	.stage-bg {
@@ -312,64 +312,74 @@
 		height: 1623rpx;
 	}
 
+	/* 人格类型卡：设计稿实测 x89..660 / y385..675 */
 	.type-card {
-		position: relative;
+		position: absolute;
+		left: 89rpx;
+		top: 385rpx;
 		z-index: 10;
-		width: 606rpx;
-		margin: 0 auto;
-		padding: 30rpx 0 26rpx;
+		width: 571rpx;
+		height: 290rpx;
+		padding-top: 35rpx;
 		box-sizing: border-box;
-		border-top: 8rpx solid #7f8ff0;
 		border-radius: 28rpx;
 		background: #ffffff;
-		box-shadow: 0 8rpx 22rpx rgba(90, 110, 180, 0.14);
-		margin-top: calc(var(--status-bar-height) + 300rpx);
+		box-shadow: 0 8rpx 22rpx rgba(90, 110, 180, 0.16);
 	}
 
 	.type-caption {
 		display: block;
-		width: 360rpx;
+		width: 320rpx;
 		margin: 0 auto;
 	}
 
 	.letters {
 		display: flex;
 		justify-content: center;
-		margin-top: 20rpx;
+		margin-top: 50rpx;
 	}
 
 	.letter {
 		width: 96rpx;
-		height: 110rpx;
-		margin: 0 11rpx;
+		height: 106rpx;
+		margin: 0 6rpx;
 	}
 
+	/* 三段解读卡：设计稿实测 x33..717 / y780..1420 */
 	.content-card {
-		position: relative;
+		position: absolute;
+		left: 33rpx;
+		top: 780rpx;
 		z-index: 10;
-		width: 640rpx;
-		margin: 34rpx auto 0;
-		padding: 34rpx 30rpx 24rpx;
+		width: 684rpx;
+		min-height: 640rpx;
+		padding: 27rpx 40rpx 24rpx;
 		box-sizing: border-box;
+		border-top: 6rpx solid #aac6f2;
 		border-radius: 28rpx;
 		background: #ffffff;
 		box-shadow: 0 8rpx 22rpx rgba(90, 110, 180, 0.12);
 	}
 
 	.section {
-		margin-bottom: 26rpx;
+		margin-bottom: 40rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 
 	.section-label {
-		width: 260rpx;
+		height: 86rpx;
 	}
 
 	.section-text {
 		display: block;
-		margin-top: 14rpx;
-		font-size: 28rpx;
-		line-height: 1.75;
+		width: 100%;
+		margin-top: 8rpx;
+		font-size: 32rpx;
+		line-height: 1.6;
 		color: #2b3550;
+		text-align: center;
 	}
 
 	.timeout-tip {
@@ -382,12 +392,14 @@
 		line-height: 1.6;
 	}
 
+	/* 保存按钮：设计稿 x139..610 / y1462..1554 */
 	.save-btn {
-		position: relative;
-		z-index: 10;
-		width: 520rpx;
-		height: 120rpx;
-		margin: 36rpx auto 0;
+		position: absolute;
+		left: 139rpx;
+		top: 1462rpx;
+		z-index: 20;
+		width: 472rpx;
+		height: 93rpx;
 		transition: transform 0.12s ease;
 	}
 
@@ -396,14 +408,15 @@
 	}
 
 	.save-img {
-		width: 520rpx;
-		height: 120rpx;
+		width: 472rpx;
+		height: 93rpx;
 	}
 
 	.retry {
-		position: relative;
-		z-index: 10;
-		margin: 22rpx auto 0;
+		position: absolute;
+		left: 255rpx;
+		top: 1570rpx;
+		z-index: 20;
 		width: 240rpx;
 		text-align: center;
 		font-size: 26rpx;

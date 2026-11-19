@@ -5,14 +5,11 @@
 
 			<ZytjHeader />
 
-			<!-- 倒计时 -->
+			<!-- 倒计时（标题与副标题已包含在背景图中，页面不再重复渲染） -->
 			<view class="timer" :class="{ urgent: remaining <= 10 }">
 				<image class="timer-clock" :src="assets.clock" mode="aspectFit"></image>
 				<text class="timer-text">{{ timerText }}</text>
 			</view>
-
-			<view class="title">挑选你的心愿物品</view>
-			<view class="subtitle">每列选择一件</view>
 
 			<!-- 2 行 4 列橱窗 -->
 			<view class="card">
@@ -56,6 +53,7 @@
 	/**
 	 * 职愿探究第二页：橱窗选择。
 	 * 2 行 4 列，每列对应一个 MBTI 维度，每列只能选一件；30 秒到点自动补全并提交。
+	 * 页面按 750×1623 设计稿绝对定位；标题与副标题由背景图承担，禁止在此重复渲染文字。
 	 */
 	export default {
 		components: { ZytjHeader },
@@ -196,7 +194,7 @@
 				} catch (e) {
 					this.submitting = false
 					uni.showToast({ title: userMessage(e, '提交选择失败，请稍后重试'), icon: 'none' })
-					// 提交失败后允许继续选择；已超时则重新计时以避免立刻再次触发。
+					// 提交失败后允许继续选择；重新计时以免立刻再次触发超时。
 					this.beginCountdown()
 				}
 			},
@@ -218,10 +216,9 @@
 	.stage {
 		position: relative;
 		width: 750rpx;
-		min-height: 1623rpx;
+		height: 1623rpx;
 		margin: 0 auto;
-		padding-bottom: 30rpx;
-		box-sizing: border-box;
+		overflow: hidden;
 	}
 
 	.stage-bg {
@@ -232,13 +229,14 @@
 		height: 1623rpx;
 	}
 
+	/* 倒计时：设计稿 x189..558 / y100..170；右侧留出微信胶囊位置，宽度收窄到 340 */
 	.timer {
-		position: relative;
-		z-index: 10;
-		width: 380rpx;
-		margin: 0 auto;
-		padding-top: calc(var(--status-bar-height) + 90rpx);
-		height: 64rpx;
+		position: absolute;
+		left: 200rpx;
+		top: 106rpx;
+		z-index: 20;
+		width: 350rpx;
+		height: 68rpx;
 		border-radius: 34rpx;
 		background: linear-gradient(180deg, #8f8cf0 0%, #7a76ea 100%);
 		display: flex;
@@ -252,54 +250,40 @@
 	}
 
 	.timer-clock {
-		width: 44rpx;
-		height: 52rpx;
-		margin-right: 14rpx;
+		width: 42rpx;
+		height: 50rpx;
+		margin-right: 12rpx;
 	}
 
 	.timer-text {
-		font-size: 40rpx;
+		font-size: 38rpx;
 		font-weight: 700;
 		letter-spacing: 3rpx;
 		color: #ffffff;
 	}
 
-	.title {
-		position: relative;
-		z-index: 10;
-		margin-top: 46rpx;
-		text-align: center;
-		font-size: 44rpx;
-		font-weight: 700;
-		color: #2f3f6d;
-		letter-spacing: 2rpx;
-	}
-
-	.subtitle {
-		position: relative;
-		z-index: 10;
-		margin-top: 12rpx;
-		text-align: center;
-		font-size: 28rpx;
-		color: #5a6a94;
-	}
-
+	/* 白色橱窗卡片：设计稿 x22..728 / y430..1235 */
 	.card {
-		position: relative;
+		position: absolute;
+		left: 22rpx;
+		top: 430rpx;
 		z-index: 10;
-		margin: 46rpx auto 0;
-		width: 700rpx;
-		padding: 30rpx 20rpx 24rpx;
+		width: 706rpx;
+		height: 805rpx;
+		padding: 107rpx 24rpx 0;
 		box-sizing: border-box;
 		background: #ffffff;
-		border-radius: 36rpx;
-		box-shadow: 0 8rpx 24rpx rgba(90, 110, 180, 0.12);
+		border-radius: 40rpx;
+		box-shadow: 0 8rpx 24rpx rgba(90, 110, 180, 0.10);
 	}
 
 	.grid-row {
 		display: flex;
 		justify-content: space-between;
-		margin-bottom: 18rpx;
+	}
+
+	.grid-row + .grid-row {
+		margin-top: 70rpx;
 	}
 
 	.cell {
@@ -309,69 +293,69 @@
 		align-items: center;
 	}
 
+	/* 158×135 与设计稿物品图比例（1.17）一致，避免 aspectFill 裁切 */
 	.cell-image-box {
-		width: 148rpx;
-		height: 126rpx;
-		border-radius: 20rpx;
+		width: 158rpx;
+		height: 135rpx;
+		border-radius: 22rpx;
 		overflow: hidden;
-		box-sizing: border-box;
-		border: 4rpx solid transparent;
 	}
 
 	.cell-image-box.checked {
-		border-color: #6d7cf5;
-		box-shadow: 0 4rpx 12rpx rgba(109, 124, 245, 0.35);
+		box-shadow: inset 0 0 0 4rpx #6d7cf5, 0 4rpx 12rpx rgba(109, 124, 245, 0.30);
 	}
 
 	.cell-image {
-		width: 140rpx;
-		height: 118rpx;
-		border-radius: 18rpx;
+		width: 158rpx;
+		height: 135rpx;
 	}
 
 	.cell-empty {
-		width: 140rpx;
-		height: 118rpx;
-		border-radius: 18rpx;
+		width: 158rpx;
+		height: 135rpx;
 		background: #f2f4f9;
 	}
 
 	.cell-name {
-		margin-top: 10rpx;
-		height: 62rpx;
-		line-height: 31rpx;
-		font-size: 24rpx;
+		margin-top: 18rpx;
+		height: 74rpx;
+		line-height: 37rpx;
+		font-size: 26rpx;
 		color: #33406b;
 		text-align: center;
 		overflow: hidden;
 	}
 
 	.cell-radio {
-		margin-top: 6rpx;
+		margin-top: 22rpx;
 		width: 40rpx;
 		height: 40rpx;
 	}
 
+	/* 探索进度：设计稿 y1300..1350 */
 	.progress-line {
-		position: relative;
+		position: absolute;
+		left: 30rpx;
+		top: 1306rpx;
 		z-index: 10;
 		display: flex;
 		align-items: center;
-		width: 700rpx;
-		margin: 30rpx auto 0;
+		width: 710rpx;
+		height: 48rpx;
 	}
 
 	.progress-label {
-		width: 150rpx;
+		width: 140rpx;
+		flex: 0 0 140rpx;
 	}
 
 	.progress-track {
 		position: relative;
 		flex: 1;
 		height: 14rpx;
-		margin: 0 16rpx;
+		margin: 0 20rpx;
 		border-radius: 7rpx;
-		background: #e3e6f5;
+		background: #d8d5f0;
 	}
 
 	.progress-fill {
@@ -396,18 +380,21 @@
 	}
 
 	.progress-percent {
-		width: 76rpx;
+		width: 80rpx;
+		flex: 0 0 80rpx;
 		text-align: right;
-		font-size: 26rpx;
+		font-size: 28rpx;
 		color: #3d4c7c;
 	}
 
+	/* 确认选择：设计稿实测 x199..549 / y1462..1551 */
 	.confirm-btn {
-		position: relative;
+		position: absolute;
+		left: 199rpx;
+		top: 1462rpx;
 		z-index: 10;
-		width: 460rpx;
-		height: 120rpx;
-		margin: 34rpx auto 0;
+		width: 351rpx;
+		height: 90rpx;
 		transition: transform 0.12s ease;
 	}
 
@@ -416,7 +403,7 @@
 	}
 
 	.confirm-img {
-		width: 460rpx;
-		height: 120rpx;
+		width: 351rpx;
+		height: 90rpx;
 	}
 </style>
